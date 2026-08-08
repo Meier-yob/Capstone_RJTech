@@ -1,0 +1,711 @@
+@using Capstone_RJTech.Controllers
+@model IEnumerable<Capstone_RJTech.Models.Product>
+@{
+    ViewData["Title"] = "Product Management";
+    ViewData["Description"] = "Manage your products, including adding, editing, and viewing details.";
+
+    Layout = "_Layout";
+    var categories = ViewBag.Categories as List<Capstone_RJTech.Models.ProductCategory> ?? new List<Capstone_RJTech.Models.ProductCategory>();
+
+    var totalItems = Model.Count();
+    var reorderItems = Model.Count(x => x.product_quantity <= x.reorder_level && x.product_quantity > 0);
+    var outOfStockItems = Model.Count(x => x.product_quantity == 0 || x.product_status == "Out of Stock");
+}
+
+<div class="container-fluid px-4 py-3 bg-light">
+
+    <!-- Top Action Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h4 mb-0 text-dark fw-bold">Items</h3>
+        <div class="d-flex align-items-center gap-2">
+
+            <button type="button" class="btn btn-outline-teal btn-sm px-3 text-teal fw-semibold ms-2" id="btnTriggerQuickEdit">
+                <i class="bi bi-list-task me-1"></i> QUICK EDIT
+            </button>
+
+            <!-- Quick Add Toggle -->
+            <button type="button" class="btn btn-outline-teal btn-sm px-3 text-teal fw-semibold ms-2" id="btnToggleQuickAdd">
+                <i class="bi bi-plus-square me-1"></i> QUICK ADD
+            </button>
+
+            <!-- Create Product Modal Button -->
+            <button type="button" class="btn btn-teal btn-sm px-3 fw-semibold text-white d-flex align-items-center gap-1" id="btnOpenAddProduct">
+                <i class="bi bi-plus-lg me-1"></i> New Item
+            </button>
+        </div>
+    </div>
+
+    <!-- Upper Filter Card -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body p-3">
+            <div class="row g-3 align-items-center mb-2">
+                <!-- Search Input -->
+                <div class="col-md-5">
+                    <div class="position-relative">
+                        <label for="searchInput" class="form-label text-muted fs-8 mb-0 d-block">Search items</label>
+                        <div class="input-group input-group-sm border-bottom">
+                            <span class="input-group-text bg-transparent border-0 ps-0 text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" id="searchInput" class="form-control border-0 bg-transparent shadow-none" placeholder="">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Filter Dropdown -->
+                <div class="col-md-3">
+                    <div class="d-flex align-items-center">
+                        <div class="w-100">
+                            <select id="filterCategory" class="form-select form-select-sm border-0 border-bottom bg-transparent shadow-none">
+                                <option value="">Category</option>
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.category_name">@cat.category_name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status / Type Filter Dropdown -->
+                <div class="col-md-2">
+                    <select id="filterStatus" class="form-select form-select-sm border-0 border-bottom bg-transparent shadow-none">
+                        <option value="">Status</option>
+                        <option value="Available">Available</option>
+                        <option value="Low Stock">Low Stock</option>
+                        <option value="Out of Stock">Out of Stock</option>
+                        <option value="Pending Delivery">Pending Delivery</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- Checkbox Bar -->
+            <div class="pt-2">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="chkBatches">
+                    <label class="form-check-label fs-7 text-secondary" for="chkBatches">Only Items With Batches</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Badges Pill Bar -->
+    <div class="d-flex gap-2 mb-3">
+        <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 active filter-badge" data-filter="all">
+            All Items:<span class="fw-bold ms-1" id="cntAll">@totalItems</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 filter-badge" data-filter="lowstock">
+            Low Stock:<span class="fw-bold ms-1" id="cntLow">@Model.Count(x => x.product_status == "Low Stock")</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 filter-badge" data-filter="outofstock">
+            Out of Stock:<span class="fw-bold ms-1" id="cntOut">@Model.Count(x => x.product_status == "Out of Stock")</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 filter-badge" data-filter="pendingdelivery">
+            Pending Delivery:<span class="fw-bold ms-1" id="cntPending">@Model.Count(x => x.product_status == "Pending Delivery")</span>
+        </button>
+    </div>
+
+    <!-- Quick Add Inline Bar -->
+    <div id="quickAddContainer" class="card border-0 shadow-sm mb-3 border-start border-4 border-teal d-none">
+        <div class="card-body bg-light-gray py-2 px-3">
+            <form id="quickAddForm" class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <button type="button" class="btn btn-teal btn-sm rounded-circle p-0 text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" id="quickDescription" name="product_description" class="form-control form-control-sm bg-white" placeholder="Item name" required>
+                </div>
+
+                <!-- Replaced SKU field with Category Dropdown -->
+                <div class="col-md-2">
+                    <select id="quickCategory" name="category_ID" class="form-select form-select-sm bg-white" required>
+                        <option value="" disabled selected>Category</option>
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat.category_ID">@cat.category_name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0 text-muted">Rate <br> ₱</span>
+                        <input type="number" step="0.01" id="quickPrice" name="Product_price" class="form-control border-start-0 bg-white" placeholder="0.00" required>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" id="btnSubmitQuickAdd" class="btn btn-teal btn-sm fw-bold px-3 text-white">
+                        <i class="bi bi-plus-lg me-1"></i> ADD
+                    </button>
+                </div>
+                <div class="col-auto">
+                    <span class="text-muted fs-8">Press Enter to add.</span>
+                </div>
+                <div class="col-auto ms-auto">
+                    <button type="button" id="btnCancelQuickAdd" class="btn btn-link text-secondary btn-sm p-0">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 custom-product-table" id="productTable">
+                <thead>
+                    <tr>
+                        <th class="fw-semibold ps-3">Product ID <i class="bi bi-caret-down-fill ms-1 fs-8"></i></th>
+                        <th class="fw-semibold">Category</th>
+                        <th class="fw-semibold">Brand</th>
+                        <th class="fw-semibold">Description</th>
+                        <th class="fw-semibold text-center">Total Qty</th>
+                        <th class="fw-semibold">Price</th>
+                        <th class="fw-semibold text-center">Reorder Lvl</th>
+                        <th class="fw-semibold text-center pe-3">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="product-row" data-id="@item.product_ID" data-reorder="@item.reorder_level" data-qty="@item.product_quantity" data-status="@item.product_status">
+                            <td class="fw-bold text-dark ps-3">@HomeController.GetFormattedCodeForProduct(item)</td>
+                            <td class="text-secondary fw-medium">@(item.Category?.category_name ?? "N/A")</td>
+                            <td class="text-secondary">@(string.IsNullOrEmpty(item.product_brand) ? "-" : item.product_brand)</td>
+                            <td class="text-secondary text-truncate" style="max-width: 250px;">@item.product_description</td>
+                            <td class="text-center fw-semibold text-dark">@item.product_quantity</td>
+                            <td class="fw-semibold text-dark">₱@item.Product_price.ToString("#,##0.00")</td>
+                            <td class="text-center text-muted">@item.reorder_level</td>
+                            <td class="text-center pe-3">
+                                @if (item.product_status == "Available")
+                                {
+                                    <span class="badge-pill-custom badge-available">
+                                        <i class="bi bi-dot me-1"></i>Available
+                                    </span>
+                                }
+                                else if (item.product_status == "Low Stock")
+                                {
+                                    <span class="badge-pill-custom badge-lowstock">
+                                        <i class="bi bi-dot me-1"></i>Low Stock
+                                    </span>
+                                }
+                                else if (item.product_status == "Out of Stock")
+                                {
+                                    <span class="badge-pill-custom badge-outofstock">
+                                        <i class="bi bi-dot me-1"></i>Out of Stock
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-pill-custom badge-pendingdelivery">
+                                        <i class="bi bi-dot me-1"></i>@item.product_status
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling matched to screenshot theme */
+    :root {
+        --teal-color: #0b6b5d;
+        --teal-hover: #085247;
+    }
+
+    .bg-light-gray {
+        background-color: #f7f9fa;
+    }
+
+    .text-teal {
+        color: var(--teal-color) !important;
+    }
+
+    .btn-teal {
+        background-color: var(--teal-color);
+        border-color: var(--teal-color);
+    }
+
+        .btn-teal:hover {
+            background-color: var(--teal-hover);
+            border-color: var(--teal-hover);
+        }
+
+    .btn-outline-teal {
+        color: var(--teal-color);
+        border-color: var(--teal-color);
+    }
+
+        .btn-outline-teal:hover {
+            background-color: var(--teal-color);
+            color: #ffffff !important;
+        }
+
+    .border-teal {
+        border-color: var(--teal-color) !important;
+    }
+
+    .custom-btn-outline {
+        color: #495057;
+        border-color: #ced4da;
+        background-color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+        .custom-btn-outline:hover {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+
+    .btn-light-pill {
+        background-color: #e9ecef;
+        color: #495057;
+        font-size: 0.75rem;
+    }
+
+        .btn-light-pill.active {
+            background-color: #dee2e6;
+            color: #212529;
+        }
+
+    .fs-7 {
+        font-size: 0.85rem;
+    }
+
+    .fs-8 {
+        font-size: 0.75rem;
+    }
+
+            .custom-product-table {
+                border-collapse: separate;
+                border-spacing: 0;
+                width: 100%;
+                font-size: 0.875rem;
+            }
+
+                .custom-product-table thead th {
+                    background-color: #f8f9fa;
+                    color: #495057;
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    padding: 12px 16px;
+                    border-bottom: 1px solid #e9ecef;
+                    white-space: nowrap;
+                }
+
+                .custom-product-table tbody tr {
+                    transition: background-color 0.2s ease;
+                    cursor: pointer;
+                }
+
+                    .custom-product-table tbody tr:hover {
+                        background-color: #f1f5f4 !important;
+                    }
+
+                    .custom-product-table tbody tr.table-active {
+                        background-color: #e6f2f0 !important;
+                    }
+
+                .custom-product-table tbody td {
+                    padding: 14px 16px;
+                    border-bottom: 1px solid #f1f3f5;
+                    vertical-align: middle;
+                }
+
+            /* Soft Pill Badges */
+            .badge-pill-custom {
+                font-size: 0.725rem;
+                font-weight: 600;
+                padding: 0.35em 0.8em;
+                border-radius: 50rem;
+                letter-spacing: 0.3px;
+                display: inline-block;
+            }
+
+            .badge-available {
+                background-color: #e6f4ea;
+                color: #137333;
+            }
+
+            .badge-outofstock {
+                background-color: #fce8e6;
+                color: #c5221f;
+            }
+
+            .badge-pending {
+                background-color: #fef7e0;
+                color: #b06000;
+            }
+    .badge-lowstock {
+        background-color: #fff4e5;
+        color: #b45f00;
+    }
+
+    .badge-pendingdelivery {
+        background-color: #f2f2f2;
+        color: #6c757d;
+    }
+
+</style>
+
+@await Html.PartialAsync("SelectedItemView")
+@await Html.PartialAsync("AddProductView")
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+    let originalData = {};
+    const editableInputs = '#detailBrand, #detailPrice, #detailDescription, #detailReorderLevel';
+
+    function renderStatusBadge(status) {
+        const map = {
+            'Available': 'badge-pill-custom badge-available',
+            'Low Stock': 'badge-pill-custom badge-lowstock',
+            'Out of Stock': 'badge-pill-custom badge-outofstock',
+            'Pending Delivery': 'badge-pill-custom badge-pendingdelivery'
+        };
+        const cls = map[status] || 'badge-pill-custom badge-pendingdelivery';
+        return `<span class="${cls}"><i class="bi bi-dot me-1"></i>${status}</span>`;
+    }
+
+    function buildProductRow(item) {
+        const brand = item.product_brand || '-';
+        const price = parseFloat(item.product_price).toFixed(2);
+        return `
+            <tr class="product-row" data-id="${item.product_ID}" data-reorder="${item.reorder_level}" data-qty="${item.product_quantity}" data-status="${item.product_status}">
+                <td class="fw-bold text-dark ps-3">${item.formatted_code}</td>
+                <td class="text-secondary fw-medium">${item.category_name}</td>
+                <td class="text-secondary">${brand}</td>
+                <td class="text-secondary text-truncate" style="max-width: 250px;">${item.product_description || ''}</td>
+                <td class="text-center fw-semibold text-dark">${item.product_quantity}</td>
+                <td class="fw-semibold text-dark">₱${price}</td>
+                <td class="text-center text-muted">${item.reorder_level}</td>
+                <td class="text-center pe-3">${renderStatusBadge(item.product_status)}</td>
+            </tr>`;
+    }
+
+    function populateSelectedItem(data) {
+        $('#detailTitle').text(data.formatted_code);
+        $('#detailSubtitle').text(data.product_description || '');
+        $('#detailProductID').val(data.formatted_code);
+        $('#detailBrand').val(data.product_brand || '');
+        $('#detailCategory').val(data.category_name);
+        $('#detailQuantity').val(data.product_quantity);
+        $('#detailPrice').val(parseFloat(data.product_price).toFixed(2));
+        $('#detailDescription').val(data.product_description || '');
+        $('#detailReorderLevel').val(data.reorder_level);
+
+        originalData = {
+            brand: data.product_brand || '',
+            price: parseFloat(data.product_price).toFixed(2),
+            description: data.product_description || '',
+            reorderLevel: data.reorder_level
+        };
+
+        $('#modalHealthBadge').html(renderStatusBadge(data.product_status));
+
+        let serialRows = '';
+        if (data.serials && data.serials.length > 0) {
+            $.each(data.serials, function(i, serial) {
+                serialRows += `<tr><td>${serial.serial_No}</td><td>${serial.batch_ID || '-'}</td></tr>`;
+            });
+        } else {
+            serialRows = '<tr><td colspan="2" class="text-center text-muted py-3">No serial numbers found.</td></tr>';
+        }
+        $('#serialQueueTable').html(serialRows);
+
+        $('#tab-overview')[0] && bootstrap.Tab.getOrCreateInstance($('#tab-overview')[0]).show();
+        $('#selectedProductOverlay').removeClass('d-none');
+    }
+
+    function loadProductDetails(productId) {
+        $.ajax({
+            url: '/Home/GetDetails',
+            type: 'GET',
+            data: { id: productId },
+            success: function(data) {
+                if (data.success) {
+                    populateSelectedItem(data);
+                } else {
+                    alert(data.message || 'Failed to retrieve item details.');
+                }
+            },
+            error: function() {
+                alert('Failed to retrieve item details.');
+            }
+        });
+    }
+
+    function closeSelectedPanel() {
+        $('#selectedProductOverlay').addClass('d-none');
+        $('.product-row').removeClass('table-active');
+    }
+
+    $('#btnCloseSelectedPanel').click(closeSelectedPanel);
+
+    // 1. QUICK ADD TOGGLE & FORM HANDLING
+    $('#btnToggleQuickAdd').click(function() {
+        $('#quickAddContainer').toggleClass('d-none');
+        if (!$('#quickAddContainer').hasClass('d-none')) {
+            $('#quickDescription').focus();
+        }
+    });
+
+    $('#btnCancelQuickAdd').click(function() {
+        $('#quickAddContainer').addClass('d-none');
+        $('#quickAddForm')[0].reset();
+    });
+
+    $('#quickAddForm').on('submit', function(e) {
+        e.preventDefault();
+        const btn = $('#btnSubmitQuickAdd');
+        btn.prop('disabled', true);
+
+        $.ajax({
+            url: '/Home/Create',
+            type: 'POST',
+            // Ensure required server fields are present. Provide a minimal price
+            // so quick-add can create a product without opening the full form.
+            data: $(this).serialize() + '&product_brand=Generic&reorder_level=0&Product_price=0.01',
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    var msg = response.errors && response.errors.length ? response.errors.join('\n') : (response.message || 'Quick add failed.');
+                    alert(msg);
+                }
+            },
+            error: function() { alert('Server error on quick add.'); },
+            complete: function() { btn.prop('disabled', false); }
+        });
+    });
+
+    // 2. QUICK EDIT BUTTON TRIGGER
+    $('#btnTriggerQuickEdit').click(function() {
+        const activeRow = $('.product-row.table-active');
+        if (activeRow.length === 0) {
+            alert('Please click and select a product row in the table first.');
+            return;
+        }
+        loadProductDetails(activeRow.data('id'));
+    });
+
+    // 3. ROW CLICK: OPENS PANEL & LOADS DETAILS
+    $(document).on('click', '.product-row', function() {
+        $('.product-row').removeClass('table-active');
+        $(this).addClass('table-active');
+        loadProductDetails($(this).data('id'));
+    });
+
+    // 4. CANCEL EDIT MODE HANDLER
+    $('#btnCancelEdit').click(function() {
+        $('#detailBrand').val(originalData.brand);
+        $('#detailPrice').val(originalData.price);
+        $('#detailDescription').val(originalData.description);
+        $('#detailReorderLevel').val(originalData.reorderLevel);
+        closeSelectedPanel();
+    });
+
+    // 5. SAVE EDITED PRODUCT DETAILS FROM PANEL
+    $('#btnSaveDetail').click(function() {
+        const activeRow = $('.product-row.table-active');
+        const productId = activeRow.data('id');
+        if (!productId) return;
+
+        const payload = {
+            product_ID: productId,
+            product_brand: $('#detailBrand').val(),
+            product_price: parseFloat($('#detailPrice').val()) || 0,
+            product_description: $('#detailDescription').val(),
+            product_status: 'Available',
+            reorder_level: parseInt($('#detailReorderLevel').val()) || 0
+        };
+
+        $('#btnSaveDetail').prop('disabled', true);
+        $('#saveSpinner').removeClass('d-none');
+
+        $.ajax({
+            url: '/Home/UpdateProductDetails',
+            type: 'POST',
+            data: payload,
+            success: function(res) {
+                if (res.success) {
+                    closeSelectedPanel();
+                    location.reload();
+                } else {
+                    alert('Error: ' + (res.message || 'Failed to update product.'));
+                }
+            },
+            error: function() { alert('Server error occurred while saving.'); },
+            complete: function() {
+                $('#btnSaveDetail').prop('disabled', false);
+                $('#saveSpinner').addClass('d-none');
+            }
+        });
+    });
+
+    // 6. DELETE PRODUCT HANDLER
+    $('#btnDeleteProduct').click(function() {
+        const activeRow = $('.product-row.table-active');
+        const productId = activeRow.data('id');
+        if (!productId) return;
+
+        if (confirm('Are you sure you want to delete this product?')) {
+            $.ajax({
+                url: '/Home/DeleteProduct',
+                type: 'POST',
+                data: { id: productId },
+                success: function(res) {
+                    if (res.success) {
+                        closeSelectedPanel();
+                        location.reload();
+                    } else {
+                        alert(res.message || 'Failed to delete product.');
+                    }
+                },
+                error: function() { alert('Server error occurred while deleting.'); }
+            });
+        }
+    });
+    // PLACEHOLDER_ANCHOR: no-op insertion point for future patches
+
+    // 7. FILTER BADGES & SEARCH COMBINED
+    $('.filter-badge').click(function() {
+        $('.filter-badge').removeClass('active');
+        $(this).addClass('active');
+        applyFilters();
+    });
+
+    $('#filterCategory, #filterStatus').change(function() {
+        applyFilters();
+    });
+
+    function applyFilters() {
+        const badgeFilter = $('.filter-badge.active').data('filter');
+        const categoryFilter = $('#filterCategory').val().toLowerCase();
+        const statusFilter = $('#filterStatus').val().toLowerCase();
+
+        $('#productTable tbody tr').each(function() {
+            const row = $(this);
+            if (!row.hasClass('product-row')) return;
+
+            const status = (row.data('status') || '').toString().toLowerCase();
+            const catText = row.find('td').eq(1).text().toLowerCase();
+
+            let showByBadge = true;
+            if (badgeFilter === 'lowstock') showByBadge = status === 'low stock';
+            else if (badgeFilter === 'outofstock') showByBadge = status === 'out of stock';
+            else if (badgeFilter === 'pendingdelivery') showByBadge = status === 'pending delivery';
+
+            const showByCat = !categoryFilter || catText.includes(categoryFilter);
+            const showByStatus = !statusFilter || status === statusFilter;
+
+            row.toggle(showByBadge && showByCat && showByStatus);
+        });
+    }
+
+    // 8. REAL-TIME SEARCH
+    let searchTimer;
+    $('#searchInput').on('keyup search input', function() {
+        clearTimeout(searchTimer);
+        var searchQuery = $(this).val();
+
+        searchTimer = setTimeout(function() {
+            $.ajax({
+                url: '/Home/SearchProducts',
+                type: 'GET',
+                data: { query: searchQuery },
+                success: function(response) {
+                    if (response.success) {
+                        var $tbody = $('#productTable tbody');
+                        $tbody.empty();
+
+                        if (response.data && response.data.length > 0) {
+                            $.each(response.data, function(i, item) {
+                                $tbody.append(buildProductRow(item));
+                            });
+                            applyFilters();
+                        } else {
+                            $tbody.html(`
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-3">
+                                        No products matching "<strong>${searchQuery}</strong>"
+                                    </td>
+                                </tr>`);
+                        }
+                    }
+                }
+            });
+        }, 300);
+    });
+        // Open Overlay
+        $('#btnOpenAddProduct').on('click', function() {
+            $('#addProductOverlay').removeClass('d-none');
+        });
+
+        // Hide Overlay and Reset Form
+        $('.btn-close-overlay').on('click', function() {
+            $('#addProductOverlay').addClass('d-none');
+            $('#createProductForm')[0].reset();
+            $('#generatedCode').val('');
+        });
+
+        // Category Code Generation
+        $(document).on('change', '#categorySelect', function() {
+            var categoryId = $(this).val();
+            $.ajax({
+                url: '/Home/GetNextCategoryCode',
+                type: 'GET',
+                data: { categoryId: categoryId },
+                success: function(response) {
+                    if (response.success) {
+                        $('#generatedCode').val(response.formattedCode);
+                    }
+                }
+            });
+        });
+
+        // Submit AJAX Form
+        $(document).on('submit', '#createProductForm', function(e) {
+            e.preventDefault();
+            var $btn = $('#btnSaveProduct');
+            var $spinner = $btn.find('.spinner-border');
+
+            $btn.prop('disabled', true);
+            $spinner.removeClass('d-none');
+
+            $.ajax({
+                url: '/Home/Create',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        // Reloads the table view data without full page navigation
+                        location.reload();
+                    } else {
+                        // Show detailed validation errors when available to help
+                        // the user correct missing/invalid fields.
+                        var msg = response.errors && response.errors.length ? response.errors.join('\n') : (response.message || 'Error saving product.');
+                        alert(msg);
+                    }
+                },
+                error: function() {
+                    alert('Server error occurred.');
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                    $spinner.addClass('d-none');
+                }
+            });
+        });
+});
+</script>

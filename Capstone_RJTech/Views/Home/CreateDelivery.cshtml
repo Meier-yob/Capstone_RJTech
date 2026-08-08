@@ -1,0 +1,232 @@
+<style>
+    :root {
+        --teal-color: #0b6b5d;
+        --teal-hover: #085247;
+    }
+
+    /* Right-Side Expanded Overlay Drawer (Wider for Intake Details) */
+    #createDeliveryOverlay {
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100vh;
+        width: 620px;
+        background: #fff;
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        z-index: 1055;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+        #createDeliveryOverlay .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eef2f1;
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        #createDeliveryOverlay .panel-body {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
+
+        #createDeliveryOverlay .panel-footer {
+            flex-shrink: 0;
+            background: #fff;
+            border-top: 1px solid #eef2f1;
+        }
+
+        /* Form Floating Labels & Inputs */
+        #createDeliveryOverlay .floating-group {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+            #createDeliveryOverlay .floating-group label {
+                position: absolute;
+                top: -9px;
+                left: 10px;
+                background: #ffffff;
+                padding: 0 4px;
+                font-size: 0.75rem;
+                color: #6c757d;
+                font-weight: 600;
+                z-index: 2;
+            }
+
+            #createDeliveryOverlay .floating-group .form-control,
+            #createDeliveryOverlay .floating-group .form-select {
+                font-size: 0.875rem;
+                border-radius: 6px;
+            }
+
+        #createDeliveryOverlay .section-title {
+            font-size: 0.725rem;
+            font-weight: 700;
+            color: #6c757d;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+    /* Product Auto-Complete Suggestion List */
+    #productSuggestions {
+        max-height: 220px;
+        overflow-y: auto;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-radius: 0 0 6px 6px;
+    }
+
+    /* Serial Inputs Dynamic Container */
+    #serialInputsContainer .input-group-text {
+        font-size: 0.75rem;
+        background-color: #f1f3f5;
+        font-weight: 600;
+    }
+
+    /* Action Buttons */
+    #createDeliveryOverlay .btn-teal {
+        background-color: var(--teal-color);
+        border-color: var(--teal-color);
+        color: #fff;
+    }
+
+        #createDeliveryOverlay .btn-teal:hover {
+            background-color: var(--teal-hover);
+            border-color: var(--teal-hover);
+            color: #fff;
+        }
+</style>
+
+<!-- RIGHT-SIDE EXPANDED OVERLAY: CREATE DELIVERY -->
+<div id="createDeliveryOverlay" class="d-none">
+    <div class="d-flex flex-column h-100">
+        <!-- PANEL HEADER -->
+        <div class="panel-header d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0 fw-bold text-dark">Receive Inventory</h5>
+                <small class="text-muted">Delivery Intake & Serial Matching</small>
+            </div>
+            <button type="button" class="btn btn-sm btn-light border rounded-circle p-1" id="btnCloseDeliveryPanel" aria-label="Close" style="width:32px; height:32px;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <!-- PANEL BODY -->
+        <div class="panel-body">
+
+            <!-- Step 1: Master Record Card -->
+            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-3">
+                    <div class="section-title mb-3"><i class="bi bi-card-heading me-1"></i> Delivery Header</div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="floating-group">
+                                <label>Delivery ID</label>
+                                <input type="text" id="txtDeliveryID" class="form-control bg-light"  readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-group">
+                                <label>Batch ID</label>
+                                <input type="text" id="txtBatchID" class="form-control bg-light" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-group mb-0">
+                                <label>Date Delivered*</label>
+                                <input type="date" id="dtDateDelivered" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="floating-group mb-0">
+                                <label>Received By*</label>
+                                <input type="text" id="txtReceivedBy" class="form-control" placeholder="Receiver Name">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Line Item Detail Entry -->
+            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-3">
+                    <div class="section-title mb-3"><i class="bi bi-box-seam me-1"></i> Line Item Selection</div>
+
+                    <div class="floating-group">
+                        <label>Search Product ID / Name*</label>
+                        <div class="position-relative">
+                            <input type="text" id="txtSearchProductID" class="form-control" >
+                            <div id="productSuggestions" class="list-group position-absolute w-100 z-3" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Product Context Box -->
+                    <div id="productContextPanel" class="bg-light rounded border p-3 mb-3 d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-1">
+                            <span class="badge bg-secondary" id="lblProductCode">-</span>
+                            <span class="text-muted fs-8">Stock: <strong class="text-dark" id="lblCurrentQty">0</strong></span>
+                        </div>
+                        <div class="fw-bold text-dark fs-7" id="lblBrandDesc">-</div>
+                        <div class="text-muted fs-8" id="lblCategory">-</div>
+                    </div>
+
+                    <div class="floating-group mb-0">
+                        <label>Quantity Received*</label>
+                        <input type="number" id="txtQtyReceived" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Serial Entry Section -->
+            <div class="card border-0 shadow-sm rounded-3 mb-3">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="section-title mb-0"><i class="bi bi-barcode me-1"></i> Serial Numbers Capture</div>
+                        <button class="btn btn-teal btn-sm fw-semibold px-3" id="btnValidateMatch" type="button">
+                            <i class="bi bi-check2-circle me-1"></i> Match Item
+                        </button>
+                    </div>
+
+                    <div id="serialInputsContainer" style="max-height: 180px; overflow-y: auto;">
+                        <p class="text-muted fs-8 mb-0 italic">Specify product quantity above to generate serial number fields.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Summary Table -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-3">
+                    <div class="section-title mb-2"><i class="bi bi-list-check me-1"></i> Matched Items Summary</div>
+                    <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-sm align-middle mb-0" id="tblSummary">
+                            <thead class="table-light fs-8">
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-center">Serials</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="fs-8">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PANEL FOOTER -->
+        <div class="panel-footer p-3 d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm px-3" id="btnCancelDeliveryPanel">Cancel</button>
+            <button type="button" class="btn btn-teal btn-sm px-4 fw-semibold" id="btnCompleteDelivery">
+                <i class="bi bi-box-arrow-in-down me-1"></i> Complete Delivery
+            </button>
+        </div>
+    </div>
+</div>

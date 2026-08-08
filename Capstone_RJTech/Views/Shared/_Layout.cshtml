@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DraftSYSTEM</title>
+
+    <!-- Bootstrap CSS & Icons -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/navigation.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/DraftSYSTEM.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="~/sources/logo-svg.png" alt="Logo">
+            <h5>RJTech Inventory</h5>
+        </div>
+        
+
+        <div class="nav-section-label">Main Menu</div>
+        <ul class="sidebar-nav">
+            <a asp-action="Dashboard" asp-controller="Home" class="nav-link-custom active">
+                <li class="nav-item">
+                        <i class="fa-solid fa-house-chimney"></i>
+                        <span>Dashboard</span>
+                </li>
+            </a>
+                <a asp-action="ProductManagement" asp-controller="Home" class="nav-link-custom">
+                    
+                     <li class="nav-item">
+                         <i class="fa-solid fa-box-archive"></i>
+                        <span>Product</span>
+                    </li>
+                </a>
+               
+           
+            <a asp-action="CategoryManagement" asp-controller="Home" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-list-ul"></i>
+                        <span>Category</span>
+                </li>
+            </a>
+            <a asp-action="DeliveryManagement" asp-controller="Home" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-truck"></i>
+                        <span>Delivery</span>
+                </li>
+            </a>
+            <!--            <a asp-action="ImportedProducts" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        <span>Imported Products</span>
+                </li>
+            </a>
+            -->
+
+        </ul>
+        <!--
+        <div class="nav-section-label">Analytics</div>
+        <ul class="sidebar-nav">
+            <a asp-action="Sales" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>Sales</span>
+                </li>
+            </a>
+            <a asp-action="Checkout" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-cash-register"></i>
+                        <span>Checkout</span>
+                </li>
+            </a>
+            <a asp-action="Refund" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                        <span>Refund</span>
+                </li>
+            </a>
+            <a asp-action="Stock" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-warehouse"></i>
+                        <span>Stock</span>
+                </li>
+            </a>
+        </ul>
+
+        <div class="nav-section-label">Notification</div>
+        <ul class="sidebar-nav">
+            <a asp-action="Notification" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-bell"></i>
+                        <span>Notification</span>
+                </li>
+            </a>
+            <a asp-action="Calendar" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <span>Calendar</span>
+                </li>
+            </a>
+             <a asp-action="Email" asp-controller="Dashboard" class="nav-link-custom">
+                <li class="nav-item">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                        <span>Email</span>
+                </li>
+            </a>
+        </ul>
+
+        <div class="nav-section-label" style="margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05);">System</div>
+        <ul class="sidebar-nav">
+            <li class="nav-item">
+                <a href="#" class="nav-link-custom dropdown-btn">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Account</span>
+                    <i class="fa-solid fa-chevron-right arrow"></i>
+                </a>
+                <ul class="dropdown-container">
+                    <li class="dropdown-item-custom">
+                        <a asp-action="AddRecoveryEmail" asp-controller="Account" class="dropdown-item-custom">
+                            <i class="fa-solid fa-user-edit"></i>
+                            <span>Update UserEmail</span>
+                        </a>
+                    </li>
+                    <li class="dropdown-item-custom">
+                        <a asp-action="ChangePassword" asp-controller="Account" class="dropdown-item-custom">
+                            <i class="fa-solid fa-cog"></i>
+                            <span>Account</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </li>
+            <li class="nav-item">
+                <a class="nav-link-custom text-danger" asp-controller="Account" asp-action="Logout">
+                    <i class="fa-solid fa-power-off"></i>
+                    <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+        -->
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+        <header class="top-navbar">
+            <div class="selected-page">
+                <h5>@ViewData["Title"]</h5>
+                <p>@ViewData["Description"]</p>
+            </div>
+           
+
+            <div class="user-profile">
+                <div class="d-flex align-items-center">
+                    <button class="btn d-lg-none me-2 p-0" id="sidebarToggle">
+                        <i class="fa-solid fa-bars fs-5"></i>
+                    </button>
+
+                    <div class="search-bar">
+                        <i class="fa-solid fa-magnifying-glass text-muted" style="font-size: 0.8rem;"></i>
+                        <input type="text" placeholder="Quick Search...">
+                    </div>
+                </div>
+                <div class="position-relative me-2">
+                    <i class="fa-regular fa-bell fs-5 text-muted"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                </div>
+                <div class="user-info d-none d-sm-block text-end">
+                    <h8 class="name">Rjtech</h8>
+                    <!-- <p class="role">@ViewBag.Role</p> -->
+                </div>
+                <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN VIEW AREA -->
+        <div class="main-content d-flex flex-column">
+            <main role="main" class="flex-grow-1">
+                @RenderBody()
+            </main>
+
+           
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+            // Prevent browser from navigating away when dropping files anywhere on the page
+            window.addEventListener("dragover", function(e) {
+                e.preventDefault();
+            }, false);
+
+            window.addEventListener("drop", function(e) {
+                e.preventDefault();
+            }, false);
+    </script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/navigation.js" asp-append-version="true"></script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

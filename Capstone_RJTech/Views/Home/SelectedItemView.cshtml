@@ -1,0 +1,236 @@
+﻿@* Selected product detail panel – included in ProductManagement *@
+
+<style>
+    #selectedProductOverlay {
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100vh;
+        width: 640px;
+        padding: 10px;
+        background: #fff;
+        box-shadow: -6px 0 18px rgba(0, 0, 0, 0.08);
+        z-index: 1050;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #selectedProductOverlay .panel-header {
+        padding: 14px 18px;
+        border-bottom: 1px solid #eef2f1;
+        flex-shrink: 0;
+    }
+
+    #selectedProductOverlay .panel-body {
+        padding: 18px;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    #selectedProductOverlay .panel-footer {
+        flex-shrink: 0;
+        background: #fff;
+    }
+
+    #selectedProductOverlay .nav-tabs-custom {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    #selectedProductOverlay .nav-tabs-custom .nav-link {
+        border: none;
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding-bottom: 8px;
+        margin-right: 16px;
+        background: transparent;
+    }
+
+    #selectedProductOverlay .nav-tabs-custom .nav-link.active {
+        color: var(--teal-color, #0b6b5d);
+        border-bottom: 2px solid var(--teal-color, #0b6b5d);
+        background: transparent;
+    }
+
+    #selectedProductOverlay .section-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    #selectedProductOverlay .floating-group {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+
+    #selectedProductOverlay .floating-group label {
+        position: absolute;
+        top: -9px;
+        left: 10px;
+        background: #ffffff;
+        padding: 0 4px;
+        font-size: 0.75rem;
+        color: #6c757d;
+        z-index: 2;
+    }
+
+    #selectedProductOverlay .floating-group .form-control,
+    #selectedProductOverlay .floating-group .form-select {
+        font-size: 0.875rem;
+    }
+
+    #selectedProductOverlay .badge-pill-custom {
+        font-size: 0.725rem;
+        font-weight: 600;
+        padding: 0.35em 0.8em;
+        border-radius: 50rem;
+        letter-spacing: 0.3px;
+        display: inline-block;
+    }
+
+    #selectedProductOverlay .badge-available {
+        background-color: #e6f4ea;
+        color: #137333;
+    }
+
+    #selectedProductOverlay .badge-lowstock {
+        background-color: #fff4e5;
+        color: #b45f00;
+    }
+
+    #selectedProductOverlay .badge-outofstock {
+        background-color: #fce8e6;
+        color: #c5221f;
+    }
+
+    #selectedProductOverlay .badge-pendingdelivery {
+        background-color: #f2f2f2;
+        color: #6c757d;
+    }
+
+    #selectedProductOverlay .serial-table thead th {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #6c757d;
+    }
+
+    #selectedProductOverlay .serial-table tbody td {
+        font-size: 0.85rem;
+        vertical-align: middle;
+    }
+
+    #selectedProductOverlay .btn-teal {
+        background-color: var(--teal-color, #0b6b5d);
+        border-color: var(--teal-color, #0b6b5d);
+        color: #fff;
+    }
+
+    #selectedProductOverlay .btn-teal:hover {
+        background-color: var(--teal-hover, #085247);
+        border-color: var(--teal-hover, #085247);
+        color: #fff;
+    }
+</style>
+
+<div id="selectedProductOverlay" class="d-none">
+    <div class="panel-header d-flex justify-content-between align-items-center">
+        <div>
+            <h5 id="detailTitle" class="mb-0 fw-bold text-dark">Item Details</h5>
+            <small id="detailSubtitle" class="text-muted"></small>
+        </div>
+        <button type="button" class="btn btn-sm btn-light" id="btnCloseSelectedPanel" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="panel-body">
+        <ul class="nav nav-tabs nav-tabs-custom mb-4" id="detailTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab">OVERVIEW</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-serials" data-bs-toggle="tab" data-bs-target="#pane-serials" type="button" role="tab">SERIAL NUMBERS</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-trans" data-bs-toggle="tab" data-bs-target="#pane-trans" type="button" role="tab">TRANSACTIONS</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
+                <div class="section-title text-uppercase mb-3">Basic Details</div>
+
+                <div class="floating-group">
+                    <label>Product Code</label>
+                    <input type="text" id="detailProductID" class="form-control bg-light" readonly>
+                </div>
+                <div class="floating-group">
+                    <label>Brand</label>
+                    <input type="text" id="detailBrand" class="form-control">
+                </div>
+                <div class="floating-group">
+                    <label>Category</label>
+                    <input type="text" id="detailCategory" class="form-control bg-light" readonly>
+                </div>
+                <div class="floating-group">
+                    <label>Quantity On Hand</label>
+                    <input type="number" id="detailQuantity" class="form-control bg-light" readonly>
+                </div>
+                <div class="floating-group">
+                    <label>Price (₱)</label>
+                    <input type="number" step="0.01" id="detailPrice" class="form-control">
+                </div>
+                <div class="floating-group">
+                    <label>Reorder Level</label>
+                    <input type="number" id="detailReorderLevel" class="form-control">
+                </div>
+                <div class="floating-group">
+                    <label>Description</label>
+                    <textarea id="detailDescription" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="d-flex align-items-center mt-2">
+                    <span class="section-title text-uppercase me-2 mb-0">Status</span>
+                    <div id="modalHealthBadge"></div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-serials" role="tabpanel">
+                <div class="section-title text-uppercase mb-3">Serial Numbers</div>
+                <div class="table-responsive" style="max-height: 320px; overflow: auto;">
+                    <table class="table table-sm mb-0 serial-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Serial No.</th>
+                                <th>Batch ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serialQueueTable">
+                            <tr>
+                                <td colspan="2" class="text-center text-muted py-3">No serial numbers found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-trans" role="tabpanel">
+                <div class="section-title text-uppercase mb-3">Transactions</div>
+                <div class="text-muted small">Transaction history will be shown here in a future release.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel-footer p-3 border-top d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-outline-danger btn-sm px-3" id="btnDeleteProduct">Delete</button>
+        <button type="button" class="btn btn-outline-secondary btn-sm px-3" id="btnCancelEdit">Cancel</button>
+        <button type="button" class="btn btn-teal btn-sm px-3 d-flex align-items-center gap-1" id="btnSaveDetail">
+            <span class="spinner-border spinner-border-sm d-none" id="saveSpinner" role="status" aria-hidden="true"></span>
+            Save
+        </button>
+    </div>
+</div>
