@@ -4,115 +4,127 @@
         --teal-hover: #085247;
     }
 
+    /* Right-Side Overlay Drawer Aligned with CreateDelivery */
     #addProductOverlay {
         position: fixed;
         right: 0;
         top: 0;
         height: 100vh;
-        width: 640px;
+        width: 620px;
+        z-index: 99999 !important;
         background: #fff;
-        box-shadow: -6px 0 18px rgba(0, 0, 0, 0.08);
-        z-index: 1050;
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+        z-index: 1055;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        padding: 10px;
+        filter: none !important;
     }
 
-    #addProductOverlay .panel-header {
-        padding: 14px 18px;
-        border-bottom: 1px solid #eef2f1;
-        flex-shrink: 0;
-    }
+        #addProductOverlay .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #eef2f1;
+            flex-shrink: 0;
+            background: #fff;
+        }
 
-    #addProductOverlay .panel-body {
-        padding: 18px;
-        flex: 1;
-        overflow-y: auto;
-    }
+        #addProductOverlay .panel-body {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
 
-    #addProductOverlay .panel-footer {
-        flex-shrink: 0;
-        background: #fff;
-    }
+        #addProductOverlay .panel-footer {
+            flex-shrink: 0;
+            background: #fff;
+            border-top: 1px solid #eef2f1;
+        }
 
-    #addProductOverlay .nav-tabs-custom {
-        border-bottom: 1px solid #dee2e6;
-    }
+        /* Nav Custom Tabs */
+        #addProductOverlay .nav-tabs-custom {
+            border-bottom: 1px solid #dee2e6;
+        }
 
-    #addProductOverlay .nav-tabs-custom .nav-link {
-        border: none;
-        color: #6c757d;
-        font-weight: 600;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        padding-bottom: 8px;
-        margin-right: 16px;
-        background: transparent;
-    }
+            #addProductOverlay .nav-tabs-custom .nav-link {
+                border: none;
+                color: #6c757d;
+                font-weight: 600;
+                font-size: 0.75rem;
+                letter-spacing: 0.5px;
+                padding-bottom: 8px;
+                margin-right: 16px;
+                background: transparent;
+            }
 
-    #addProductOverlay .nav-tabs-custom .nav-link.active {
-        color: var(--teal-color, #0b6b5d);
-        border-bottom: 2px solid var(--teal-color, #0b6b5d);
-        background: transparent;
-    }
+                #addProductOverlay .nav-tabs-custom .nav-link.active {
+                    color: var(--teal-color, #0b6b5d);
+                    border-bottom: 2px solid var(--teal-color, #0b6b5d);
+                    background: transparent;
+                }
 
-    #addProductOverlay .section-title {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #6c757d;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-    }
+        /* Form Floating Labels & Inputs */
+        #addProductOverlay .floating-group {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
 
-    #addProductOverlay .floating-group {
-        position: relative;
-        margin-bottom: 1.25rem;
-    }
+            #addProductOverlay .floating-group label {
+                position: absolute;
+                top: -9px;
+                left: 10px;
+                background: #ffffff;
+                padding: 0 4px;
+                font-size: 0.75rem;
+                color: #6c757d;
+                font-weight: 600;
+                z-index: 2;
+            }
 
-    #addProductOverlay .floating-group label {
-        position: absolute;
-        top: -9px;
-        left: 10px;
-        background: #ffffff;
-        padding: 0 4px;
-        font-size: 0.75rem;
-        color: #6c757d;
-        z-index: 2;
-    }
+            #addProductOverlay .floating-group .form-control,
+            #addProductOverlay .floating-group .form-select {
+                font-size: 0.875rem;
+                border-radius: 6px;
+            }
 
-    #addProductOverlay .floating-group .form-control,
-    #addProductOverlay .floating-group .form-select {
-        font-size: 0.875rem;
-    }
+        #addProductOverlay .section-title {
+            font-size: 0.725rem;
+            font-weight: 700;
+            color: #6c757d;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
 
-    #addProductOverlay .badge-pill-custom {
-        font-size: 0.725rem;
-        font-weight: 600;
-        padding: 0.35em 0.8em;
-        border-radius: 50rem;
-        letter-spacing: 0.3px;
-        display: inline-block;
-    }
+        /* Status Pill Badge */
+        #addProductOverlay .badge-pill-custom {
+            font-size: 0.725rem;
+            font-weight: 600;
+            padding: 0.35em 0.8em;
+            border-radius: 50rem;
+            letter-spacing: 0.3px;
+            display: inline-block;
+        }
 
-    #addProductOverlay .badge-pendingdelivery {
-        background-color: #f2f2f2;
-        color: #6c757d;
-    }
+        #addProductOverlay .badge-pendingdelivery {
+            background-color: #f2f2f2;
+            color: #6c757d;
+        }
 
-    #addProductOverlay .btn-teal {
-        background-color: var(--teal-color, #0b6b5d);
-        border-color: var(--teal-color, #0b6b5d);
-        color: #fff;
-    }
+        /* Action Buttons */
+        #addProductOverlay .btn-teal {
+            background-color: var(--teal-color, #0b6b5d);
+            border-color: var(--teal-color, #0b6b5d);
+            color: #fff;
+        }
 
-    #addProductOverlay .btn-teal:hover {
-        background-color: var(--teal-hover, #085247);
-        border-color: var(--teal-hover, #085247);
-        color: #fff;
-    }
+            #addProductOverlay .btn-teal:hover {
+                background-color: var(--teal-hover, #085247);
+                border-color: var(--teal-hover, #085247);
+                color: #fff;
+            }
 </style>
 
+<!-- RIGHT-SIDE OVERLAY: ADD PRODUCT -->
 <div id="addProductOverlay" class="d-none">
     <form id="createProductForm" class="d-flex flex-column h-100 mb-0">
         <!-- PANEL HEADER -->
@@ -121,14 +133,15 @@
                 <h5 class="mb-0 fw-bold text-dark">New Item</h5>
                 <small class="text-muted">Create a new product record</small>
             </div>
-            <button type="button" class="btn btn-sm btn-light btn-close-overlay" aria-label="Close">
+            <button type="button" class="btn btn-sm btn-light border rounded-circle p-1 btn-close-overlay" aria-label="Close" style="width:32px; height:32px;">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
 
         <!-- PANEL BODY -->
         <div class="panel-body">
-            <ul class="nav nav-tabs nav-tabs-custom mb-4" role="tablist">
+            <!-- Navigation Tab -->
+            <ul class="nav nav-tabs nav-tabs-custom mb-3" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" type="button" role="tab">OVERVIEW</button>
                 </li>
@@ -136,69 +149,102 @@
 
             <div class="tab-content">
                 <div class="tab-pane fade show active" role="tabpanel">
-                    <div class="section-title mb-3">Basic Details</div>
 
-                    <div class="floating-group">
-                        <label>Category*</label>
-                        <select name="category_ID" id="categorySelect" class="form-select" required>
-                            <option value="" disabled selected>Select Category...</option>
-                            @if (ViewBag.Categories != null)
-                            {
-                                foreach (var cat in ViewBag.Categories)
-                                {
-                                    <option value="@cat.category_ID">@cat.category_name</option>
-                                }
-                            }
-                        </select>
+                    <!-- Card 1: Classification & Identification -->
+                    <div class="card border-0 shadow-sm rounded-3 mb-3">
+                        <div class="card-body p-3">
+                            <div class="section-title mb-3"><i class="bi bi-tags me-1"></i> Categorization</div>
+
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="floating-group">
+                                        <label>Category*</label>
+                                        <select name="category_ID" id="categorySelect" class="form-select" required>
+                                            <option value="" disabled selected>Select Category...</option>
+                                            @if (ViewBag.Categories != null)
+                                            {
+                                                foreach (var cat in ViewBag.Categories)
+                                                {
+                                                    <option value="@cat.category_ID">@cat.category_name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="floating-group">
+                                        <label>Generated Product Code</label>
+                                        <input type="text" id="generatedCode" class="form-control bg-light" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="floating-group mb-0">
+                                        <label>Product Brand*</label>
+                                        <input type="text" name="product_brand" class="form-control" placeholder="e.g. Asus, Logitech, Corsair" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="floating-group">
-                        <label>Generated Product Code</label>
-                        <input type="text" id="generatedCode" class="form-control bg-light" readonly>
+                    <!-- Card 2: Pricing & Inventory Control -->
+                    <div class="card border-0 shadow-sm rounded-3 mb-3">
+                        <div class="card-body p-3">
+                            <div class="section-title mb-3"><i class="bi bi-currency-dollar me-1"></i> Pricing & Stock Levels</div>
+
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="floating-group">
+                                        <label>Product Price (₱)*</label>
+                                        <input type="number" step="0.01" name="Product_price" class="form-control" placeholder="0.00" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="floating-group">
+                                        <label>Reorder Level*</label>
+                                        <input type="number" name="reorder_level" class="form-control" placeholder="Min stock count" required>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="floating-group mb-0">
+                                        <label>Product Quantity</label>
+                                        <input type="number" name="product_quantity" class="form-control bg-light" placeholder="Updated via delivery intake" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="floating-group">
-                        <label>Product Brand*</label>
-                        <input type="text" name="product_brand" class="form-control" required>
+                    <!-- Card 3: Additional Specifications & Status -->
+                    <div class="card border-0 shadow-sm rounded-3">
+                        <div class="card-body p-3">
+                            <div class="section-title mb-3"><i class="bi bi-file-text me-1"></i> Specifications & Initial Status</div>
+
+                            <div class="floating-group mb-3">
+                                <label>Product Description</label>
+                                <textarea name="product_description" class="form-control" rows="3" placeholder="Enter product details, specifications, or internal notes..."></textarea>
+                            </div>
+
+                            <div class="d-flex align-items-center justify-content-between pt-1">
+                                <span class="section-title mb-0">Initial Item Status</span>
+                                <input type="hidden" name="product_status" value="Pending Delivery" />
+                                <span class="badge-pill-custom badge-pendingdelivery">
+                                    <i class="bi bi-dot me-1"></i>Pending Delivery
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="floating-group">
-                        <label>Product Price (₱)*</label>
-                        <input type="number" step="0.01" name="Product_price" class="form-control" required>
-                    </div>
-
-                    <div class="floating-group">
-                        <label>Product Quantity</label>
-                        <input type="number" name="product_quantity" class="form-control bg-light" placeholder="Updated via delivery" readonly>
-                    </div>
-
-                    <div class="floating-group">
-                        <label>Reorder Level*</label>
-                        <input type="number" name="reorder_level" class="form-control" required>
-                    </div>
-
-                    <div class="floating-group">
-                        <label>Product Description</label>
-                        <textarea name="product_description" class="form-control" rows="3" placeholder="Enter product details, specifications, or notes..."></textarea>
-                    </div>
-
-                    <div class="d-flex align-items-center mt-2">
-                        <span class="section-title me-2 mb-0">Status</span>
-                        <input type="hidden" name="product_status" value="Pending Delivery" />
-                        <span class="badge-pill-custom badge-pendingdelivery">
-                            <i class="bi bi-dot me-1"></i>Pending Delivery
-                        </span>
-                    </div>
                 </div>
             </div>
         </div>
 
         <!-- PANEL FOOTER -->
-        <div class="panel-footer p-3 border-top d-flex justify-content-end gap-2">
+        <div class="panel-footer p-3 d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-outline-secondary btn-sm px-3 btn-close-overlay">Cancel</button>
-            <button type="submit" id="btnSaveProduct" class="btn btn-teal btn-sm px-3 d-flex align-items-center gap-1">
+            <button type="submit" id="btnSaveProduct" class="btn btn-teal btn-sm px-4 fw-semibold d-flex align-items-center gap-1">
                 <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                <i class="bi bi-floppy-fill"></i> Save
+                <i class="bi bi-floppy-fill me-1"></i> Save Product
             </button>
         </div>
     </form>

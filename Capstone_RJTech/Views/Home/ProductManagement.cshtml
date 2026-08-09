@@ -12,7 +12,7 @@
     var outOfStockItems = Model.Count(x => x.product_quantity == 0 || x.product_status == "Out of Stock");
 }
 
-<div class="container-fluid px-4 py-3 bg-light">
+<div id="productManagementWrapper" class="container-fluid px-4 py-3 bg-light">
 
     <!-- Top Action Bar -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -354,6 +354,7 @@
         background-color: #f2f2f2;
         color: #6c757d;
     }
+    
 
 </style>
 
@@ -445,12 +446,7 @@
         });
     }
 
-    function closeSelectedPanel() {
-        $('#selectedProductOverlay').addClass('d-none');
-        $('.product-row').removeClass('table-active');
-    }
-
-    $('#btnCloseSelectedPanel').click(closeSelectedPanel);
+        
 
     // 1. QUICK ADD TOGGLE & FORM HANDLING
     $('#btnToggleQuickAdd').click(function() {
@@ -499,21 +495,45 @@
         loadProductDetails(activeRow.data('id'));
     });
 
-    // 3. ROW CLICK: OPENS PANEL & LOADS DETAILS
-    $(document).on('click', '.product-row', function() {
-        $('.product-row').removeClass('table-active');
-        $(this).addClass('table-active');
-        loadProductDetails($(this).data('id'));
-    });
+        function closeSelectedPanel() {
+            $('#selectedProductOverlay').addClass('d-none');
+            $('.product-row').removeClass('table-active');
+            disableLayoutBlur();
+        }
+        $('#btnCloseSelectedPanel').click(closeSelectedPanel);
+        // 3. ROW CLICK: OPENS PANEL, BLURS LAYOUT & LOADS DETAILS
+        $(document).on('click', '.product-row', function() {
+            $('.product-row').removeClass('table-active');
+            $(this).addClass('table-active');
 
-    // 4. CANCEL EDIT MODE HANDLER
-    $('#btnCancelEdit').click(function() {
-        $('#detailBrand').val(originalData.brand);
-        $('#detailPrice').val(originalData.price);
-        $('#detailDescription').val(originalData.description);
-        $('#detailReorderLevel').val(originalData.reorderLevel);
-        closeSelectedPanel();
-    });
+            $('#selectedProductOverlay').removeClass('d-none');
+            enableLayoutBlur();
+
+            loadProductDetails($(this).data('id'));
+        });
+
+        // 4. CANCEL EDIT MODE HANDLER
+        $('#btnCancelEdit, #btnCloseSelectedPanel').click(function() {
+            if (typeof originalData !== 'undefined' && originalData) {
+                $('#detailBrand').val(originalData.brand);
+                $('#detailPrice').val(originalData.price);
+                $('#detailDescription').val(originalData.description);
+                $('#detailReorderLevel').val(originalData.reorderLevel);
+            }
+            closeSelectedPanel();
+        });
+
+        // 5. ESCAPE KEY CLOSES PANEL & REMOVES BLUR
+        $(document).on('keydown', function(e) {
+            if (e.key === "Escape") {
+                if (!$('#addProductOverlay').hasClass('d-none')) {
+                    $('.btn-close-overlay').trigger('click');
+                }
+                if (!$('#selectedProductOverlay').hasClass('d-none')) {
+                    closeSelectedPanel();
+                }
+            }
+        });
 
     // 5. SAVE EDITED PRODUCT DETAILS FROM PANEL
     $('#btnSaveDetail').click(function() {
@@ -576,7 +596,6 @@
             });
         }
     });
-    // PLACEHOLDER_ANCHOR: no-op insertion point for future patches
 
     // 7. FILTER BADGES & SEARCH COMBINED
     $('.filter-badge').click(function() {
@@ -647,18 +666,22 @@
             });
         }, 300);
     });
-        // Open Overlay
+        // Open Overlay and apply 12px blur
         $('#btnOpenAddProduct').on('click', function() {
             $('#addProductOverlay').removeClass('d-none');
+            enableLayoutBlur();
         });
 
-        // Hide Overlay and Reset Form
+        // Hide Overlay, reset form, and remove blur
         $('.btn-close-overlay').on('click', function() {
             $('#addProductOverlay').addClass('d-none');
-            $('#createProductForm')[0].reset();
+            disableLayoutBlur();
+            if ($('#createProductForm').length) {
+                $('#createProductForm')[0].reset();
+            }
             $('#generatedCode').val('');
         });
-
+        
         // Category Code Generation
         $(document).on('change', '#categorySelect', function() {
             var categoryId = $(this).val();

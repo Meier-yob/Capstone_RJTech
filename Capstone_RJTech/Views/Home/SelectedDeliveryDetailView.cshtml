@@ -23,6 +23,8 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
+        z-index: 99999 !important;
+        filter: none !important;
     }
 
     #selectedDeliveryOverlay .panel-header {
@@ -227,9 +229,3 @@
     </div>
 </div>
 
-<script>
-    // Close Drawer Event Handler
-    $(document).off("click", ".btn-close-drawer").on("click", ".btn-close-drawer", function () {
-        $("#selectedDeliveryOverlay").addClass("d-none").empty();
-    });
-</script>

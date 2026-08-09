@@ -1,5 +1,6 @@
 @{
 ViewData["Title"] = "Delivery Management";
+    ViewData["Description"] = "Tracks and validates stock arrivals with serial numbers for accurate inventory intake.";
 Layout = "_Layout";
 }
 
@@ -244,6 +245,7 @@ Layout = "_Layout";
 /* Search */ 
 #txtReceiptSearch { 
     font-size: 0.85rem; 
+    width:100%;
 } 
 
 #txtReceiptSearch:focus { 
@@ -260,10 +262,9 @@ Layout = "_Layout";
 
 <!-- AJAX injection target for selected delivery detail drawer (will be populated by SelectedDeliveryDetailView partial) -->
 <div id="selectedDeliveryOverlay" class="d-none"></div>
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(function () {
+    $(function() {
         let receipts = [];
         let selectedProduct = null;
         let serialQueue = [];
@@ -272,7 +273,7 @@ Layout = "_Layout";
 
         // Helper function for safe HTML string rendering
         function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"']/g, function (m) {
+            return String(str || '').replace(/[&<>"']/g, function(m) {
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
             });
         }
@@ -290,82 +291,81 @@ Layout = "_Layout";
             $.ajax({
                 url: '/Home/GetDeliveries',
                 type: 'GET',
-                success: function (res) {
+                success: function(res) {
                     if (!res || !res.success) return;
                     receipts = res.data || [];
                     renderReceiptsTable(receipts);
                 },
-                error: function () {
+                error: function() {
                     console.error('Failed to load delivery receipts.');
                 }
             });
         }
 
         function renderReceiptsTable(deliveries) {
-    const $tbody = $('#deliverySummaryBody');
-    $tbody.empty();
+            const $tbody = $('#deliverySummaryBody');
+            $tbody.empty();
 
-    if (!deliveries || deliveries.length === 0) {
-        $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">No receipts found.</td></tr>');
-        $('#cntDeliveries').text(0);
-        return;
-    }
-
-    $('#cntDeliveries').text(deliveries.length);
-
-    // Helper function to format delivery codes and batch IDs
-    function formatDeliveryCode(rawCode, rawId, prefix = 'DEL') {
-        if (rawCode && rawCode !== 'N/A') return rawCode;
-        if (!rawId || rawId === 'N/A') return 'N/A';
-
-        // If rawId is already formatted (e.g., DEL-20260808-001 or BATCH-20260808-001)
-        if (typeof rawId === 'string' && rawId.includes('-')) return rawId;
-
-        // Fallback: formats numeric IDs to 3-digit padded codes
-        const paddedNum = String(rawId).padStart(3, '0');
-        return `${prefix}-${paddedNum}`;
-    }
-
-    deliveries.forEach((item, index) => {
-        // Retrieve property values across naming conventions
-        const rawDeliveryId = item.delivery_ID || item.deliveryId || item.Delivery_ID;
-        const rawDeliveryCode = item.delivery_code || item.deliveryCode || item.Delivery_Code;
-        const rawBatchId = item.batch_ID || item.batchId || item.Batch_ID;
-
-        // Apply string formatting, prioritizing delivery_code
-        const displayDeliveryId = formatDeliveryCode(rawDeliveryCode, rawDeliveryId, 'DEL');
-        const displayBatchId = formatDeliveryCode(null, rawBatchId, 'BATCH');
-
-        let dateVal = item.date_delivered || item.dateReceived || item.Date_Delivered || '';
-        if (dateVal) {
-            const parsedDate = new Date(dateVal);
-            if (!isNaN(parsedDate.getTime())) {
-                dateVal = parsedDate.toLocaleString();
+            if (!deliveries || deliveries.length === 0) {
+                $tbody.append('<tr><td colspan="6" class="text-center text-muted py-4">No receipts found.</td></tr>');
+                $('#cntDeliveries').text(0);
+                return;
             }
+
+            $('#cntDeliveries').text(deliveries.length);
+
+            // Helper function to format delivery codes and batch IDs
+            function formatDeliveryCode(rawCode, rawId, prefix = 'DEL') {
+                if (rawCode && rawCode !== 'N/A') return rawCode;
+                if (!rawId || rawId === 'N/A') return 'N/A';
+
+                // If rawId is already formatted
+                if (typeof rawId === 'string' && rawId.includes('-')) return rawId;
+
+                // Fallback: formats numeric IDs to 3-digit padded codes
+                const paddedNum = String(rawId).padStart(3, '0');
+                return `${prefix}-${paddedNum}`;
+            }
+
+            deliveries.forEach((item, index) => {
+                const rawDeliveryId = item.delivery_ID || item.deliveryId || item.Delivery_ID;
+                const rawDeliveryCode = item.delivery_code || item.deliveryCode || item.Delivery_Code;
+                const rawBatchId = item.batch_ID || item.batchId || item.Batch_ID;
+
+                const displayDeliveryId = formatDeliveryCode(rawDeliveryCode, rawDeliveryId, 'DEL');
+                const displayBatchId = formatDeliveryCode(null, rawBatchId, 'BATCH');
+
+                let dateVal = item.date_delivered || item.dateReceived || item.Date_Delivered || '';
+                if (dateVal) {
+                    const parsedDate = new Date(dateVal);
+                    if (!isNaN(parsedDate.getTime())) {
+                        dateVal = parsedDate.toLocaleString();
+                    }
+                }
+
+                const receivedBy = item.received_by || item.receivedBy || item.Received_By || '';
+                const itemsCount = item.itemsCount || item.items_count || (item.items ? item.items.length : 1);
+
+                const rowHtml = `
+                                <tr data-id="${escapeHtml(rawDeliveryId)}">
+                                    <td class="ps-3 fw-bold">${escapeHtml(displayDeliveryId)}</td>
+                                    <td><span class="badge bg-light text-dark border">${escapeHtml(displayBatchId)}</span></td>
+                                    <td>${escapeHtml(dateVal)}</td>
+                                    <td>${escapeHtml(receivedBy)}</td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill bg-light text-teal border px-3">${itemsCount}</span>
+                                    </td>
+                                    <td class="text-center pe-3">
+                                        <button type="button" class="btn btn-sm btn-danger btn-delete-receipt" data-id="${escapeHtml(rawDeliveryId)}" data-index="${index}">
+                                            <i class="bi bi-trash-fill me-1"></i> Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                $tbody.append(rowHtml);
+            });
         }
 
-        const receivedBy = item.received_by || item.receivedBy || item.Received_By || '';
-        const itemsCount = item.itemsCount || item.items_count || (item.items ? item.items.length : 1);
-
-        const rowHtml = `
-            <tr data-id="${escapeHtml(rawDeliveryId)}">
-                <td class="ps-3 fw-bold">${escapeHtml(displayDeliveryId)}</td>
-                <td><span class="badge bg-light text-dark border">${escapeHtml(displayBatchId)}</span></td>
-                <td>${escapeHtml(dateVal)}</td>
-                <td>${escapeHtml(receivedBy)}</td>
-                <td class="text-center">
-                    <span class="badge rounded-pill bg-light text-teal border px-3">${itemsCount}</span>
-                </td>
-                <td class="text-center pe-3">
-                    <button type="button" class="btn btn-sm btn-danger btn-delete-receipt" data-id="${escapeHtml(rawDeliveryId)}" data-index="${index}">
-                        <i class="bi bi-trash-fill me-1"></i> Delete
-                    </button>
-                </td>
-            </tr>
-        `;
-        $tbody.append(rowHtml);
-    });
-}
         function refreshDeliveryIdentifiers() {
             fetch('/Home/GetNextDeliveryInfo')
                 .then(response => response.json())
@@ -451,45 +451,45 @@ Layout = "_Layout";
             } else {
                 $overlay.appendTo('body');
             }
-
+            if (typeof enableLayoutBlur === 'function') enableLayoutBlur();
             $overlay.removeClass('d-none').html(`
-                <div class="d-flex justify-content-center align-items-center h-100">
-                    <div class="spinner-border text-teal" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            `);
+                            <div class="d-flex justify-content-center align-items-center h-100">
+                                <div class="spinner-border text-teal" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        `);
 
             $.ajax({
                 url: '/Home/SelectedDeliveryDetailView',
                 type: 'GET',
                 data: { deliveryId: deliveryId },
-                success: function (response) {
+                success: function(response) {
                     $overlay.html(response);
-                    setTimeout(function () {
+                    setTimeout(function() {
                         var $drawer = $('#deliveryDetailDrawer');
                         if ($drawer.length && !$drawer.hasClass('active')) {
                             $drawer.addClass('active');
                         }
                     }, 20);
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     var msg = 'Failed to load delivery details.';
                     try {
                         if (xhr && xhr.responseText) msg = xhr.responseText;
                     } catch (e) { }
 
                     $overlay.html(`
-                        <div class="p-3 text-center text-danger">${escapeHtml(msg)}<br/>
-                            <button class="btn btn-sm btn-secondary mt-2 btn-close-overlay">Close</button>
-                        </div>
-                    `);
+                                    <div class="p-3 text-center text-danger">${escapeHtml(msg)}<br/>
+                                        <button class="btn btn-sm btn-secondary mt-2 btn-close-overlay">Close</button>
+                                    </div>
+                                `);
                 }
             });
         }
 
         // Row click handler
-        $(document).on('click', '#tblReceipts tbody tr', function (e) {
+        $(document).on('click', '#deliverySummaryBody tr, #tblReceipts tbody tr', function(e) {
             if ($(e.target).closest('.btn-delete-receipt').length > 0) return;
             const id = $(this).data('id');
             if (!id) return;
@@ -497,7 +497,7 @@ Layout = "_Layout";
         });
 
         // Delete Receipt Action
-        $(document).on('click', '.btn-delete-receipt', function (e) {
+        $(document).on('click', '.btn-delete-receipt', function(e) {
             e.stopPropagation();
             const id = $(this).data('id');
             if (!id) return;
@@ -511,49 +511,67 @@ Layout = "_Layout";
                 url: '/Home/DeleteDeliveryReceipt',
                 type: 'POST',
                 data: { delivery_ID: id },
-                success: function (res) {
-                        if (res.success) {
+                success: function(res) {
+                    if (res.success) {
                         receipts = receipts.filter(r => r.delivery_ID != id);
                         renderReceiptsTable(receipts);
                         $('#selectedDeliveryOverlay').addClass('d-none').empty();
+                        if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
                         alert(res.message || 'Receipt deleted successfully.');
                     } else {
                         alert('Failed to delete: ' + (res.message || ''));
                         $btn.prop('disabled', false);
                     }
                 },
-                error: function () {
+                error: function() {
                     alert('Server error while deleting receipt.');
                     $btn.prop('disabled', false);
                 }
             });
         });
 
-        // Close Overlay Panels
-        $(document).on('click', '#btnCloseSelectedDelivery, #btnCloseSelectedDeliveryFooter, .btn-close-overlay', function () {
+        // Close Selected Delivery Drawer/Overlay
+        $(document).on('click', '#btn-close-drawer, .btn-close-overlay', function() {
             $('#selectedDeliveryOverlay').addClass('d-none').empty();
+            if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
         });
 
-       
-       // Search Filter
-        $('#txtReceiptSearch').on('input', function () {
+        // Close Create Delivery Drawer/Overlay
+        $(document).on('click', '#btnCloseDeliveryPanel, #btnCancelDeliveryPanel', function() {
+            $('#createDeliveryOverlay').addClass('d-none');
+            if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
+        });
+
+        // Press ESC to close overlays
+        $(document).on('keydown', function(e) {
+            if (e.key === "Escape") {
+                if (!$('#createDeliveryOverlay').hasClass('d-none')) {
+                    $('#createDeliveryOverlay').addClass('d-none');
+                    if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
+                }
+                if (!$('#selectedDeliveryOverlay').hasClass('d-none')) {
+                    $('#selectedDeliveryOverlay').addClass('d-none').empty();
+                    if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
+                }
+            }
+        });
+
+        // Drawer Toggles
+        $(document).on('click', '#btnOpenCreateDelivery', function() {
+            $('#createDeliveryOverlay').removeClass('d-none');
+            if (typeof enableLayoutBlur === 'function') enableLayoutBlur();
+        });
+
+        // Search Filter
+        $('#txtReceiptSearch').on('input', function() {
             const q = $(this).val().toLowerCase().trim();
-            $('#deliverySummaryBody tr').each(function () {
+            $('#deliverySummaryBody tr').each(function() {
                 const txt = $(this).text().toLowerCase();
                 $(this).toggle(txt.indexOf(q) !== -1);
             });
         });
 
-        // Drawer Toggles
-        $(document).on('click', '#btnOpenCreateDelivery', function () {
-            $('#createDeliveryOverlay').removeClass('d-none');
-        });
-
-        $(document).on('click', '#btnCloseDeliveryPanel, #btnCancelDeliveryPanel', function () {
-            $('#createDeliveryOverlay').addClass('d-none');
-        });
-
-        $('#dtDateDelivered, #txtReceivedBy').on('input change', function () {
+        $('#dtDateDelivered, #txtReceivedBy').on('input change', function() {
             saveDraftToStorage();
         });
 
@@ -561,7 +579,7 @@ Layout = "_Layout";
         // 4. LIVE PRODUCT SEARCH & SUGGESTIONS
         // ==========================================
         let suggestionTimer = null;
-        $('#txtSearchProductID').on('input', function () {
+        $('#txtSearchProductID').on('input', function() {
             const q = $(this).val().trim();
             clearTimeout(suggestionTimer);
 
@@ -574,14 +592,17 @@ Layout = "_Layout";
                 return;
             }
 
-            suggestionTimer = setTimeout(function () {
+            suggestionTimer = setTimeout(function() {
                 $.ajax({
                     url: '/Home/SearchProducts',
                     type: 'GET',
                     data: { query: q },
-                    success: function (res) {
+                    success: function(res) {
                         if (!res.success) return;
                         let items = res.data || [];
+
+                        // FILTER: Exclude products already present in deliveryItems summary
+                        items = items.filter(it => !deliveryItems.some(existing => existing.product_ID == it.product_ID));
 
                         const priority = { 'Pending Delivery': 1, 'Low Stock': 2, 'Out of Stock': 3 };
                         items.sort((a, b) => (priority[a.product_status] || 99) - (priority[b.product_status] || 99));
@@ -605,16 +626,16 @@ Layout = "_Layout";
                                     (it.product_status === 'Out of Stock' ? 'badge bg-danger' : 'badge bg-secondary'));
 
                             const $el = $(`
-                                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2" data-id="${it.product_ID}">
-                                    <div>
-                                        <div class="fw-bold fs-7">${escapeHtml(it.formatted_code)} - ${escapeHtml(it.product_brand)}</div>
-                                        <div class="text-muted fs-8">${escapeHtml(it.category_name)} · ${escapeHtml(it.product_description || '')}</div>
-                                    </div>
-                                    <div><span class="${badgeClass}">${escapeHtml(it.product_status)}</span></div>
-                                </button>
-                            `);
+                                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2" data-id="${it.product_ID}">
+                                                <div>
+                                                    <div class="fw-bold fs-7">${escapeHtml(it.formatted_code)} - ${escapeHtml(it.product_brand)}</div>
+                                                    <div class="text-muted fs-8">${escapeHtml(it.category_name)} · ${escapeHtml(it.product_description || '')}</div>
+                                                </div>
+                                                <div><span class="${badgeClass}">${escapeHtml(it.product_status)}</span></div>
+                                            </button>
+                                        `);
 
-                            $el.on('click', function () {
+                            $el.on('click', function() {
                                 $('#txtSearchProductID').val(it.formatted_code);
                                 $('#productSuggestions').hide().empty();
 
@@ -637,7 +658,7 @@ Layout = "_Layout";
             }, 250);
         });
 
-        $(document).on('click', function (e) {
+        $(document).on('click', function(e) {
             if (!$(e.target).closest('#txtSearchProductID, #productSuggestions').length) {
                 $('#productSuggestions').hide();
             }
@@ -646,7 +667,7 @@ Layout = "_Layout";
         // ==========================================
         // 5. DYNAMIC SERIAL GENERATION & VALIDATION
         // ==========================================
-        $('#txtQtyReceived').on('input', function () {
+        $('#txtQtyReceived').on('input', function() {
             const qty = parseInt($(this).val()) || 0;
             const $container = $('#serialInputsContainer');
             $container.empty();
@@ -663,20 +684,19 @@ Layout = "_Layout";
 
             for (let i = 0; i < qty; i++) {
                 const $row = $(`
-                    <div class="input-group input-group-sm mb-2">
-                        <span class="input-group-text">${escapeHtml(selectedProduct.formatted_code)}</span>
-                        <input type="text" class="form-control serial-input" data-index="${i}" placeholder="Serial #${i + 1}">
-                    </div>
-                `);
+                                <div class="input-group input-group-sm mb-2">
+                                    <span class="input-group-text">${escapeHtml(selectedProduct.formatted_code)}</span>
+                                    <input type="text" class="form-control serial-input" data-index="${i}" placeholder="Serial #${i + 1}">
+                                </div>
+                            `);
                 $container.append($row);
             }
 
-            // Live Duplicate Check Across UI Fields & Draft Auto-Sync
-            $container.find('.serial-input').on('input', function () {
-                const vals = $container.find('.serial-input').map(function () { return $(this).val().trim(); }).get().filter(v => v);
+            $container.find('.serial-input').on('input', function() {
+                const vals = $container.find('.serial-input').map(function() { return $(this).val().trim(); }).get().filter(v => v);
                 const dupes = vals.filter((v, i, arr) => arr.indexOf(v) !== i);
 
-                $container.find('.serial-input').each(function () {
+                $container.find('.serial-input').each(function() {
                     const v = $(this).val().trim();
                     if (!v) {
                         $(this).removeClass('is-invalid');
@@ -692,9 +712,16 @@ Layout = "_Layout";
             });
         });
 
-      $('#btnValidateMatch').click(function () {
+        $('#btnValidateMatch').click(function() {
             if (!selectedProduct) {
                 alert('Please search and select a product first.');
+                return;
+            }
+
+            // VALIDATION: Block addition if product is already in the summary table
+            const isAlreadyAdded = deliveryItems.some(item => item.product_ID == selectedProduct.product_ID);
+            if (isAlreadyAdded) {
+                alert('This product is already in the summary table. Please edit the existing entry or select a different product.');
                 return;
             }
 
@@ -705,7 +732,7 @@ Layout = "_Layout";
             }
 
             let serialsToUse = [];
-            $('#serialInputsContainer .serial-input').each(function () {
+            $('#serialInputsContainer .serial-input').each(function() {
                 const v = $(this).val().trim();
                 if (v) serialsToUse.push(v);
             });
@@ -716,14 +743,12 @@ Layout = "_Layout";
                 }
             }
 
-            // 1. Check for duplicates within the current input fields
             const duplicateInInputs = serialsToUse.filter((s, idx, arr) => arr.indexOf(s) !== idx);
             if (duplicateInInputs.length > 0) {
                 alert('Duplicate serial numbers found in your inputs: ' + [...new Set(duplicateInInputs)].join(', '));
                 return;
             }
 
-            // 2. Check for duplicates against existing items in the summary table
             const existingSummarySerials = deliveryItems.flatMap(item => item.serialNumbers || []);
             const summaryDuplicates = serialsToUse.filter(s => existingSummarySerials.includes(s));
 
@@ -740,7 +765,7 @@ Layout = "_Layout";
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(serialsToUse),
-                success: function (res) {
+                success: function(res) {
                     $btn.prop('disabled', false);
                     if (res.success) {
                         const conflicts = (res.data || []).filter(r => r.exists);
@@ -776,7 +801,7 @@ Layout = "_Layout";
                         alert('Failed to validate serials on server.');
                     }
                 },
-                error: function () {
+                error: function() {
                     $btn.prop('disabled', false);
                     alert('Error validating serials.');
                 }
@@ -801,25 +826,25 @@ Layout = "_Layout";
                     : '<span class="badge bg-danger">Mismatch</span>';
 
                 const row = `
-                    <tr class="summary-row" data-index="${index}" style="cursor: pointer;">
-                        <td>
-                            <div class="fw-bold">${escapeHtml(item.productCode)}</div>
-                            <div class="text-muted fs-8 text-truncate" style="max-width: 140px;">${escapeHtml(item.productBrand)} ${escapeHtml(item.productDesc || '')}</div>
-                        </td>
-                        <td class="text-center fw-bold">${item.quantity}</td>
-                        <td class="text-center">${item.serialNumbers.length}</td>
-                        <td class="text-center">${badge}</td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-link text-danger p-0 btn-remove-item" data-index="${index}">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>`;
+                                <tr class="summary-row" data-index="${index}" style="cursor: pointer;">
+                                    <td>
+                                        <div class="fw-bold">${escapeHtml(item.productCode)}</div>
+                                        <div class="text-muted fs-8 text-truncate" style="max-width: 140px;">${escapeHtml(item.productBrand)} ${escapeHtml(item.productDesc || '')}</div>
+                                    </td>
+                                    <td class="text-center fw-bold">${item.quantity}</td>
+                                    <td class="text-center">${item.serialNumbers.length}</td>
+                                    <td class="text-center">${badge}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-link text-danger p-0 btn-remove-item" data-index="${index}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>`;
                 $tbody.append(row);
             });
         }
 
-        $(document).on('click', '#tblSummary tbody tr.summary-row', function (e) {
+        $(document).on('click', '#tblSummary tbody tr.summary-row', function(e) {
             if ($(e.target).closest('.btn-remove-item').length) return;
 
             const index = $(this).data('index');
@@ -856,7 +881,7 @@ Layout = "_Layout";
             saveDraftToStorage();
         });
 
-        $(document).on('click', '.btn-remove-item', function (e) {
+        $(document).on('click', '.btn-remove-item', function(e) {
             e.stopPropagation();
             const index = $(this).data('index');
             deliveryItems.splice(index, 1);
@@ -864,7 +889,7 @@ Layout = "_Layout";
             saveDraftToStorage();
         });
 
-        $('#btnCompleteDelivery').click(function () {
+        $('#btnCompleteDelivery').click(function() {
             const receivedBy = $('#txtReceivedBy').val().trim();
             const dateDelivered = $('#dtDateDelivered').val();
             const batchId = $('#txtBatchID').val() || $('#batch_ID').val();
@@ -906,7 +931,7 @@ Layout = "_Layout";
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(payload),
-                success: function (res) {
+                success: function(res) {
                     $btn.prop('disabled', false);
                     if (res.success) {
                         alert(res.message || 'Delivery completed successfully.');
@@ -917,18 +942,16 @@ Layout = "_Layout";
                         resetLineItemInputs();
                         $('#txtReceivedBy').val('');
                         $('#createDeliveryOverlay').addClass('d-none');
+                        if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
 
                         if (res.delivery) {
                             const d = res.delivery;
-                            // Add to in-memory receipts and re-render the receipts table so
-                            // any placeholder row ("No receipts found") is removed.
                             receipts.unshift(d);
                             renderReceiptsTable(receipts);
 
-                            // Highlight the newly added row briefly
                             const $new = $(`#tblReceipts tbody tr[data-id="${d.delivery_ID}"]`);
                             if ($new.length) {
-                                $new.css({ backgroundColor: '#e8fff7' }).animate({ backgroundColor: '#ffffff' }, 1400, function () {
+                                $new.css({ backgroundColor: '#e8fff7' }).animate({ backgroundColor: '#ffffff' }, 1400, function() {
                                     $(this).css('background-color', '');
                                 });
                             }
@@ -940,35 +963,14 @@ Layout = "_Layout";
                         alert('Error: ' + (res.message || 'Failed to complete delivery.'));
                     }
                 },
-                error: function () {
+                error: function() {
                     $btn.prop('disabled', false);
                     alert('An error occurred while completing the delivery.');
                 }
             });
         });
 
-        // Delegated handlers for closing the injected delivery drawer overlay
-        $(document).on('click', '.btn-close-drawer, .btn-close-overlay', function (e) {
-            e.preventDefault();
-            var $drawer = $('#deliveryDetailDrawer');
-            if ($drawer.length) $drawer.removeClass('active');
-            setTimeout(function () {
-                $('#selectedDeliveryOverlay').addClass('d-none').empty();
-            }, 300);
-        });
-
-        // Click on backdrop (outside drawer content) closes overlay
-        $(document).on('click', '#selectedDeliveryOverlay', function (e) {
-            var $content = $(this).find('.delivery-drawer-content');
-            if ($content.length && $(e.target).closest('.delivery-drawer-content').length === 0) {
-                $content.closest('#deliveryDetailDrawer').removeClass('active');
-                setTimeout(function () {
-                    $('#selectedDeliveryOverlay').addClass('d-none').empty();
-                }, 300);
-            }
-        });
-
-        // Initialize Page Execution
+        // Execute Page Initialization
         initPage();
     });
 </script>

@@ -11,48 +11,51 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/navigation.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DraftSYSTEM.styles.css" asp-append-version="true" />
+    
 </head>
+
 <body>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div id="appLayout">
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <img src="~/sources/logo-svg.png" alt="Logo">
-            <h5>RJTech Inventory</h5>
-        </div>
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <img src="~/sources/logo-svg.png" alt="Logo">
+                <h5>RJTech Inventory</h5>
+            </div>
+
         
-
-        <div class="nav-section-label">Main Menu</div>
-        <ul class="sidebar-nav">
-            <a asp-action="Dashboard" asp-controller="Home" class="nav-link-custom active">
-                <li class="nav-item">
+            <div class="nav-section-label">Main Menu</div>
+            <ul class="sidebar-nav">
+                <a asp-action="Dashboard" asp-controller="Home" class="nav-link-custom">
+                    <li class="nav-item">
                         <i class="fa-solid fa-house-chimney"></i>
                         <span>Dashboard</span>
-                </li>
-            </a>
-                <a asp-action="ProductManagement" asp-controller="Home" class="nav-link-custom">
-                    
-                     <li class="nav-item">
-                         <i class="fa-solid fa-box-archive"></i>
+                    </li>
+                </a>
+                <a asp-action="ProductManagement" asp-controller="Home" class="nav-link-custom active">
+
+                    <li class="nav-item">
+                        <i class="fa-solid fa-box-archive"></i>
                         <span>Product</span>
                     </li>
                 </a>
+
                
-           
-            <a asp-action="CategoryManagement" asp-controller="Home" class="nav-link-custom">
-                <li class="nav-item">
+                <a asp-action="CategoryManagement" asp-controller="Home" class="nav-link-custom">
+                    <li class="nav-item">
                         <i class="fa-solid fa-list-ul"></i>
                         <span>Category</span>
-                </li>
-            </a>
-            <a asp-action="DeliveryManagement" asp-controller="Home" class="nav-link-custom">
-                <li class="nav-item">
+                    </li>
+                </a>
+                <a asp-action="DeliveryManagement" asp-controller="Home" class="nav-link-custom">
+                    <li class="nav-item">
                         <i class="fa-solid fa-truck"></i>
                         <span>Delivery</span>
-                </li>
-            </a>
-            <!--            <a asp-action="ImportedProducts" asp-controller="Dashboard" class="nav-link-custom">
+                    </li>
+                </a>
+                <!--            <a asp-action="ImportedProducts" asp-controller="Dashboard" class="nav-link-custom">
                 <li class="nav-item">
                         <i class="fa-solid fa-truck-ramp-box"></i>
                         <span>Imported Products</span>
@@ -60,8 +63,8 @@
             </a>
             -->
 
-        </ul>
-        <!--
+            </ul>
+            <!--
         <div class="nav-section-label">Analytics</div>
         <ul class="sidebar-nav">
             <a asp-action="Sales" asp-controller="Dashboard" class="nav-link-custom">
@@ -144,51 +147,69 @@
             </li>
         </ul>
         -->
-    </div>
-    
-    <!-- Main Content Area -->
-    <div class="main-wrapper">
-        <header class="top-navbar">
-            <div class="selected-page">
-                <h5>@ViewData["Title"]</h5>
-                <p>@ViewData["Description"]</p>
-            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-wrapper">
+            <header class="top-navbar">
+                <div class="selected-page">
+                    <h5>@ViewData["Title"]</h5>
+                    <p>@ViewData["Description"]</p>
+                </div>
+
            
+                <div class="user-profile">
+                    <div class="d-flex align-items-center">
+                        <button class="btn d-lg-none me-2 p-0" id="sidebarToggle">
+                            <i class="fa-solid fa-bars fs-5"></i>
+                        </button>
 
-            <div class="user-profile">
-                <div class="d-flex align-items-center">
-                    <button class="btn d-lg-none me-2 p-0" id="sidebarToggle">
-                        <i class="fa-solid fa-bars fs-5"></i>
-                    </button>
-
-                    <div class="search-bar">
-                        <i class="fa-solid fa-magnifying-glass text-muted" style="font-size: 0.8rem;"></i>
-                        <input type="text" placeholder="Quick Search...">
+                        <div class="search-bar">
+                            <i class="fa-solid fa-magnifying-glass text-muted" style="font-size: 0.8rem;"></i>
+                            <input type="text" placeholder="Quick Search...">
+                        </div>
+                    </div>
+                    <div class="position-relative me-2">
+                        <i class="fa-regular fa-bell fs-5 text-muted"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    </div>
+                    <div class="user-info d-none d-sm-block text-end">
+                        <h8 class="name">Rjtech</h8>
+                        <!-- <p class="role">@ViewBag.Role</p> -->
+                    </div>
+                    <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                        <i class="fa-solid fa-user"></i>
                     </div>
                 </div>
-                <div class="position-relative me-2">
-                    <i class="fa-regular fa-bell fs-5 text-muted"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-                </div>
-                <div class="user-info d-none d-sm-block text-end">
-                    <h8 class="name">Rjtech</h8>
-                    <!-- <p class="role">@ViewBag.Role</p> -->
-                </div>
-                <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                    <i class="fa-solid fa-user"></i>
-                </div>
-            </div>
-        </header>
+            </header>
 
-        <!-- MAIN VIEW AREA -->
-        <div class="main-content d-flex flex-column">
-            <main role="main" class="flex-grow-1">
-                @RenderBody()
-            </main>
+            <!-- MAIN VIEW AREA -->
+            <div class="main-content d-flex flex-column">
+                <main role="main" class="flex-grow-1">
+                    @RenderBody()
+                </main>
 
            
+            </div>
         </div>
     </div>
+
+    <style>
+            .sidebar,
+            .top-navbar,
+            .main-content {
+                transition: filter 0.3s ease-in-out;
+            }
+
+            /* Blur only the background elements when overlay-open is active on body */
+            body.overlay-open .sidebar,
+            body.overlay-open .top-navbar,
+            body.overlay-open .main-content > main > *:not(#addProductOverlay):not(#selectedProductOverlay):not(#createDeliveryOverlay):not(#selectedDeliveryOverlay) {
+                filter: blur(12px) !important;
+                pointer-events: none !important;
+                user-select: none !important;
+            }
+    </style>
 
     <!-- SCRIPTS -->
     <script>
@@ -200,6 +221,13 @@
             window.addEventListener("drop", function(e) {
                 e.preventDefault();
             }, false);
+            function enableLayoutBlur() {
+                $('body').addClass('overlay-open');
+            }
+
+            function disableLayoutBlur() {
+                $('body').removeClass('overlay-open');
+            }
     </script>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
