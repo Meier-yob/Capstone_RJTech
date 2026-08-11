@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -11,6 +15,7 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/navigation.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DraftSYSTEM.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/overlays.css" asp-append-version="true" />
     
 </head>
 
@@ -28,41 +33,37 @@
         
             <div class="nav-section-label">Main Menu</div>
             <ul class="sidebar-nav">
-                <a asp-action="Dashboard" asp-controller="Home" class="nav-link-custom">
+                <a asp-action="Dashboard" asp-controller="Home"
+                   class="nav-link-custom @(currentAction == "Dashboard" && currentController == "Home" ? "active" : "")">
                     <li class="nav-item">
                         <i class="fa-solid fa-house-chimney"></i>
                         <span>Dashboard</span>
                     </li>
                 </a>
-                <a asp-action="ProductManagement" asp-controller="Home" class="nav-link-custom active">
 
+                <a asp-action="ProductManagement" asp-controller="Home"
+                   class="nav-link-custom @(currentAction == "ProductManagement" && currentController == "Home" ? "active" : "")">
                     <li class="nav-item">
                         <i class="fa-solid fa-box-archive"></i>
                         <span>Product</span>
                     </li>
                 </a>
 
-               
-                <a asp-action="CategoryManagement" asp-controller="Home" class="nav-link-custom">
+                <a asp-action="CategoryManagement" asp-controller="Home"
+                   class="nav-link-custom @(currentAction == "CategoryManagement" && currentController == "Home" ? "active" : "")">
                     <li class="nav-item">
                         <i class="fa-solid fa-list-ul"></i>
                         <span>Category</span>
                     </li>
                 </a>
-                <a asp-action="DeliveryManagement" asp-controller="Home" class="nav-link-custom">
+
+                <a asp-action="DeliveryManagement" asp-controller="Home"
+                   class="nav-link-custom @(currentAction == "DeliveryManagement" && currentController == "Home" ? "active" : "")">
                     <li class="nav-item">
                         <i class="fa-solid fa-truck"></i>
                         <span>Delivery</span>
                     </li>
                 </a>
-                <!--            <a asp-action="ImportedProducts" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-truck-ramp-box"></i>
-                        <span>Imported Products</span>
-                </li>
-            </a>
-            -->
-
             </ul>
             <!--
         <div class="nav-section-label">Analytics</div>
@@ -204,7 +205,7 @@
             /* Blur only the background elements when overlay-open is active on body */
             body.overlay-open .sidebar,
             body.overlay-open .top-navbar,
-            body.overlay-open .main-content > main > *:not(#addProductOverlay):not(#selectedProductOverlay):not(#createDeliveryOverlay):not(#selectedDeliveryOverlay) {
+            body.overlay-open .main-content > main > *:not(#addProductOverlay):not(#selectedProductOverlay):not(#createDeliveryOverlay):not(#selectedDeliveryOverlay):not(#deliveryNewItemModal) {
                 filter: blur(12px) !important;
                 pointer-events: none !important;
                 user-select: none !important;
@@ -212,6 +213,7 @@
     </style>
 
     <!-- SCRIPTS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
             // Prevent browser from navigating away when dropping files anywhere on the page
             window.addEventListener("dragover", function(e) {
@@ -228,6 +230,21 @@
             function disableLayoutBlur() {
                 $('body').removeClass('overlay-open');
             }
+            $(document).ready(function() {
+                // Get current page path (e.g., "/Home/ProductManagement")
+                var currentPath = window.location.pathname;
+
+                // Remove static active class from all links first
+                $('.sidebar-nav .nav-link-custom').removeClass('active');
+
+                // Loop through links and add 'active' to the one matching current URL
+                $('.sidebar-nav .nav-link-custom').each(function() {
+                    var linkHref = $(this).attr('href');
+                    if (linkHref && currentPath.toLowerCase() === linkHref.toLowerCase()) {
+                        $(this).addClass('active');
+                    }
+                });
+            });
     </script>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

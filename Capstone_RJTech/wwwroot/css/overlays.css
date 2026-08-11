@@ -1,0 +1,471 @@
+﻿/*AddProductOverlay*/
+/*=================*/
+:root {
+    --teal-color: #0b6b5d;
+    --teal-hover: #085247;
+}
+
+/* Right-Side Overlay Drawer Aligned with CreateDelivery */
+#addProductOverlay {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 620px;
+    z-index: 99999 !important;
+    background: #fff;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+    z-index: 1055;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    filter: none !important;
+}
+
+    #addProductOverlay .panel-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #eef2f1;
+        flex-shrink: 0;
+        background: #fff;
+    }
+
+    #addProductOverlay .panel-body {
+        padding: 20px;
+        flex: 1;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+    }
+
+    #addProductOverlay .panel-footer {
+        flex-shrink: 0;
+        background: #fff;
+        border-top: 1px solid #eef2f1;
+    }
+
+    /* Nav Custom Tabs */
+    #addProductOverlay .nav-tabs-custom {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        #addProductOverlay .nav-tabs-custom .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding-bottom: 8px;
+            margin-right: 16px;
+            background: transparent;
+        }
+
+            #addProductOverlay .nav-tabs-custom .nav-link.active {
+                color: var(--teal-color, #0b6b5d);
+                border-bottom: 2px solid var(--teal-color, #0b6b5d);
+                background: transparent;
+            }
+
+    /* Form Floating Labels & Inputs */
+    #addProductOverlay .floating-group {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+
+        #addProductOverlay .floating-group label {
+            position: absolute;
+            top: -9px;
+            left: 10px;
+            background: #ffffff;
+            padding: 0 4px;
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        #addProductOverlay .floating-group .form-control,
+        #addProductOverlay .floating-group .form-select {
+            font-size: 0.875rem;
+            border-radius: 6px;
+        }
+
+    #addProductOverlay .section-title {
+        font-size: 0.725rem;
+        font-weight: 700;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    /* Status Pill Badge */
+    #addProductOverlay .badge-pill-custom {
+        font-size: 0.725rem;
+        font-weight: 600;
+        padding: 0.35em 0.8em;
+        border-radius: 50rem;
+        letter-spacing: 0.3px;
+        display: inline-block;
+    }
+
+    #addProductOverlay .badge-pendingdelivery {
+        background-color: #f2f2f2;
+        color: #6c757d;
+    }
+
+    /* Action Buttons */
+    #addProductOverlay .btn-teal {
+        background-color: var(--teal-color, #0b6b5d);
+        border-color: var(--teal-color, #0b6b5d);
+        color: #fff;
+    }
+
+        #addProductOverlay .btn-teal:hover {
+            background-color: var(--teal-hover, #085247);
+            border-color: var(--teal-hover, #085247);
+            color: #fff;
+        }
+/*SelectedItemOverlay*/
+/*=================*/
+
+/* Right-Side Overlay Drawer Aligned with CreateDelivery */
+#selectedProductOverlay {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 620px;
+    background: #fff;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+    z-index: 1055;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 99999 !important;
+    filter: none !important;
+}
+
+    #selectedProductOverlay .panel-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #eef2f1;
+        flex-shrink: 0;
+        background: #fff;
+    }
+
+    #selectedProductOverlay .panel-body {
+        padding: 20px;
+        flex: 1;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+    }
+
+    #selectedProductOverlay .panel-footer {
+        flex-shrink: 0;
+        background: #fff;
+        border-top: 1px solid #eef2f1;
+    }
+
+    /* Nav Custom Tabs */
+    #selectedProductOverlay .nav-tabs-custom {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        #selectedProductOverlay .nav-tabs-custom .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding-bottom: 8px;
+            margin-right: 16px;
+            background: transparent;
+        }
+
+            #selectedProductOverlay .nav-tabs-custom .nav-link.active {
+                color: var(--teal-color, #0b6b5d);
+                border-bottom: 2px solid var(--teal-color, #0b6b5d);
+                background: transparent;
+            }
+
+    /* Form Floating Labels & Inputs */
+    #selectedProductOverlay .floating-group {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+
+        #selectedProductOverlay .floating-group label {
+            position: absolute;
+            top: -9px;
+            left: 10px;
+            background: #ffffff;
+            padding: 0 4px;
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        #selectedProductOverlay .floating-group .form-control,
+        #selectedProductOverlay .floating-group .form-select {
+            font-size: 0.875rem;
+            border-radius: 6px;
+        }
+
+    #selectedProductOverlay .section-title {
+        font-size: 0.725rem;
+        font-weight: 700;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    /* Badges */
+    #selectedProductOverlay .badge-pill-custom {
+        font-size: 0.725rem;
+        font-weight: 600;
+        padding: 0.35em 0.8em;
+        border-radius: 50rem;
+        letter-spacing: 0.3px;
+        display: inline-block;
+    }
+
+    #selectedProductOverlay .badge-available {
+        background-color: #e6f4ea;
+        color: #137333;
+    }
+
+    #selectedProductOverlay .badge-lowstock {
+        background-color: #fff4e5;
+        color: #b45f00;
+    }
+
+    #selectedProductOverlay .badge-outofstock {
+        background-color: #fce8e6;
+        color: #c5221f;
+    }
+
+    #selectedProductOverlay .badge-pendingdelivery {
+        background-color: #f2f2f2;
+        color: #6c757d;
+    }
+
+    /* Serial Table Design */
+    #selectedProductOverlay .serial-table thead th {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #6c757d;
+        background-color: #f8f9fa;
+        padding: 10px 12px;
+    }
+
+    #selectedProductOverlay .serial-table tbody td {
+        font-size: 0.85rem;
+        vertical-align: middle;
+        padding: 10px 12px;
+    }
+
+    /* Action Buttons */
+    #selectedProductOverlay .btn-teal {
+        background-color: var(--teal-color, #0b6b5d);
+        border-color: var(--teal-color, #0b6b5d);
+        color: #fff;
+    }
+
+        #selectedProductOverlay .btn-teal:hover {
+            background-color: var(--teal-hover, #085247);
+            border-color: var(--teal-hover, #085247);
+            color: #fff;
+        }
+/*CreateDeliveryOverlay*/
+/*=====================*/
+
+/* Right-Side Expanded Overlay Drawer (Wider for Intake Details) */
+#createDeliveryOverlay {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 620px;
+    background: #fff;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+    z-index: 1055;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 99999 !important;
+    filter: none !important;
+}
+
+    #createDeliveryOverlay .panel-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #eef2f1;
+        flex-shrink: 0;
+        background: #fff;
+    }
+
+    #createDeliveryOverlay .panel-body {
+        padding: 20px;
+        flex: 1;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+    }
+
+    #createDeliveryOverlay .panel-footer {
+        flex-shrink: 0;
+        background: #fff;
+        border-top: 1px solid #eef2f1;
+    }
+
+    /* Form Floating Labels & Inputs */
+    #createDeliveryOverlay .floating-group {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+
+        #createDeliveryOverlay .floating-group label {
+            position: absolute;
+            top: -9px;
+            left: 10px;
+            background: #ffffff;
+            padding: 0 4px;
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        #createDeliveryOverlay .floating-group .form-control,
+        #createDeliveryOverlay .floating-group .form-select {
+            font-size: 0.875rem;
+            border-radius: 6px;
+        }
+
+    #createDeliveryOverlay .section-title {
+        font-size: 0.725rem;
+        font-weight: 700;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+/* Product Auto-Complete Suggestion List */
+#productSuggestions {
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 0 0 6px 6px;
+}
+
+/* Serial Inputs Dynamic Container */
+#serialInputsContainer .input-group-text {
+    font-size: 0.75rem;
+    background-color: #f1f3f5;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+#createDeliveryOverlay .btn-teal {
+    background-color: var(--teal-color);
+    border-color: var(--teal-color);
+    color: #fff;
+}
+
+    #createDeliveryOverlay .btn-teal:hover {
+        background-color: var(--teal-hover);
+        border-color: var(--teal-hover);
+        color: #fff;
+    }
+/*SelectedDeliveryOverlay*/
+/*=======================*/
+
+/* Right-Side Expanded Overlay Drawer */
+#selectedDeliveryOverlay {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 620px;
+    background: #fff;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+    z-index: 1055;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    z-index: 99999 !important;
+    filter: none !important;
+}
+
+    #selectedDeliveryOverlay .panel-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #eef2f1;
+        flex-shrink: 0;
+        background: #fff;
+    }
+
+    #selectedDeliveryOverlay .panel-body {
+        padding: 20px;
+        flex: 1;
+        overflow-y: auto;
+        background-color: #f8f9fa;
+    }
+
+    #selectedDeliveryOverlay .panel-footer {
+        flex-shrink: 0;
+        background: #fff;
+        border-top: 1px solid #eef2f1;
+    }
+
+    /* Form Floating Labels & Display Controls */
+    #selectedDeliveryOverlay .floating-group {
+        position: relative;
+        margin-bottom: 1.25rem;
+    }
+
+        #selectedDeliveryOverlay .floating-group label {
+            position: absolute;
+            top: -9px;
+            left: 10px;
+            background: #ffffff;
+            padding: 0 4px;
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        #selectedDeliveryOverlay .floating-group .form-control {
+            font-size: 0.875rem;
+            border-radius: 6px;
+        }
+
+    #selectedDeliveryOverlay .section-title {
+        font-size: 0.725rem;
+        font-weight: 700;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+/* Serial Tags */
+.serial-tag {
+    font-family: monospace;
+    font-size: 0.78rem;
+    background-color: #eef2f1;
+    color: var(--teal-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #d0e1dd;
+    font-weight: 600;
+}
+
+/* Action Buttons */
+#selectedDeliveryOverlay .btn-teal {
+    background-color: var(--teal-color);
+    border-color: var(--teal-color);
+    color: #fff;
+}
+
+    #selectedDeliveryOverlay .btn-teal:hover {
+        background-color: var(--teal-hover);
+        border-color: var(--teal-hover);
+        color: #fff;
+    }

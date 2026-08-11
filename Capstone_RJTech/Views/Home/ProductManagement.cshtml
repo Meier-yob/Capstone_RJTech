@@ -19,9 +19,7 @@
         <h3 class="h4 mb-0 text-dark fw-bold">Items</h3>
         <div class="d-flex align-items-center gap-2">
 
-            <button type="button" class="btn btn-outline-teal btn-sm px-3 text-teal fw-semibold ms-2" id="btnTriggerQuickEdit">
-                <i class="bi bi-list-task me-1"></i> QUICK EDIT
-            </button>
+            
 
             <!-- Quick Add Toggle -->
             <button type="button" class="btn btn-outline-teal btn-sm px-3 text-teal fw-semibold ms-2" id="btnToggleQuickAdd">
@@ -485,15 +483,7 @@
         });
     });
 
-    // 2. QUICK EDIT BUTTON TRIGGER
-    $('#btnTriggerQuickEdit').click(function() {
-        const activeRow = $('.product-row.table-active');
-        if (activeRow.length === 0) {
-            alert('Please click and select a product row in the table first.');
-            return;
-        }
-        loadProductDetails(activeRow.data('id'));
-    });
+   
 
         function closeSelectedPanel() {
             $('#selectedProductOverlay').addClass('d-none');
@@ -672,14 +662,18 @@
             enableLayoutBlur();
         });
 
-        // Hide Overlay, reset form, and remove blur
-        $('.btn-close-overlay').on('click', function() {
+        function closeAddProductOverlay() {
             $('#addProductOverlay').addClass('d-none');
             disableLayoutBlur();
             if ($('#createProductForm').length) {
                 $('#createProductForm')[0].reset();
             }
             $('#generatedCode').val('');
+        }
+
+        // Hide Overlay, reset form, and remove blur
+        $('.btn-close-overlay').on('click', function() {
+            closeAddProductOverlay();
         });
         
         // Category Code Generation
@@ -712,8 +706,14 @@
                 data: $(this).serialize(),
                 success: function(response) {
                     if (response.success) {
-                        // Reloads the table view data without full page navigation
-                        location.reload();
+                        $('#productTable tbody').append(buildProductRow(response.data));
+                        $('#cntAll').text($('#productTable tbody tr.product-row').length);
+                        if (response.data.product_status === 'Pending Delivery') {
+                            $('#cntPending').text((parseInt($('#cntPending').text()) || 0) + 1);
+                        }
+                        $('#createProductForm')[0].reset();
+                        $('#generatedCode').val('');
+                        alert('New item created.');
                     } else {
                         // Show detailed validation errors when available to help
                         // the user correct missing/invalid fields.
@@ -729,6 +729,19 @@
                     $spinner.addClass('d-none');
                 }
             });
+        });
+
+        // Product drawers close on an outside click.
+        $(document).on('mousedown', function(e) {
+            if (!$('#addProductOverlay').hasClass('d-none') &&
+                !$(e.target).closest('#addProductOverlay, #btnOpenAddProduct').length) {
+                closeAddProductOverlay();
+            }
+
+            if (!$('#selectedProductOverlay').hasClass('d-none') &&
+                !$(e.target).closest('#selectedProductOverlay, .product-row, #btnTriggerQuickEdit').length) {
+                closeSelectedPanel();
+            }
         });
 });
 </script>

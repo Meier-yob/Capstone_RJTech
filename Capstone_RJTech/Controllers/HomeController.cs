@@ -178,7 +178,11 @@ namespace Capstone_RJTech.Controllers
 
         public IActionResult Dashboard() => View();
         public IActionResult Privacy() => View();
-        public IActionResult DeliveryManagement() => View();
+        public IActionResult DeliveryManagement()
+        {
+            ViewBag.Categories = _categories;
+            return View();
+        }
 
         public IActionResult ProductManagement()
         {

@@ -14,7 +14,7 @@ Layout = "_Layout";
         <button type="button"
                 class="btn btn-teal btn-sm px-3 fw-semibold text-white d-flex align-items-center gap-1"
                 id="btnOpenCreateDelivery">
-            <i class="bi bi-plus-lg me-1"></i> New Delivery
+            <i class="bi bi-plus-lg me-1"></i> Receive Items
         </button>
     </div>
 </div>
@@ -545,6 +545,8 @@ Layout = "_Layout";
         // Press ESC to close overlays
         $(document).on('keydown', function(e) {
             if (e.key === "Escape") {
+                if (!$('#deliveryNewItemModal').hasClass('d-none')) return;
+
                 if (!$('#createDeliveryOverlay').hasClass('d-none')) {
                     $('#createDeliveryOverlay').addClass('d-none');
                     if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
@@ -968,6 +970,127 @@ Layout = "_Layout";
                     alert('An error occurred while completing the delivery.');
                 }
             });
+        });
+        // ==========================================
+        // 7. CREATE A NEW ITEM WITHOUT LEAVING DELIVERY
+        // ==========================================
+        function closeDeliveryNewItemModal() {
+            $('#deliveryNewItemModal').addClass('d-none');
+        }
+
+        $('#btnOpenDeliveryNewItem').on('click', function() {
+            if (selectedProduct) {
+                alert('Settle the previous product first.');
+                return;
+            }
+
+            $('#deliveryNewItemForm')[0].reset();
+            $('#deliveryNewCode').val('');
+            $('#deliveryNewItemModal').removeClass('d-none');
+            setTimeout(function() { $('#deliveryNewCategory').trigger('focus'); }, 50);
+        });
+
+        $('.btn-close-delivery-new-item').on('click', function() {
+            closeDeliveryNewItemModal();
+        });
+
+        $('#deliveryNewCategory').on('change', function() {
+            $.get('/Home/GetNextCategoryCode', { categoryId: $(this).val() })
+                .done(function(response) {
+                    if (response.success) $('#deliveryNewCode').val(response.formattedCode);
+                });
+        });
+
+        $('#btnSaveDeliveryNewItem').on('click', function(e) {
+            e.preventDefault();
+
+            const formElement = document.getElementById('deliveryNewItemForm');
+            if (!formElement.checkValidity()) {
+                formElement.reportValidity();
+                return;
+            }
+
+            if (selectedProduct) {
+                alert('Settle the previous product first.');
+                closeDeliveryNewItemModal();
+                return;
+            }
+
+            const quantity = parseInt($('#deliveryNewQuantity').val());
+            if (!quantity || quantity < 1) {
+                alert('Please enter a valid quantity.');
+                $('#deliveryNewQuantity').trigger('focus');
+                return;
+            }
+
+            const $form = $('#deliveryNewItemForm');
+            const $button = $('#btnSaveDeliveryNewItem');
+            const $spinner = $button.find('.spinner-border');
+            $button.prop('disabled', true);
+            $spinner.removeClass('d-none');
+
+            $.ajax({
+                url: '/Home/Create',
+                type: 'POST',
+                data: $form.serialize(),
+                success: function(response) {
+                    if (!response.success) {
+                        const message = response.errors && response.errors.length
+                            ? response.errors.join('\n')
+                            : (response.message || 'Unable to create the item.');
+                        alert(message);
+                        return;
+                    }
+
+                    const item = response.data;
+                    selectedProduct = {
+                        product_ID: item.product_ID,
+                        formatted_code: item.formatted_code,
+                        product_brand: item.product_brand,
+                        product_description: item.product_description,
+                        category_name: item.category_name,
+                        product_quantity: item.product_quantity
+                    };
+
+                    $('#txtSearchProductID').val(item.formatted_code);
+                    $('#lblProductCode').text(item.formatted_code);
+                    $('#lblBrandDesc').text(`${item.product_brand} - ${item.product_description || ''}`);
+                    $('#lblCategory').text(item.category_name);
+                    $('#lblCurrentQty').text(item.product_quantity || 0);
+                    $('#productContextPanel').removeClass('d-none');
+                    $('#txtQtyReceived').val(quantity).trigger('input');
+
+                    $form[0].reset();
+                    $('#deliveryNewCode').val('');
+                    closeDeliveryNewItemModal();
+                    saveDraftToStorage();
+                    alert('New item created.');
+                },
+                error: function() {
+                    alert('Server error while creating the item.');
+                },
+                complete: function() {
+                    $button.prop('disabled', false);
+                    $spinner.addClass('d-none');
+                }
+            });
+        });
+
+        // Drawers close when the user clicks outside. The New Item modal does not.
+        $(document).on('mousedown', function(e) {
+            if (!$('#deliveryNewItemModal').hasClass('d-none')) return;
+
+            if (!$('#createDeliveryOverlay').hasClass('d-none') &&
+                !$(e.target).closest('#createDeliveryOverlay, #btnOpenCreateDelivery').length) {
+                $('#createDeliveryOverlay').addClass('d-none');
+                if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
+            }
+
+            if (!$('#selectedDeliveryOverlay').hasClass('d-none') &&
+                !$(e.target).closest('#selectedDeliveryOverlay, #deliverySummaryBody, #tblReceipts').length) {
+                $('#selectedDeliveryOverlay').addClass('d-none').empty();
+                if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
+            }
         });
 
         // Execute Page Initialization
