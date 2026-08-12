@@ -52,6 +52,13 @@
                                     </div>
                                 </div>
                                 <div class="col-12">
+                                    <div class="floating-group">
+                                        <label>Product Name*</label>
+                                        <input type="text" name="product_name" id="createProductName" class="form-control" placeholder="e.g. G102 Lightsync" required>
+                                        <div id="createProductNameError" class="text-danger small mt-1 d-none">Item already exists</div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
                                     <div class="floating-group mb-0">
                                         <label>Product Brand*</label>
                                         <input type="text" name="product_brand" class="form-control" placeholder="e.g. Asus, Logitech, Corsair" required>
@@ -101,9 +108,9 @@
 
                             <div class="d-flex align-items-center justify-content-between pt-1">
                                 <span class="section-title mb-0">Initial Item Status</span>
-                                <input type="hidden" name="product_status" value="Pending Delivery" />
-                                <span class="badge-pill-custom badge-pendingdelivery">
-                                    <i class="bi bi-dot me-1"></i>Pending Delivery
+                                <input type="hidden" name="product_status" value="Unavailable" />
+                                <span class="badge-pill-custom badge-unavailable">
+                                    <i class="bi bi-dot me-1"></i>Unavailable
                                 </span>
                             </div>
                         </div>

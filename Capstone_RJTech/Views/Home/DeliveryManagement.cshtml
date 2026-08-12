@@ -20,86 +20,95 @@ Layout = "_Layout";
 </div>
 
 
-<!-- Search Card -->
-<div class="card border-0 shadow-sm mb-3">
-    <div class="card-body p-3">
+<ul class="nav nav-tabs delivery-tabs mb-3" id="deliveryManagementTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="delivery-details-tab" data-bs-toggle="tab" data-bs-target="#delivery-details-pane"
+                type="button" role="tab" aria-controls="delivery-details-pane" aria-selected="true">
+            <i class="bi bi-receipt me-1"></i>Delivery Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="pending-order-tab" data-bs-toggle="tab" data-bs-target="#pending-order-pane"
+                type="button" role="tab" aria-controls="pending-order-pane" aria-selected="false">
+            <i class="bi bi-hourglass-split me-1"></i>Pending Order
+            <span class="badge rounded-pill bg-warning text-dark ms-1" id="cntPendingReorders">0</span>
+        </button>
+    </li>
+</ul>
 
-        <div class="row g-3 align-items-center">
-
-            <!-- Search Input -->
-            <div class="col-md-6">
-                <div class="position-relative">
-                    <label for="txtReceiptSearch"
-                           class="form-label text-muted fs-8 mb-0 d-block">
-                        Search deliveries
-                    </label>
-
-                    <div class="input-group input-group-sm border-bottom">
-                        <span class="input-group-text bg-transparent border-0 ps-0 text-muted">
-                            <i class="bi bi-search"></i>
-                        </span>
-
-                        <input type="text"
-                               id="txtReceiptSearch"
-                               class="form-control border-0 bg-transparent shadow-none"
-                               placeholder="Delivery ID, Batch ID, or Receiver...">
+<div class="tab-content" id="deliveryManagementTabContent">
+    <div class="tab-pane fade show active" id="delivery-details-pane" role="tabpanel" aria-labelledby="delivery-details-tab" tabindex="0">
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-3">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <div class="position-relative">
+                            <label for="txtReceiptSearch" class="form-label text-muted fs-8 mb-0 d-block">Search deliveries</label>
+                            <div class="input-group input-group-sm border-bottom">
+                                <span class="input-group-text bg-transparent border-0 ps-0 text-muted"><i class="bi bi-search"></i></span>
+                                <input type="text" id="txtReceiptSearch" class="form-control border-0 bg-transparent shadow-none"
+                                       placeholder="Delivery ID, Batch ID, or Receiver...">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
         </div>
 
-    </div>
-</div>
+        <div class="d-flex gap-2 mb-3">
+            <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 active" id="btnAllDeliveries">
+                All Deliveries: <span class="fw-bold ms-1" id="cntDeliveries">0</span>
+            </button>
+        </div>
 
-
-<!-- Delivery Summary Pills -->
-<div class="d-flex gap-2 mb-3">
-
-    <button type="button"
-            class="btn btn-sm btn-light-pill border rounded-pill px-3 active"
-            id="btnAllDeliveries">
-        All Deliveries:
-        <span class="fw-bold ms-1" id="cntDeliveries">0</span>
-    </button>
-
-</div>
-
-<!-- Delivery Table -->
-    <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-        <div class="table-responsive">
-            <table class="table align-middle mb-0 custom-delivery-table" id="tblReceipts">
-                <thead>
-                    <tr>
-                        <th class="fw-semibold ps-3">
-                            Delivery ID
-                            <i class="bi bi-caret-down-fill ms-1 fs-8"></i>
-                        </th>
-                        <th class="fw-semibold">
-                            Batch ID
-                        </th>
-                        <th class="fw-semibold">
-                            Date Received
-                        </th>
-                        <th class="fw-semibold">
-                            Received By
-                        </th>
-                        <th class="fw-semibold text-center">
-                            Items
-                        </th>
-                        <th class="fw-semibold text-center pe-3">
-                            Action
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="deliverySummaryBody">
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No receipts found.</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 custom-delivery-table" id="tblReceipts">
+                    <thead>
+                        <tr>
+                            <th class="fw-semibold ps-3">Delivery ID <i class="bi bi-caret-down-fill ms-1 fs-8"></i></th>
+                            <th class="fw-semibold">Batch ID</th>
+                            <th class="fw-semibold">Date Received</th>
+                            <th class="fw-semibold">Received By</th>
+                            <th class="fw-semibold text-center">Items</th>
+                            <th class="fw-semibold text-center pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deliverySummaryBody">
+                        <tr><td colspan="6" class="text-center text-muted py-4">No receipts found.</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+
+    <div class="tab-pane fade" id="pending-order-pane" role="tabpanel" aria-labelledby="pending-order-tab" tabindex="0">
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold">Pending Orders</h6>
+                <small class="text-muted">Select Receive when the supplier delivery arrives.</small>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 custom-delivery-table" id="tblPendingReorders">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">Product</th>
+                            <th>Requested</th>
+                            <th class="text-center">Ordered</th>
+                            <th class="text-center">Received</th>
+                            <th class="text-center">Remaining</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center pe-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="7" class="text-center text-muted py-3">Loading pending orders...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 <style>
 :root { 
@@ -119,6 +128,29 @@ Layout = "_Layout";
 .border-teal { 
     border-color: var(--teal-color) !important; 
 } 
+
+.delivery-tabs {
+    border-bottom-color: #dfe7e5;
+}
+
+.delivery-tabs .nav-link {
+    color: #6c757d;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 0;
+    border-bottom: 3px solid transparent;
+}
+
+.delivery-tabs .nav-link:hover {
+    color: var(--teal-color);
+    border-bottom-color: #b7d4cf;
+}
+
+.delivery-tabs .nav-link.active {
+    color: var(--teal-color);
+    background: transparent;
+    border-bottom-color: var(--teal-color);
+}
 
 /* Teal Buttons */ 
 .btn-teal { 
@@ -181,6 +213,9 @@ Layout = "_Layout";
     padding: 12px 16px; 
     border-bottom: 1px solid #e9ecef; 
     white-space: nowrap; 
+    position: sticky;
+    top: 0;
+    z-index: 2;
 } 
 
 .custom-delivery-table tbody tr { 
@@ -269,6 +304,7 @@ Layout = "_Layout";
         let selectedProduct = null;
         let serialQueue = [];
         let deliveryItems = [];
+        let pendingReorders = [];
         const STORAGE_KEY = 'delivery_intake_draft';
 
         // Helper function for safe HTML string rendering
@@ -283,8 +319,57 @@ Layout = "_Layout";
         // ==========================================
         function initPage() {
             loadReceipts();
+            loadPendingReorders();
             refreshDeliveryIdentifiers();
             restoreDraftFromStorage();
+        }
+
+        function loadPendingReorders() {
+            $.ajax({
+                url: '/Home/GetReorders',
+                type: 'GET',
+                data: { pendingOnly: true },
+                success: function(res) {
+                    pendingReorders = res && res.success ? (res.data || []) : [];
+                    renderPendingReorders();
+                },
+                error: function() {
+                    $('#tblPendingReorders tbody').html('<tr><td colspan="7" class="text-center text-danger py-3">Failed to load pending reorders.</td></tr>');
+                }
+            });
+        }
+
+        function renderPendingReorders() {
+            const $body = $('#tblPendingReorders tbody');
+            $body.empty();
+            $('#cntPendingReorders').text(pendingReorders.length);
+
+            if (!pendingReorders.length) {
+                $body.html('<tr><td colspan="7" class="text-center text-muted py-3">No pending orders.</td></tr>');
+                return;
+            }
+
+            pendingReorders.forEach(function(item) {
+                const date = item.date_requested ? new Date(item.date_requested).toLocaleString() : '-';
+                const badgeClass = item.reorder_status === 'Partially Received' ? 'bg-info text-dark' : 'bg-warning text-dark';
+                $body.append(`
+                    <tr>
+                        <td class="ps-3">
+                            <div class="fw-bold">${escapeHtml(item.product_code)} - ${escapeHtml(item.product_name)}</div>
+                            <div class="text-muted fs-8">${escapeHtml(item.product_brand)} · Stock: ${item.current_quantity}</div>
+                        </td>
+                        <td>${escapeHtml(date)}</td>
+                        <td class="text-center fw-semibold">${item.ordered_quantity}</td>
+                        <td class="text-center">${item.received_quantity}</td>
+                        <td class="text-center fw-bold">${item.remaining_quantity}</td>
+                        <td class="text-center"><span class="badge ${badgeClass}">${escapeHtml(item.reorder_status)}</span></td>
+                        <td class="text-center pe-3">
+                            <button type="button" class="btn btn-teal btn-sm text-white btn-receive-reorder" data-id="${item.reorder_ID}">
+                                <i class="bi bi-box-arrow-in-down me-1"></i>Receive
+                            </button>
+                        </td>
+                    </tr>`);
+            });
         }
 
         function loadReceipts() {
@@ -407,10 +492,11 @@ Layout = "_Layout";
                 if (draft.selectedProduct) {
                     selectedProduct = draft.selectedProduct;
                     $('#lblProductCode').text(selectedProduct.formatted_code || selectedProduct.product_code);
-                    $('#lblBrandDesc').text(`${selectedProduct.product_brand || ''} - ${selectedProduct.product_description || ''}`);
+                    $('#lblBrandDesc').text(`${selectedProduct.product_brand || ''} - ${selectedProduct.product_name || selectedProduct.product_description || ''}`);
                     $('#lblCategory').text(selectedProduct.category_name || '');
                     $('#lblCurrentQty').text(selectedProduct.current_quantity || selectedProduct.product_quantity || 0);
                     $('#productContextPanel').removeClass('d-none');
+                    renderPendingOrderContext(selectedProduct);
                 }
 
                 if (Array.isArray(draft.deliveryItems)) {
@@ -426,8 +512,22 @@ Layout = "_Layout";
             sessionStorage.removeItem(STORAGE_KEY);
         }
 
+        function renderPendingOrderContext(product) {
+            if (!product || !product.reorder_ID) {
+                $('#pendingOrderContext').addClass('d-none');
+                return;
+            }
+
+            $('#pendingOrderTitle').text(`Receiving Pending Order #ORD-${String(product.reorder_ID).padStart(3, '0')}`);
+            $('#pendingOrderOrdered').text(product.ordered_quantity || 0);
+            $('#pendingOrderReceived').text(product.received_quantity || 0);
+            $('#pendingOrderRemaining').text(product.remaining_quantity || 0);
+            $('#pendingOrderContext').removeClass('d-none');
+        }
+
         function resetProductContext() {
             selectedProduct = null;
+            renderPendingOrderContext(null);
             $('#productContextPanel').addClass('d-none');
             $('#txtQtyReceived').val('').trigger('input');
             saveDraftToStorage();
@@ -435,6 +535,7 @@ Layout = "_Layout";
 
         function resetLineItemInputs() {
             selectedProduct = null;
+            renderPendingOrderContext(null);
             $('#txtSearchProductID').val('');
             $('#txtQtyReceived').val('');
             $('#productContextPanel').addClass('d-none');
@@ -515,16 +616,17 @@ Layout = "_Layout";
                     if (res.success) {
                         receipts = receipts.filter(r => r.delivery_ID != id);
                         renderReceiptsTable(receipts);
+                        loadPendingReorders();
                         $('#selectedDeliveryOverlay').addClass('d-none').empty();
                         if (typeof disableLayoutBlur === 'function') disableLayoutBlur();
-                        alert(res.message || 'Receipt deleted successfully.');
+                        showToast(res.message || 'Receipt deleted successfully.');
                     } else {
-                        alert('Failed to delete: ' + (res.message || ''));
+                        showToast(res.message || 'Failed to delete receipt.', 'error');
                         $btn.prop('disabled', false);
                     }
                 },
                 error: function() {
-                    alert('Server error while deleting receipt.');
+                    showToast('Server error while deleting receipt.', 'error');
                     $btn.prop('disabled', false);
                 }
             });
@@ -562,6 +664,39 @@ Layout = "_Layout";
         $(document).on('click', '#btnOpenCreateDelivery', function() {
             $('#createDeliveryOverlay').removeClass('d-none');
             if (typeof enableLayoutBlur === 'function') enableLayoutBlur();
+        });
+
+        $(document).on('click', '.btn-receive-reorder', function() {
+            const reorderId = parseInt($(this).data('id'));
+            const reorder = pendingReorders.find(r => r.reorder_ID == reorderId);
+            if (!reorder) return;
+
+            selectedProduct = {
+                reorder_ID: reorder.reorder_ID,
+                product_ID: reorder.product_ID,
+                formatted_code: reorder.product_code,
+                product_name: reorder.product_name,
+                product_brand: reorder.product_brand,
+                product_description: reorder.product_description,
+                category_name: reorder.category_name,
+                current_quantity: reorder.current_quantity,
+                product_quantity: reorder.current_quantity,
+                ordered_quantity: reorder.ordered_quantity,
+                received_quantity: reorder.received_quantity,
+                remaining_quantity: reorder.remaining_quantity
+            };
+
+            $('#createDeliveryOverlay').removeClass('d-none');
+            if (typeof enableLayoutBlur === 'function') enableLayoutBlur();
+            $('#txtSearchProductID').val(reorder.product_code);
+            $('#lblProductCode').text(reorder.product_code);
+            $('#lblBrandDesc').text(`${reorder.product_brand} - ${reorder.product_name}`);
+            $('#lblCategory').text(reorder.category_name);
+            $('#lblCurrentQty').text(reorder.current_quantity);
+            $('#productContextPanel').removeClass('d-none');
+            renderPendingOrderContext(selectedProduct);
+            $('#txtQtyReceived').val(reorder.remaining_quantity).trigger('input');
+            saveDraftToStorage();
         });
 
         // Search Filter
@@ -606,7 +741,7 @@ Layout = "_Layout";
                         // FILTER: Exclude products already present in deliveryItems summary
                         items = items.filter(it => !deliveryItems.some(existing => existing.product_ID == it.product_ID));
 
-                        const priority = { 'Pending Delivery': 1, 'Low Stock': 2, 'Out of Stock': 3 };
+                        const priority = { 'Unavailable': 1, 'Out of Stock': 2, 'Low Stock': 3, 'Available': 4 };
                         items.sort((a, b) => (priority[a.product_status] || 99) - (priority[b.product_status] || 99));
 
                         const $list = $('#productSuggestions');
@@ -630,8 +765,8 @@ Layout = "_Layout";
                             const $el = $(`
                                             <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2" data-id="${it.product_ID}">
                                                 <div>
-                                                    <div class="fw-bold fs-7">${escapeHtml(it.formatted_code)} - ${escapeHtml(it.product_brand)}</div>
-                                                    <div class="text-muted fs-8">${escapeHtml(it.category_name)} · ${escapeHtml(it.product_description || '')}</div>
+                                                    <div class="fw-bold fs-7">${escapeHtml(it.formatted_code)} - ${escapeHtml(it.product_name || '')}</div>
+                                                    <div class="text-muted fs-8">${escapeHtml(it.product_brand)} · ${escapeHtml(it.category_name)} · ${escapeHtml(it.product_description || '')}</div>
                                                 </div>
                                                 <div><span class="${badgeClass}">${escapeHtml(it.product_status)}</span></div>
                                             </button>
@@ -642,8 +777,9 @@ Layout = "_Layout";
                                 $('#productSuggestions').hide().empty();
 
                                 selectedProduct = it;
+                                renderPendingOrderContext(null);
                                 $('#lblProductCode').text(it.formatted_code);
-                                $('#lblBrandDesc').text(`${it.product_brand} - ${it.product_description}`);
+                                $('#lblBrandDesc').text(`${it.product_brand} - ${it.product_name || it.product_description || ''}`);
                                 $('#lblCategory').text(it.category_name);
                                 $('#lblCurrentQty').text(it.product_quantity || 0);
                                 $('#productContextPanel').removeClass('d-none');
@@ -716,20 +852,26 @@ Layout = "_Layout";
 
         $('#btnValidateMatch').click(function() {
             if (!selectedProduct) {
-                alert('Please search and select a product first.');
+                showToast('Please search and select a product first.', 'warning');
                 return;
             }
 
             // VALIDATION: Block addition if product is already in the summary table
             const isAlreadyAdded = deliveryItems.some(item => item.product_ID == selectedProduct.product_ID);
             if (isAlreadyAdded) {
-                alert('This product is already in the summary table. Please edit the existing entry or select a different product.');
+                showToast('This product is already in the summary table. Edit its existing entry instead.', 'warning');
                 return;
             }
 
             const qtyReceived = parseInt($('#txtQtyReceived').val());
             if (isNaN(qtyReceived) || qtyReceived <= 0) {
-                alert('Please enter a valid Quantity Received.');
+                showToast('Please enter a valid Quantity Received.', 'warning');
+                return;
+            }
+
+            if (selectedProduct.reorder_ID && qtyReceived > selectedProduct.remaining_quantity) {
+                showToast(`Quantity cannot exceed the pending order remaining quantity of ${selectedProduct.remaining_quantity}.`, 'warning');
+                $('#txtQtyReceived').focus();
                 return;
             }
 
@@ -747,7 +889,7 @@ Layout = "_Layout";
 
             const duplicateInInputs = serialsToUse.filter((s, idx, arr) => arr.indexOf(s) !== idx);
             if (duplicateInInputs.length > 0) {
-                alert('Duplicate serial numbers found in your inputs: ' + [...new Set(duplicateInInputs)].join(', '));
+                showToast('Duplicate serial numbers: ' + [...new Set(duplicateInInputs)].join(', '), 'error');
                 return;
             }
 
@@ -755,7 +897,7 @@ Layout = "_Layout";
             const summaryDuplicates = serialsToUse.filter(s => existingSummarySerials.includes(s));
 
             if (summaryDuplicates.length > 0) {
-                alert('Serial number(s) already exist in the delivery summary: ' + [...new Set(summaryDuplicates)].join(', '));
+                showToast('Serial number(s) already exist in the delivery summary: ' + [...new Set(summaryDuplicates)].join(', '), 'error');
                 return;
             }
 
@@ -772,7 +914,7 @@ Layout = "_Layout";
                     if (res.success) {
                         const conflicts = (res.data || []).filter(r => r.exists);
                         if (conflicts.length > 0) {
-                            alert('Duplicate serials detected in database: ' + conflicts.map(c => c.serial).join(', '));
+                            showToast('Duplicate serials detected: ' + conflicts.map(c => c.serial).join(', '), 'error');
                             return;
                         }
 
@@ -784,7 +926,9 @@ Layout = "_Layout";
                             deliveryId: deliveryId,
                             batchId: batchId,
                             product_ID: selectedProduct.product_ID,
+                            reorder_ID: selectedProduct.reorder_ID || null,
                             productCode: selectedProduct.formatted_code,
+                            productName: selectedProduct.product_name,
                             productBrand: selectedProduct.product_brand,
                             productDesc: selectedProduct.product_description,
                             categoryName: selectedProduct.category_name,
@@ -800,12 +944,12 @@ Layout = "_Layout";
                         resetLineItemInputs();
                         saveDraftToStorage();
                     } else {
-                        alert('Failed to validate serials on server.');
+                        showToast('Failed to validate serials.', 'error');
                     }
                 },
                 error: function() {
                     $btn.prop('disabled', false);
-                    alert('Error validating serials.');
+                    showToast('Error validating serials.', 'error');
                 }
             });
         });
@@ -831,7 +975,7 @@ Layout = "_Layout";
                                 <tr class="summary-row" data-index="${index}" style="cursor: pointer;">
                                     <td>
                                         <div class="fw-bold">${escapeHtml(item.productCode)}</div>
-                                        <div class="text-muted fs-8 text-truncate" style="max-width: 140px;">${escapeHtml(item.productBrand)} ${escapeHtml(item.productDesc || '')}</div>
+                                        <div class="text-muted fs-8 text-truncate" style="max-width: 140px;">${escapeHtml(item.productBrand)} ${escapeHtml(item.productName || item.productDesc || '')}</div>
                                     </td>
                                     <td class="text-center fw-bold">${item.quantity}</td>
                                     <td class="text-center">${item.serialNumbers.length}</td>
@@ -858,6 +1002,7 @@ Layout = "_Layout";
             selectedProduct = item.rawProduct || {
                 product_ID: item.product_ID,
                 formatted_code: item.productCode,
+                product_name: item.productName,
                 product_brand: item.productBrand,
                 product_description: item.productDesc,
                 category_name: item.categoryName,
@@ -866,7 +1011,7 @@ Layout = "_Layout";
 
             $('#txtSearchProductID').val(item.productCode);
             $('#lblProductCode').text(item.productCode);
-            $('#lblBrandDesc').text(`${item.productBrand} - ${item.productDesc || ''}`);
+            $('#lblBrandDesc').text(`${item.productBrand} - ${item.productName || item.productDesc || ''}`);
             $('#lblCategory').text(item.categoryName || '');
             $('#lblCurrentQty').text(item.currentQty || 0);
             $('#productContextPanel').removeClass('d-none');
@@ -897,13 +1042,13 @@ Layout = "_Layout";
             const batchId = $('#txtBatchID').val() || $('#batch_ID').val();
 
             if (!receivedBy) {
-                alert('Please enter the Receiver Name.');
+                showToast('Please enter the Receiver Name.', 'warning');
                 $('#txtReceivedBy').focus();
                 return;
             }
 
             if (deliveryItems.length === 0) {
-                alert('Please add at least one item to the delivery before completing.');
+                showToast('Please add at least one item before completing the delivery.', 'warning');
                 return;
             }
 
@@ -920,6 +1065,7 @@ Layout = "_Layout";
                 Batch_ID: batchId,
                 Items: deliveryItems.map(i => ({
                     Product_ID: i.product_ID,
+                    Reorder_ID: i.reorder_ID,
                     Quantity: i.quantity,
                     SerialNumbers: i.serialNumbers
                 }))
@@ -936,7 +1082,7 @@ Layout = "_Layout";
                 success: function(res) {
                     $btn.prop('disabled', false);
                     if (res.success) {
-                        alert(res.message || 'Delivery completed successfully.');
+                        showToast(res.message || 'Delivery completed successfully.');
                         clearDraftStorage();
 
                         deliveryItems = [];
@@ -961,13 +1107,14 @@ Layout = "_Layout";
                             loadReceipts();
                         }
                         refreshDeliveryIdentifiers();
+                        loadPendingReorders();
                     } else {
-                        alert('Error: ' + (res.message || 'Failed to complete delivery.'));
+                        showToast(res.message || 'Failed to complete delivery.', 'error');
                     }
                 },
                 error: function() {
                     $btn.prop('disabled', false);
-                    alert('An error occurred while completing the delivery.');
+                    showToast('An error occurred while completing the delivery.', 'error');
                 }
             });
         });
@@ -976,16 +1123,20 @@ Layout = "_Layout";
         // ==========================================
         function closeDeliveryNewItemModal() {
             $('#deliveryNewItemModal').addClass('d-none');
+            $('#deliveryNewProductName').removeClass('is-invalid');
+            $('#deliveryNewProductNameError').addClass('d-none');
         }
 
         $('#btnOpenDeliveryNewItem').on('click', function() {
             if (selectedProduct) {
-                alert('Settle the previous product first.');
+                showToast('Settle the previous product first.', 'warning');
                 return;
             }
 
             $('#deliveryNewItemForm')[0].reset();
             $('#deliveryNewCode').val('');
+            $('#deliveryNewProductName').removeClass('is-invalid');
+            $('#deliveryNewProductNameError').addClass('d-none');
             $('#deliveryNewItemModal').removeClass('d-none');
             setTimeout(function() { $('#deliveryNewCategory').trigger('focus'); }, 50);
         });
@@ -1001,6 +1152,11 @@ Layout = "_Layout";
                 });
         });
 
+        $('#deliveryNewProductName').on('input', function() {
+            $(this).removeClass('is-invalid');
+            $('#deliveryNewProductNameError').addClass('d-none');
+        });
+
         $('#btnSaveDeliveryNewItem').on('click', function(e) {
             e.preventDefault();
 
@@ -1011,14 +1167,14 @@ Layout = "_Layout";
             }
 
             if (selectedProduct) {
-                alert('Settle the previous product first.');
+                showToast('Settle the previous product first.', 'warning');
                 closeDeliveryNewItemModal();
                 return;
             }
 
             const quantity = parseInt($('#deliveryNewQuantity').val());
             if (!quantity || quantity < 1) {
-                alert('Please enter a valid quantity.');
+                showToast('Please enter a valid quantity.', 'warning');
                 $('#deliveryNewQuantity').trigger('focus');
                 return;
             }
@@ -1035,10 +1191,17 @@ Layout = "_Layout";
                 data: $form.serialize(),
                 success: function(response) {
                     if (!response.success) {
+                        if (response.message === 'Item Already Exists') {
+                            $('#deliveryNewProductName').addClass('is-invalid');
+                            $('#deliveryNewProductNameError').removeClass('d-none');
+                            showToast('Item Already Exists', 'warning');
+                            return;
+                        }
+
                         const message = response.errors && response.errors.length
                             ? response.errors.join('\n')
                             : (response.message || 'Unable to create the item.');
-                        alert(message);
+                        showToast(message, 'error');
                         return;
                     }
 
@@ -1046,6 +1209,7 @@ Layout = "_Layout";
                     selectedProduct = {
                         product_ID: item.product_ID,
                         formatted_code: item.formatted_code,
+                        product_name: item.product_name,
                         product_brand: item.product_brand,
                         product_description: item.product_description,
                         category_name: item.category_name,
@@ -1054,7 +1218,7 @@ Layout = "_Layout";
 
                     $('#txtSearchProductID').val(item.formatted_code);
                     $('#lblProductCode').text(item.formatted_code);
-                    $('#lblBrandDesc').text(`${item.product_brand} - ${item.product_description || ''}`);
+                    $('#lblBrandDesc').text(`${item.product_brand} - ${item.product_name || item.product_description || ''}`);
                     $('#lblCategory').text(item.category_name);
                     $('#lblCurrentQty').text(item.product_quantity || 0);
                     $('#productContextPanel').removeClass('d-none');
@@ -1064,10 +1228,10 @@ Layout = "_Layout";
                     $('#deliveryNewCode').val('');
                     closeDeliveryNewItemModal();
                     saveDraftToStorage();
-                    alert('New item created.');
+                    showToast('New item created.');
                 },
                 error: function() {
-                    alert('Server error while creating the item.');
+                    showToast('Server error while creating the item.', 'error');
                 },
                 complete: function() {
                     $button.prop('disabled', false);
@@ -1095,5 +1259,10 @@ Layout = "_Layout";
 
         // Execute Page Initialization
         initPage();
+
+        if (new URLSearchParams(window.location.search).get('tab') === 'pending') {
+            const pendingTab = document.getElementById('pending-order-tab');
+            if (pendingTab) bootstrap.Tab.getOrCreateInstance(pendingTab).show();
+        }
     });
 </script>

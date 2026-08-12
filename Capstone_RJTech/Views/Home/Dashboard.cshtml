@@ -1,9 +1,84 @@
-﻿@{
+@{
     ViewData["Title"] = "Dashboard";
+    ViewData["Description"] = "Inventory health and tasks requiring attention.";
     Layout = "_Layout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to the Dashboard</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid px-4 py-3 bg-light min-vh-100">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="h4 mb-1 fw-bold text-dark">Inventory Overview</h3>
+            <p class="text-muted mb-0 small">Select a card to open the related filtered workflow.</p>
+        </div>
+        <a asp-action="ProductManagement" class="btn btn-sm btn-teal text-white px-3">
+            <i class="bi bi-box-seam me-1"></i>View Products
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <a asp-action="ProductManagement" asp-route-status="Unavailable" class="dashboard-card card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                    <div><div class="text-muted small">Unavailable</div><div class="fs-3 fw-bold text-dark">@ViewBag.UnavailableCount</div><small class="text-muted">Need initial delivery</small></div>
+                    <span class="dashboard-icon bg-secondary-subtle text-secondary"><i class="bi bi-slash-circle"></i></span>
+                </div>
+            </a>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <a asp-action="ProductManagement" asp-route-status="Low Stock" class="dashboard-card card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                    <div><div class="text-muted small">Low Stock</div><div class="fs-3 fw-bold text-dark">@ViewBag.LowStockCount</div><small class="text-muted">At reorder level</small></div>
+                    <span class="dashboard-icon bg-warning-subtle text-warning-emphasis"><i class="bi bi-exclamation-triangle"></i></span>
+                </div>
+            </a>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <a asp-action="ProductManagement" asp-route-status="Out of Stock" class="dashboard-card card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                    <div><div class="text-muted small">Out of Stock</div><div class="fs-3 fw-bold text-dark">@ViewBag.OutOfStockCount</div><small class="text-muted">Quantity is zero</small></div>
+                    <span class="dashboard-icon bg-danger-subtle text-danger"><i class="bi bi-x-octagon"></i></span>
+                </div>
+            </a>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <a asp-action="DeliveryManagement" asp-route-tab="pending" class="dashboard-card card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body p-3 d-flex justify-content-between align-items-center">
+                    <div><div class="text-muted small">Pending Orders</div><div class="fs-3 fw-bold text-dark">@ViewBag.PendingOrderCount</div><small class="text-muted">Waiting to be received</small></div>
+                    <span class="dashboard-icon bg-info-subtle text-info-emphasis"><i class="bi bi-hourglass-split"></i></span>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div><div class="text-muted small">Total Products</div><div class="fs-2 fw-bold">@ViewBag.TotalProducts</div></div>
+                        <i class="bi bi-boxes fs-1 text-teal"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <a asp-action="DeliveryManagement" class="dashboard-card card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div><div class="text-muted small">Deliveries Today</div><div class="fs-2 fw-bold text-dark">@ViewBag.TodayDeliveryCount</div><small class="text-muted">Open delivery details</small></div>
+                        <i class="bi bi-truck fs-1 text-teal"></i>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
+
+<style>
+    :root { --teal-color: #0b6b5d; --teal-hover: #085247; }
+    .text-teal { color: var(--teal-color) !important; }
+    .btn-teal { background: var(--teal-color); border-color: var(--teal-color); }
+    .dashboard-card { transition: transform .18s ease, box-shadow .18s ease; }
+    .dashboard-card:hover { transform: translateY(-2px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.1) !important; }
+    .dashboard-icon { width: 48px; height: 48px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.35rem; }
+</style>

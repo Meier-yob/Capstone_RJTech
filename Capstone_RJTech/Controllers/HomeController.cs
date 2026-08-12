@@ -25,8 +25,8 @@ namespace Capstone_RJTech.Controllers
         // In-Memory Static List for Products
         private static List<Product> _products = new List<Product>
         {
-            new Product { product_ID = 1, product_brand = "A4 Tech", product_description = "Optical Wired Mouse", product_quantity = 0, Product_price = 200.00M, product_status = "Pending Delivery", reorder_level = 5, category_ID = 2 },
-            new Product { product_ID = 2, product_brand = "Logitech", product_description = "Mechanical Keyboard", product_quantity = 0, Product_price = 1200.00M, product_status = "Pending Delivery", reorder_level = 5, category_ID = 3 }
+            new Product { product_ID = 1, product_name = "Optical Wired Mouse", product_brand = "A4 Tech", product_description = "Optical Wired Mouse", product_quantity = 0, Product_price = 200.00M, product_status = "Unavailable", has_received_initial_delivery = false, reorder_level = 5, category_ID = 2 },
+            new Product { product_ID = 2, product_name = "Mechanical Keyboard", product_brand = "Logitech", product_description = "Mechanical Keyboard", product_quantity = 0, Product_price = 1200.00M, product_status = "Unavailable", has_received_initial_delivery = false, reorder_level = 5, category_ID = 3 }
         };
 
         // In-memory delivery & serial trackers
@@ -34,6 +34,7 @@ namespace Capstone_RJTech.Controllers
         private static List<DeliveryDetails> _deliveryDetails = new List<DeliveryDetails>();
         private static List<ProductSerial> _productSerials = new List<ProductSerial>();
         private static List<DelSerial> _delSerials = new List<DelSerial>();
+        private static List<Reorder> _reorders = new List<Reorder>();
 
         // Sequence Trackers
         private static string _lastDeliveryDate = "";
@@ -176,7 +177,21 @@ namespace Capstone_RJTech.Controllers
             }
         }
 
-        public IActionResult Dashboard() => View();
+        public IActionResult Dashboard()
+        {
+            foreach (var product in _products)
+            {
+                product.product_status = EvaluateProductStatus(product);
+            }
+
+            ViewBag.TotalProducts = _products.Count;
+            ViewBag.UnavailableCount = _products.Count(p => p.product_status == "Unavailable");
+            ViewBag.LowStockCount = _products.Count(p => p.product_status == "Low Stock");
+            ViewBag.OutOfStockCount = _products.Count(p => p.product_status == "Out of Stock");
+            ViewBag.PendingOrderCount = _reorders.Count(r => r.reorder_status == "Pending" || r.reorder_status == "Partially Received");
+            ViewBag.TodayDeliveryCount = _deliveries.Count(d => d.date_delivered.Date == DateTime.Today);
+            return View();
+        }
         public IActionResult Privacy() => View();
         public IActionResult DeliveryManagement()
         {
@@ -187,6 +202,10 @@ namespace Capstone_RJTech.Controllers
         public IActionResult ProductManagement()
         {
             ViewBag.Categories = _categories;
+            ViewBag.PendingReorderProductIds = _reorders
+                .Where(r => r.reorder_status == "Pending" || r.reorder_status == "Partially Received")
+                .Select(r => r.product_ID)
+                .ToHashSet();
 
             foreach (var prod in _products)
             {
@@ -195,6 +214,85 @@ namespace Capstone_RJTech.Controllers
             }
 
             return View(_products);
+        }
+
+        [HttpGet]
+        public IActionResult GetReorders(bool pendingOnly = false)
+        {
+            var reorders = _reorders
+                .Where(r => !pendingOnly || r.reorder_status == "Pending" || r.reorder_status == "Partially Received")
+                .OrderByDescending(r => r.date_requested)
+                .Select(r =>
+                {
+                    var product = _products.FirstOrDefault(p => p.product_ID == r.product_ID);
+                    return new
+                    {
+                        reorder_ID = r.reorder_ID,
+                        product_ID = r.product_ID,
+                        product_code = product == null ? "N/A" : GetFormattedCodeForProduct(product),
+                        product_name = product?.product_name ?? "Unknown",
+                        product_brand = product?.product_brand ?? "Unknown",
+                        product_description = product?.product_description ?? "",
+                        category_name = product == null ? "N/A" : _categories.FirstOrDefault(c => c.category_ID == product.category_ID)?.category_name ?? "N/A",
+                        current_quantity = product?.product_quantity ?? 0,
+                        reorder_level = product?.reorder_level ?? 0,
+                        ordered_quantity = r.ordered_quantity,
+                        received_quantity = r.received_quantity,
+                        remaining_quantity = Math.Max(0, r.ordered_quantity - r.received_quantity),
+                        reorder_status = r.reorder_status,
+                        date_requested = r.date_requested
+                    };
+                })
+                .ToList();
+
+            return Json(new { success = true, data = reorders });
+        }
+
+        [HttpPost]
+        public IActionResult CreateReorder(int product_ID, int quantity)
+        {
+            var product = _products.FirstOrDefault(p => p.product_ID == product_ID);
+            if (product == null)
+                return Json(new { success = false, message = "Product not found." });
+
+            product.product_status = EvaluateProductStatus(product);
+            if (product.product_status != "Low Stock" && product.product_status != "Out of Stock")
+                return Json(new { success = false, message = "Only Low Stock or Out of Stock items can be reordered." });
+
+            var existing = _reorders.FirstOrDefault(r =>
+                r.product_ID == product_ID &&
+                (r.reorder_status == "Pending" || r.reorder_status == "Partially Received"));
+
+            if (existing != null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "This product already has a pending reorder.",
+                    reorder_ID = existing.reorder_ID
+                });
+            }
+
+            if (quantity <= 0)
+                return Json(new { success = false, message = "Enter a valid reorder quantity." });
+
+            var reorder = new Reorder
+            {
+                reorder_ID = _reorders.Any() ? _reorders.Max(r => r.reorder_ID) + 1 : 1,
+                product_ID = product_ID,
+                ordered_quantity = quantity,
+                received_quantity = 0,
+                reorder_status = "Pending",
+                date_requested = DateTime.Now
+            };
+
+            _reorders.Add(reorder);
+            return Json(new
+            {
+                success = true,
+                message = "Reorder submitted.",
+                data = new { reorder_ID = reorder.reorder_ID, reorder_status = reorder.reorder_status }
+            });
         }
 
         [HttpGet]
@@ -268,19 +366,34 @@ namespace Capstone_RJTech.Controllers
         [HttpPost]
         public IActionResult Create([FromForm] Product product)
         {
-            // The Category navigation property is not submitted from the form and
-            // may cause ModelState validation to fail. Also product_quantity is
-            // set server-side to 0 for new items so remove it from model state
-            // to avoid a required/conversion error when the readonly input is
-            // empty in the submitted form.
+            
             ModelState.Remove("Category");
             ModelState.Remove("product_quantity");
 
             if (ModelState.IsValid)
             {
+                product.product_name = NormalizeProductIdentity(product.product_name);
+                product.product_brand = NormalizeProductIdentity(product.product_brand);
+
+                if (string.IsNullOrWhiteSpace(product.product_name) || string.IsNullOrWhiteSpace(product.product_brand))
+                {
+                    return Json(new { success = false, message = "Validation failed.", errors = new[] { "Product name and brand are required." } });
+                }
+
+                bool itemAlreadyExists = _products.Any(existing =>
+                    existing.category_ID == product.category_ID &&
+                    string.Equals(NormalizeProductIdentity(existing.product_name), product.product_name, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(NormalizeProductIdentity(existing.product_brand), product.product_brand, StringComparison.OrdinalIgnoreCase));
+
+                if (itemAlreadyExists)
+                {
+                    return Json(new { success = false, message = "Item Already Exists" });
+                }
+
                 product.product_ID = _products.Any() ? _products.Max(p => p.product_ID) + 1 : 1;
                 product.product_quantity = 0;
-                product.product_status = "Pending Delivery";
+                product.product_status = "Unavailable";
+                product.has_received_initial_delivery = false;
                 _products.Add(product);
 
                 var category = _categories.FirstOrDefault(c => c.category_ID == product.category_ID);
@@ -294,6 +407,7 @@ namespace Capstone_RJTech.Controllers
                     {
                         product_ID = product.product_ID,
                         formatted_code = formattedCode,
+                        product_name = product.product_name,
                         product_brand = product.product_brand,
                         category_name = category?.category_name ?? "N/A",
                         product_description = product.product_description,
@@ -307,6 +421,12 @@ namespace Capstone_RJTech.Controllers
 
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
             return Json(new { success = false, message = "Validation failed.", errors = errors });
+        }
+
+        private static string NormalizeProductIdentity(string? value)
+        {
+            return string.Join(" ", (value ?? string.Empty)
+                .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         }
 
         [HttpGet]
@@ -329,6 +449,7 @@ namespace Capstone_RJTech.Controllers
                 success = true,
                 product_ID = product.product_ID,
                 formatted_code = formattedCode,
+                product_name = product.product_name,
                 product_brand = product.product_brand,
                 category_name = categoryName,
                 product_quantity = product.product_quantity,
@@ -341,10 +462,12 @@ namespace Capstone_RJTech.Controllers
         }
 
         [HttpPost]
-        public IActionResult UpdateProductDetails(int product_ID, string product_brand, decimal product_price, string product_description, string product_status, int reorder_level)
+        public IActionResult UpdateProductDetails(int product_ID, string product_name, string product_brand, decimal product_price, string product_description, string product_status, int reorder_level)
         {
+
             try
             {
+
                 var product = _products.FirstOrDefault(p => p.product_ID == product_ID);
 
                 if (product == null)
@@ -352,9 +475,29 @@ namespace Capstone_RJTech.Controllers
                     return Json(new { success = false, message = "Product not found." });
                 }
 
-                product.product_brand = product_brand;
+                string normalizedName = NormalizeProductIdentity(product_name);
+                string normalizedBrand = NormalizeProductIdentity(product_brand);
+
+                if (string.IsNullOrWhiteSpace(normalizedName) || string.IsNullOrWhiteSpace(normalizedBrand))
+                {
+                    return Json(new { success = false, message = "Product name and brand are required." });
+                }
+
+                bool itemAlreadyExists = _products.Any(existing =>
+                    existing.product_ID != product_ID &&
+                    existing.category_ID == product.category_ID &&
+                    string.Equals(NormalizeProductIdentity(existing.product_name), normalizedName, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(NormalizeProductIdentity(existing.product_brand), normalizedBrand, StringComparison.OrdinalIgnoreCase));
+
+                if (itemAlreadyExists)
+                {
+                    return Json(new { success = false, message = "Item Already Exists" });
+                }
+
+                product.product_name = normalizedName;
+                product.product_brand = normalizedBrand;
                 product.Product_price = product_price;
-                product.product_description = product_description;
+                product.product_description = product_description?.Trim();
                 product.reorder_level = reorder_level;
                 product.product_status = EvaluateProductStatus(product);
 
@@ -371,11 +514,13 @@ namespace Capstone_RJTech.Controllers
         {
             if (product == null) return "Available";
 
-            bool hasBeenDeliveredBefore = _deliveryDetails.Any(dd => dd.product_ID == product.product_ID);
-
-            if (product.product_quantity == 0)
+            if (!product.has_received_initial_delivery)
             {
-                if (!hasBeenDeliveredBefore) return "Pending Delivery";
+                return "Unavailable";
+            }
+
+            if (product.product_quantity <= 0)
+            {
                 return "Out of Stock";
             }
 
@@ -399,6 +544,7 @@ namespace Capstone_RJTech.Controllers
                 }
 
                 _productSerials.RemoveAll(ps => ps.product_ID == id);
+                _reorders.RemoveAll(r => r.product_ID == id);
                 _products.Remove(product);
 
                 return Json(new { success = true, message = "Product deleted successfully!" });
@@ -427,6 +573,7 @@ namespace Capstone_RJTech.Controllers
                         var formattedCode = GetFormattedCodeForProduct(p);
 
                         return formattedCode.ToLower().Contains(searchTerm) ||
+                               (!string.IsNullOrEmpty(p.product_name) && p.product_name.ToLower().Contains(searchTerm)) ||
                                (!string.IsNullOrEmpty(p.product_brand) && p.product_brand.ToLower().Contains(searchTerm)) ||
                                (!string.IsNullOrEmpty(categoryName) && categoryName.ToLower().Contains(searchTerm)) ||
                                (!string.IsNullOrEmpty(p.product_description) && p.product_description.ToLower().Contains(searchTerm));
@@ -440,13 +587,16 @@ namespace Capstone_RJTech.Controllers
                     {
                         product_ID = p.product_ID,
                         formatted_code = GetFormattedCodeForProduct(p),
+                        product_name = p.product_name,
                         product_brand = p.product_brand,
                         category_name = _categories.FirstOrDefault(c => c.category_ID == p.category_ID)?.category_name ?? "N/A",
                         product_description = p.product_description,
                         product_quantity = p.product_quantity,
                         product_price = p.Product_price,
                         product_status = p.product_status,
-                        reorder_level = p.reorder_level
+                        reorder_level = p.reorder_level,
+                        has_pending_reorder = _reorders.Any(r => r.product_ID == p.product_ID &&
+                            (r.reorder_status == "Pending" || r.reorder_status == "Partially Received"))
                     };
                 }).ToList();
 
@@ -469,6 +619,7 @@ namespace Capstone_RJTech.Controllers
         {
             public int product_ID { get; set; }
             public int quantity { get; set; }
+            public int? reorder_ID { get; set; }
             public List<string>? serialNumbers { get; set; }
             public List<string>? serials { get; set; }
         }
@@ -487,6 +638,27 @@ namespace Capstone_RJTech.Controllers
                 if (request == null || string.IsNullOrWhiteSpace(request.received_by) || string.IsNullOrWhiteSpace(request.batch_ID) || request.items == null || !request.items.Any())
                 {
                     return Json(new { success = false, message = "Invalid delivery payload." });
+                }
+
+                foreach (var requestedItem in request.items)
+                {
+                    if (requestedItem.quantity <= 0)
+                        return Json(new { success = false, message = "Every delivery item must have a valid quantity." });
+
+                    if (requestedItem.reorder_ID.HasValue)
+                    {
+                        var requestedReorder = _reorders.FirstOrDefault(r =>
+                            r.reorder_ID == requestedItem.reorder_ID.Value &&
+                            r.product_ID == requestedItem.product_ID &&
+                            (r.reorder_status == "Pending" || r.reorder_status == "Partially Received"));
+
+                        if (requestedReorder == null)
+                            return Json(new { success = false, message = "The selected pending order is no longer active." });
+
+                        int remainingQuantity = requestedReorder.ordered_quantity - requestedReorder.received_quantity;
+                        if (requestedItem.quantity > remainingQuantity)
+                            return Json(new { success = false, message = $"Received quantity cannot exceed the remaining order quantity of {remainingQuantity}." });
+                    }
                 }
 
                 // Advance forward sequence tracker permanently
@@ -521,6 +693,7 @@ namespace Capstone_RJTech.Controllers
                         deldetails_ID = _deliveryDetails.Any() ? _deliveryDetails.Max(dd => dd.deldetails_ID) + 1 : 1,
                         product_quantity = item.quantity,
                         product_ID = item.product_ID,
+                        reorder_ID = item.reorder_ID,
                         delivery_ID = delivery.delivery_ID
                     };
 
@@ -555,7 +728,28 @@ namespace Capstone_RJTech.Controllers
                     }
 
                     product.product_quantity += item.quantity;
+                    product.has_received_initial_delivery = true;
                     product.product_status = EvaluateProductStatus(product);
+
+                    var reorder = item.reorder_ID.HasValue
+                        ? _reorders.FirstOrDefault(r => r.reorder_ID == item.reorder_ID.Value && r.product_ID == item.product_ID)
+                        : _reorders.FirstOrDefault(r => r.product_ID == item.product_ID &&
+                            (r.reorder_status == "Pending" || r.reorder_status == "Partially Received"));
+
+                    if (reorder != null && (reorder.reorder_status == "Pending" || reorder.reorder_status == "Partially Received"))
+                    {
+                        detail.reorder_ID = reorder.reorder_ID;
+                        reorder.received_quantity = Math.Min(reorder.ordered_quantity, reorder.received_quantity + item.quantity);
+                        if (reorder.received_quantity >= reorder.ordered_quantity)
+                        {
+                            reorder.reorder_status = "Received";
+                            reorder.date_completed = DateTime.Now;
+                        }
+                        else
+                        {
+                            reorder.reorder_status = "Partially Received";
+                        }
+                    }
                 }
 
                 var deliveryCode = delivery.batch_ID?.Replace("BATCH-", "DEL-") ?? $"DEL-{todayDateStr}-{_globalBatchSequence:D3}";
@@ -590,6 +784,7 @@ namespace Capstone_RJTech.Controllers
                 if (delivery == null) return Json(new { success = false, message = "Delivery not found." });
 
                 var details = _deliveryDetails.Where(dd => dd.delivery_ID == delivery_ID).ToList();
+                bool cancelledLinkedReorder = false;
 
                 foreach (var dd in details)
                 {
@@ -601,7 +796,26 @@ namespace Capstone_RJTech.Controllers
 
                         // 2. Remove associated serial numbers from the product
                         _productSerials.RemoveAll(ps => ps.product_ID == product.product_ID && ps.batch_ID == delivery.batch_ID);
+                        // Receiving the first delivery permanently activates the item.
+                        // Deleting a receipt rolls back stock, but does not make the item
+                        // newly created again. A rollback to zero is therefore Out of Stock.
                         product.product_status = EvaluateProductStatus(product);
+                    }
+
+                    if (dd.reorder_ID.HasValue)
+                    {
+                        var reorder = _reorders.FirstOrDefault(r => r.reorder_ID == dd.reorder_ID.Value);
+                        if (reorder != null)
+                        {
+                            reorder.received_quantity = Math.Max(0, reorder.received_quantity - dd.product_quantity);
+                            reorder.date_completed = null;
+                            // A deleted receipt invalidates its linked reorder transaction.
+                            // Never reopen it as Pending, otherwise the same completed order
+                            // returns to the receiving queue and creates a reorder loop.
+                            reorder.reorder_status = "Cancelled";
+                            reorder.date_cancelled = DateTime.Now;
+                            cancelledLinkedReorder = true;
+                        }
                     }
 
                     // 3. Clean up delivery serials and delivery detail records
@@ -610,10 +824,16 @@ namespace Capstone_RJTech.Controllers
                 }
 
                 // 4. Hard delete delivery receipt record from list
-                // NOTE: _globalBatchSequence is NOT modified here, ensuring sequence numbers never go backward!
+               
                 _deliveries.Remove(delivery);
 
-                return Json(new { success = true, message = "Delivery receipt permanently deleted and inventory rolled back." });
+                return Json(new
+                {
+                    success = true,
+                    message = cancelledLinkedReorder
+                        ? "Delivery receipt deleted, inventory rolled back, and linked reorder cancelled."
+                        : "Delivery receipt deleted and inventory rolled back."
+                });
             }
             catch (Exception ex)
             {
@@ -621,16 +841,29 @@ namespace Capstone_RJTech.Controllers
                 return Json(new { success = false, message = "An error occurred while deleting the delivery receipt." });
             }
         }
+        //Category Creation
         [HttpPost]
         public IActionResult CreateCategory([FromForm] ProductCategory category)
         {
-            if (!string.IsNullOrWhiteSpace(category.category_name))
-            {
-                category.category_ID = _categories.Any() ? _categories.Max(c => c.category_ID) + 1 : 1;
-                _categories.Add(category);
-                return Json(new { success = true, message = "Category created successfully!" });
-            }
-            return Json(new { success = false, message = "Invalid category name." });
+            string normalizedCategoryName = NormalizeProductIdentity(category.category_name);
+
+            if (string.IsNullOrWhiteSpace(normalizedCategoryName))
+                return Json(new { success = false, message = "Invalid category name." });
+
+            bool categoryAlreadyExists = _categories.Any(existing =>
+                string.Equals(
+                    NormalizeProductIdentity(existing.category_name),
+                    normalizedCategoryName,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (categoryAlreadyExists)
+                return Json(new { success = false, message = "Category already exists" });
+
+            category.category_name = normalizedCategoryName;
+            category.category_ID = _categories.Any() ? _categories.Max(c => c.category_ID) + 1 : 1;
+            _categories.Add(category);
+
+            return Json(new { success = true, message = "Category created successfully!" });
         }
 
         [HttpPost]
@@ -690,6 +923,7 @@ namespace Capstone_RJTech.Controllers
                 success = true,
                 product_ID = product.product_ID,
                 formatted_code = GetFormattedCodeForProduct(product),
+                product_name = product.product_name,
                 product_brand = product.product_brand,
                 product_description = product.product_description,
                 category_name = categoryName,

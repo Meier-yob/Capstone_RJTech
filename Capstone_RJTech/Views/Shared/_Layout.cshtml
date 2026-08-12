@@ -195,6 +195,18 @@
         </div>
     </div>
 
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000; margin-top: 64px;">
+        <div id="appToast" class="toast border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i id="appToastIcon" class="bi bi-check-circle-fill"></i>
+                    <span id="appToastMessage"></span>
+                </div>
+                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <style>
             .sidebar,
             .top-navbar,
@@ -230,6 +242,34 @@
             function disableLayoutBlur() {
                 $('body').removeClass('overlay-open');
             }
+
+            window.showToast = function(message, type) {
+                const toastElement = document.getElementById('appToast');
+                const messageElement = document.getElementById('appToastMessage');
+                const iconElement = document.getElementById('appToastIcon');
+                if (!toastElement || !messageElement || !iconElement) return;
+
+                const toastType = type || 'success';
+                toastElement.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning', 'text-bg-info');
+                iconElement.className = 'bi';
+
+                if (toastType === 'error') {
+                    toastElement.classList.add('text-bg-danger');
+                    iconElement.classList.add('bi-exclamation-circle-fill');
+                } else if (toastType === 'warning') {
+                    toastElement.classList.add('text-bg-warning');
+                    iconElement.classList.add('bi-exclamation-triangle-fill');
+                } else if (toastType === 'info') {
+                    toastElement.classList.add('text-bg-info');
+                    iconElement.classList.add('bi-info-circle-fill');
+                } else {
+                    toastElement.classList.add('text-bg-success');
+                    iconElement.classList.add('bi-check-circle-fill');
+                }
+
+                messageElement.textContent = message || '';
+                bootstrap.Toast.getOrCreateInstance(toastElement, { delay: 3200 }).show();
+            };
             $(document).ready(function() {
                 // Get current page path (e.g., "/Home/ProductManagement")
                 var currentPath = window.location.pathname;

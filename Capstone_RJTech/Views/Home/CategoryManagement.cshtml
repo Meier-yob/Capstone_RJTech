@@ -139,6 +139,12 @@
                                                     <i class="bi bi-dot me-1"></i>Out of Stock
                                                 </span>
                                             }
+                                            else if (prod.product_status == "Unavailable")
+                                            {
+                                                <span class="badge-pill-custom badge-unavailable">
+                                                    <i class="bi bi-dot me-1"></i>Unavailable
+                                                </span>
+                                            }
                                             else
                                             {
                                                 <span class="badge-pill-custom badge-pendingdelivery">
@@ -353,6 +359,11 @@
         background-color: #f2f2f2;
         color: #6c757d;
     }
+
+    .badge-unavailable {
+        background-color: #edf0f2;
+        color: #5f6870;
+    }
 </style>
 
 <!-- jQuery Client Script -->
@@ -435,7 +446,7 @@
                     if (res.success) {
                         location.reload(); // Refresh to sync category names
                     } else {
-                        alert(res.message || 'Failed to update category.');
+                        showToast(res.message || 'Failed to update category.', 'error');
                     }
                 }
             });
@@ -451,8 +462,10 @@
                 success: function(res) {
                     if (res.success) {
                         location.reload();
+                    } else if (res.message === 'Category already exists') {
+                        showToast('Category already exists', 'warning');
                     } else {
-                        alert(res.message || 'Failed to create category.');
+                        showToast(res.message || 'Failed to create category.', 'error');
                     }
                 }
             });

@@ -6,6 +6,7 @@
 
     Layout = "_Layout";
     var categories = ViewBag.Categories as List<Capstone_RJTech.Models.ProductCategory> ?? new List<Capstone_RJTech.Models.ProductCategory>();
+    var pendingReorderProductIds = ViewBag.PendingReorderProductIds as HashSet<int> ?? new HashSet<int>();
 
     var totalItems = Model.Count();
     var reorderItems = Model.Count(x => x.product_quantity <= x.reorder_level && x.product_quantity > 0);
@@ -20,11 +21,6 @@
         <div class="d-flex align-items-center gap-2">
 
             
-
-            <!-- Quick Add Toggle -->
-            <button type="button" class="btn btn-outline-teal btn-sm px-3 text-teal fw-semibold ms-2" id="btnToggleQuickAdd">
-                <i class="bi bi-plus-square me-1"></i> QUICK ADD
-            </button>
 
             <!-- Create Product Modal Button -->
             <button type="button" class="btn btn-teal btn-sm px-3 fw-semibold text-white d-flex align-items-center gap-1" id="btnOpenAddProduct">
@@ -72,7 +68,7 @@
                         <option value="Available">Available</option>
                         <option value="Low Stock">Low Stock</option>
                         <option value="Out of Stock">Out of Stock</option>
-                        <option value="Pending Delivery">Pending Delivery</option>
+                        <option value="Unavailable">Unavailable</option>
                     </select>
                 </div>
 
@@ -99,56 +95,9 @@
         <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 filter-badge" data-filter="outofstock">
             Out of Stock:<span class="fw-bold ms-1" id="cntOut">@Model.Count(x => x.product_status == "Out of Stock")</span>
         </button>
-        <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 filter-badge" data-filter="pendingdelivery">
-            Pending Delivery:<span class="fw-bold ms-1" id="cntPending">@Model.Count(x => x.product_status == "Pending Delivery")</span>
+        <button type="button" class="btn btn-sm btn-light-pill border rounded-pill px-3 filter-badge" data-filter="unavailable">
+            Unavailable:<span class="fw-bold ms-1" id="cntUnavailable">@Model.Count(x => x.product_status == "Unavailable")</span>
         </button>
-    </div>
-
-    <!-- Quick Add Inline Bar -->
-    <div id="quickAddContainer" class="card border-0 shadow-sm mb-3 border-start border-4 border-teal d-none">
-        <div class="card-body bg-light-gray py-2 px-3">
-            <form id="quickAddForm" class="row g-2 align-items-center">
-                <div class="col-auto">
-                    <button type="button" class="btn btn-teal btn-sm rounded-circle p-0 text-white d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
-                        <i class="bi bi-plus"></i>
-                    </button>
-                </div>
-                <div class="col-md-4">
-                    <input type="text" id="quickDescription" name="product_description" class="form-control form-control-sm bg-white" placeholder="Item name" required>
-                </div>
-
-                <!-- Replaced SKU field with Category Dropdown -->
-                <div class="col-md-2">
-                    <select id="quickCategory" name="category_ID" class="form-select form-select-sm bg-white" required>
-                        <option value="" disabled selected>Category</option>
-                        @foreach (var cat in categories)
-                        {
-                            <option value="@cat.category_ID">@cat.category_name</option>
-                        }
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-end-0 text-muted">Rate <br> ₱</span>
-                        <input type="number" step="0.01" id="quickPrice" name="Product_price" class="form-control border-start-0 bg-white" placeholder="0.00" required>
-                    </div>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" id="btnSubmitQuickAdd" class="btn btn-teal btn-sm fw-bold px-3 text-white">
-                        <i class="bi bi-plus-lg me-1"></i> ADD
-                    </button>
-                </div>
-                <div class="col-auto">
-                    <span class="text-muted fs-8">Press Enter to add.</span>
-                </div>
-                <div class="col-auto ms-auto">
-                    <button type="button" id="btnCancelQuickAdd" class="btn btn-link text-secondary btn-sm p-0">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
     </div>
 
     <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
@@ -159,11 +108,12 @@
                         <th class="fw-semibold ps-3">Product ID <i class="bi bi-caret-down-fill ms-1 fs-8"></i></th>
                         <th class="fw-semibold">Category</th>
                         <th class="fw-semibold">Brand</th>
-                        <th class="fw-semibold">Description</th>
+                        <th class="fw-semibold">Product Name</th>
                         <th class="fw-semibold text-center">Total Qty</th>
-                        <th class="fw-semibold">Price</th>
+                        <th class="fw-semibold text-end">Price</th>
                         <th class="fw-semibold text-center">Reorder Lvl</th>
                         <th class="fw-semibold text-center pe-3">Status</th>
+                        <th class="fw-semibold text-center pe-3">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -173,9 +123,9 @@
                             <td class="fw-bold text-dark ps-3">@HomeController.GetFormattedCodeForProduct(item)</td>
                             <td class="text-secondary fw-medium">@(item.Category?.category_name ?? "N/A")</td>
                             <td class="text-secondary">@(string.IsNullOrEmpty(item.product_brand) ? "-" : item.product_brand)</td>
-                            <td class="text-secondary text-truncate" style="max-width: 250px;">@item.product_description</td>
+                            <td class="text-secondary fw-medium">@item.product_name</td>
                             <td class="text-center fw-semibold text-dark">@item.product_quantity</td>
-                            <td class="fw-semibold text-dark">₱@item.Product_price.ToString("#,##0.00")</td>
+                            <td class="fw-semibold text-dark text-end">₱@item.Product_price.ToString("#,##0.00")</td>
                             <td class="text-center text-muted">@item.reorder_level</td>
                             <td class="text-center pe-3">
                                 @if (item.product_status == "Available")
@@ -203,10 +153,78 @@
                                     </span>
                                 }
                             </td>
+                            <td class="text-center pe-3">
+                                @if (pendingReorderProductIds.Contains(item.product_ID))
+                                {
+                                    <a asp-action="DeliveryManagement" asp-route-tab="pending" class="btn btn-sm btn-light border text-warning-emphasis">
+                                        <i class="bi bi-hourglass-split me-1"></i>Pending Order
+                                    </a>
+                                }
+                                else if (item.product_status == "Low Stock" || item.product_status == "Out of Stock")
+                                {
+                                    var suggestedQuantity = Math.Max(1, (item.reorder_level * 2) - item.product_quantity);
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-teal btn-reorder-product"
+                                            data-id="@item.product_ID"
+                                            data-code="@HomeController.GetFormattedCodeForProduct(item)"
+                                            data-name="@item.product_name"
+                                            data-qty="@item.product_quantity"
+                                            data-level="@item.reorder_level"
+                                            data-suggested="@suggestedQuantity">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Reorder
+                                    </button>
+                                }
+                                else if (item.product_status == "Unavailable")
+                                {
+                                    <span class="badge-pill-custom badge-unavailable">
+                                        <i class="bi bi-dot me-1"></i>Unavailable
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fs-8">—</span>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+    </div>
+</div>
+
+<div id="reorderModal" class="d-none" role="dialog" aria-modal="true" aria-labelledby="reorderModalTitle">
+    <div class="reorder-modal-card card border-0 shadow-lg">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <div>
+                <h5 class="mb-0 fw-bold" id="reorderModalTitle">Reorder Product</h5>
+                <small class="text-muted">Confirm the suggested quantity</small>
+            </div>
+            <button type="button" class="btn-close btn-close-reorder" aria-label="Close"></button>
+        </div>
+        <div class="card-body p-4">
+            <input type="hidden" id="reorderProductId">
+            <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                <div>
+                    <span class="badge bg-light text-dark border mb-2" id="reorderProductCode">-</span>
+                    <div class="fw-bold" id="reorderProductName">-</div>
+                </div>
+                <div class="text-end fs-8 text-muted">
+                    Current stock: <strong class="text-dark" id="reorderCurrentQty">0</strong><br>
+                    Reorder level: <strong class="text-dark" id="reorderLevel">0</strong>
+                </div>
+            </div>
+            <label for="reorderQuantity" class="form-label fw-semibold">Order Quantity*</label>
+            <input type="number" id="reorderQuantity" class="form-control" min="1" step="1" required>
+            <div class="form-text">Suggested quantity raises stock to twice the reorder level.</div>
+            <div id="reorderError" class="text-danger small mt-2 d-none"></div>
+        </div>
+        <div class="card-footer bg-white d-flex justify-content-end gap-2 py-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm btn-close-reorder">Cancel</button>
+            <button type="button" class="btn btn-teal btn-sm px-4 text-white" id="btnConfirmReorder">
+                <span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>
+                Confirm Reorder
+            </button>
         </div>
     </div>
 </div>
@@ -298,6 +316,9 @@
                     padding: 12px 16px;
                     border-bottom: 1px solid #e9ecef;
                     white-space: nowrap;
+                    position: sticky;
+                    top: 0;
+                    z-index: 2;
                 }
 
                 .custom-product-table tbody tr {
@@ -352,6 +373,30 @@
         background-color: #f2f2f2;
         color: #6c757d;
     }
+
+    .badge-unavailable {
+        background-color: #edf0f2;
+        color: #5f6870;
+    }
+
+    #reorderModal {
+        position: fixed;
+        inset: 0;
+        z-index: 1085;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: rgba(20, 31, 29, 0.45);
+    }
+
+    #reorderModal.d-none {
+        display: none !important;
+    }
+
+    .reorder-modal-card {
+        width: min(460px, 100%);
+    }
     
 
 </style>
@@ -363,16 +408,29 @@
 <script>
     $(document).ready(function() {
     let originalData = {};
-    const editableInputs = '#detailBrand, #detailPrice, #detailDescription, #detailReorderLevel';
+    const editableInputs = '#detailProductName, #detailBrand, #detailPrice, #detailDescription, #detailReorderLevel';
+
+    function setDuplicateNameError(inputSelector, errorSelector, show) {
+        $(inputSelector).toggleClass('is-invalid', show);
+        $(errorSelector).toggleClass('d-none', !show);
+    }
+
+    $('#detailProductName').on('input', function() {
+        setDuplicateNameError('#detailProductName', '#detailProductNameError', false);
+    });
+
+    $('#createProductName').on('input', function() {
+        setDuplicateNameError('#createProductName', '#createProductNameError', false);
+    });
 
     function renderStatusBadge(status) {
         const map = {
             'Available': 'badge-pill-custom badge-available',
             'Low Stock': 'badge-pill-custom badge-lowstock',
             'Out of Stock': 'badge-pill-custom badge-outofstock',
-            'Pending Delivery': 'badge-pill-custom badge-pendingdelivery'
+            'Unavailable': 'badge-pill-custom badge-unavailable'
         };
-        const cls = map[status] || 'badge-pill-custom badge-pendingdelivery';
+        const cls = map[status] || 'badge-pill-custom badge-outofstock';
         return `<span class="${cls}"><i class="bi bi-dot me-1"></i>${status}</span>`;
     }
 
@@ -384,18 +442,42 @@
                 <td class="fw-bold text-dark ps-3">${item.formatted_code}</td>
                 <td class="text-secondary fw-medium">${item.category_name}</td>
                 <td class="text-secondary">${brand}</td>
-                <td class="text-secondary text-truncate" style="max-width: 250px;">${item.product_description || ''}</td>
+                <td class="text-secondary fw-medium">${item.product_name || ''}</td>
                 <td class="text-center fw-semibold text-dark">${item.product_quantity}</td>
-                <td class="fw-semibold text-dark">₱${price}</td>
+                <td class="fw-semibold text-dark text-end">₱${price}</td>
                 <td class="text-center text-muted">${item.reorder_level}</td>
                 <td class="text-center pe-3">${renderStatusBadge(item.product_status)}</td>
+                <td class="text-center pe-3">${buildReorderAction(item)}</td>
             </tr>`;
+    }
+
+    function buildReorderAction(item) {
+        if (item.has_pending_reorder) {
+            return `<a href="/Home/DeliveryManagement?tab=pending" class="btn btn-sm btn-light border text-warning-emphasis">
+                        <i class="bi bi-hourglass-split me-1"></i>Pending Order
+                    </a>`;
+        }
+
+        if (item.product_status !== 'Low Stock' && item.product_status !== 'Out of Stock') {
+            return '<span class="text-muted fs-8">—</span>';
+        }
+
+        const currentQty = parseInt(item.product_quantity) || 0;
+        const reorderLevel = parseInt(item.reorder_level) || 0;
+        const suggested = Math.max(1, (reorderLevel * 2) - currentQty);
+        return `<button type="button" class="btn btn-sm btn-outline-teal btn-reorder-product"
+                    data-id="${item.product_ID}" data-code="${item.formatted_code}"
+                    data-name="${item.product_name || ''}" data-qty="${currentQty}"
+                    data-level="${reorderLevel}" data-suggested="${suggested}">
+                    <i class="bi bi-arrow-repeat me-1"></i>Reorder
+                </button>`;
     }
 
     function populateSelectedItem(data) {
         $('#detailTitle').text(data.formatted_code);
-        $('#detailSubtitle').text(data.product_description || '');
+        $('#detailSubtitle').text(data.product_name || data.product_description || '');
         $('#detailProductID').val(data.formatted_code);
+        $('#detailProductName').val(data.product_name || '');
         $('#detailBrand').val(data.product_brand || '');
         $('#detailCategory').val(data.category_name);
         $('#detailQuantity').val(data.product_quantity);
@@ -404,6 +486,7 @@
         $('#detailReorderLevel').val(data.reorder_level);
 
         originalData = {
+            name: data.product_name || '',
             brand: data.product_brand || '',
             price: parseFloat(data.product_price).toFixed(2),
             description: data.product_description || '',
@@ -435,53 +518,16 @@
                 if (data.success) {
                     populateSelectedItem(data);
                 } else {
-                    alert(data.message || 'Failed to retrieve item details.');
+                    showToast(data.message || 'Failed to retrieve item details.', 'error');
                 }
             },
             error: function() {
-                alert('Failed to retrieve item details.');
+                showToast('Failed to retrieve item details.', 'error');
             }
         });
     }
 
         
-
-    // 1. QUICK ADD TOGGLE & FORM HANDLING
-    $('#btnToggleQuickAdd').click(function() {
-        $('#quickAddContainer').toggleClass('d-none');
-        if (!$('#quickAddContainer').hasClass('d-none')) {
-            $('#quickDescription').focus();
-        }
-    });
-
-    $('#btnCancelQuickAdd').click(function() {
-        $('#quickAddContainer').addClass('d-none');
-        $('#quickAddForm')[0].reset();
-    });
-
-    $('#quickAddForm').on('submit', function(e) {
-        e.preventDefault();
-        const btn = $('#btnSubmitQuickAdd');
-        btn.prop('disabled', true);
-
-        $.ajax({
-            url: '/Home/Create',
-            type: 'POST',
-            // Ensure required server fields are present. Provide a minimal price
-            // so quick-add can create a product without opening the full form.
-            data: $(this).serialize() + '&product_brand=Generic&reorder_level=0&Product_price=0.01',
-            success: function(response) {
-                if (response.success) {
-                    location.reload();
-                } else {
-                    var msg = response.errors && response.errors.length ? response.errors.join('\n') : (response.message || 'Quick add failed.');
-                    alert(msg);
-                }
-            },
-            error: function() { alert('Server error on quick add.'); },
-            complete: function() { btn.prop('disabled', false); }
-        });
-    });
 
    
 
@@ -492,7 +538,8 @@
         }
         $('#btnCloseSelectedPanel').click(closeSelectedPanel);
         // 3. ROW CLICK: OPENS PANEL, BLURS LAYOUT & LOADS DETAILS
-        $(document).on('click', '.product-row', function() {
+        $(document).on('click', '.product-row', function(e) {
+            if ($(e.target).closest('.btn-reorder-product, a, button').length) return;
             $('.product-row').removeClass('table-active');
             $(this).addClass('table-active');
 
@@ -502,14 +549,73 @@
             loadProductDetails($(this).data('id'));
         });
 
+        $(document).on('click', '.btn-reorder-product', function(e) {
+            e.stopPropagation();
+            const $button = $(this);
+            $('#reorderProductId').val($button.data('id'));
+            $('#reorderProductCode').text($button.data('code'));
+            $('#reorderProductName').text($button.data('name'));
+            $('#reorderCurrentQty').text($button.data('qty'));
+            $('#reorderLevel').text($button.data('level'));
+            $('#reorderQuantity').val($button.data('suggested'));
+            $('#reorderError').addClass('d-none').text('');
+            $('#reorderModal').removeClass('d-none');
+        });
+
+        $('.btn-close-reorder').on('click', function() {
+            $('#reorderModal').addClass('d-none');
+        });
+
+        $('#reorderQuantity').on('input', function() {
+            $('#reorderError').addClass('d-none').text('');
+        });
+
+        $('#btnConfirmReorder').on('click', function() {
+            const productId = parseInt($('#reorderProductId').val());
+            const quantity = parseInt($('#reorderQuantity').val());
+            if (!quantity || quantity < 1) {
+                $('#reorderError').removeClass('d-none').text('Enter a valid reorder quantity.');
+                return;
+            }
+
+            const $button = $(this);
+            $button.prop('disabled', true).find('.spinner-border').removeClass('d-none');
+            $.ajax({
+                url: '/Home/CreateReorder',
+                type: 'POST',
+                data: { product_ID: productId, quantity: quantity },
+                success: function(res) {
+                    if (res.success) {
+                        $('#reorderModal').addClass('d-none');
+                        const $actionCell = $(`.product-row[data-id="${productId}"] td:last`);
+                        $actionCell.html(`<a href="/Home/DeliveryManagement?tab=pending" class="btn btn-sm btn-light border text-warning-emphasis">
+                            <i class="bi bi-hourglass-split me-1"></i>Pending Order
+                        </a>`);
+                        showToast('Reorder submitted. It is now pending in Delivery Management.');
+                    } else {
+                        $('#reorderError').removeClass('d-none').text(res.message || 'Unable to create reorder.');
+                        showToast(res.message || 'Unable to create reorder.', 'warning');
+                    }
+                },
+                error: function() {
+                    $('#reorderError').removeClass('d-none').text('Server error while creating reorder.');
+                },
+                complete: function() {
+                    $button.prop('disabled', false).find('.spinner-border').addClass('d-none');
+                }
+            });
+        });
+
         // 4. CANCEL EDIT MODE HANDLER
         $('#btnCancelEdit, #btnCloseSelectedPanel').click(function() {
             if (typeof originalData !== 'undefined' && originalData) {
+                $('#detailProductName').val(originalData.name);
                 $('#detailBrand').val(originalData.brand);
                 $('#detailPrice').val(originalData.price);
                 $('#detailDescription').val(originalData.description);
                 $('#detailReorderLevel').val(originalData.reorderLevel);
             }
+            setDuplicateNameError('#detailProductName', '#detailProductNameError', false);
             closeSelectedPanel();
         });
 
@@ -533,6 +639,7 @@
 
         const payload = {
             product_ID: productId,
+            product_name: $('#detailProductName').val(),
             product_brand: $('#detailBrand').val(),
             product_price: parseFloat($('#detailPrice').val()) || 0,
             product_description: $('#detailDescription').val(),
@@ -549,13 +656,17 @@
             data: payload,
             success: function(res) {
                 if (res.success) {
+                    setDuplicateNameError('#detailProductName', '#detailProductNameError', false);
                     closeSelectedPanel();
                     location.reload();
+                } else if (res.message === 'Item Already Exists') {
+                    setDuplicateNameError('#detailProductName', '#detailProductNameError', true);
+                    showToast('Item Already Exists', 'warning');
                 } else {
-                    alert('Error: ' + (res.message || 'Failed to update product.'));
+                    showToast(res.message || 'Failed to update product.', 'error');
                 }
             },
-            error: function() { alert('Server error occurred while saving.'); },
+            error: function() { showToast('Server error occurred while saving.', 'error'); },
             complete: function() {
                 $('#btnSaveDetail').prop('disabled', false);
                 $('#saveSpinner').addClass('d-none');
@@ -579,10 +690,10 @@
                         closeSelectedPanel();
                         location.reload();
                     } else {
-                        alert(res.message || 'Failed to delete product.');
+                        showToast(res.message || 'Failed to delete product.', 'error');
                     }
                 },
-                error: function() { alert('Server error occurred while deleting.'); }
+                error: function() { showToast('Server error occurred while deleting.', 'error'); }
             });
         }
     });
@@ -613,7 +724,7 @@
             let showByBadge = true;
             if (badgeFilter === 'lowstock') showByBadge = status === 'low stock';
             else if (badgeFilter === 'outofstock') showByBadge = status === 'out of stock';
-            else if (badgeFilter === 'pendingdelivery') showByBadge = status === 'pending delivery';
+            else if (badgeFilter === 'unavailable') showByBadge = status === 'unavailable';
 
             const showByCat = !categoryFilter || catText.includes(categoryFilter);
             const showByStatus = !statusFilter || status === statusFilter;
@@ -646,7 +757,7 @@
                         } else {
                             $tbody.html(`
                                 <tr>
-                                    <td colspan="8" class="text-center text-muted py-3">
+                                    <td colspan="9" class="text-center text-muted py-3">
                                         No products matching "<strong>${searchQuery}</strong>"
                                     </td>
                                 </tr>`);
@@ -669,6 +780,7 @@
                 $('#createProductForm')[0].reset();
             }
             $('#generatedCode').val('');
+            setDuplicateNameError('#createProductName', '#createProductNameError', false);
         }
 
         // Hide Overlay, reset form, and remove blur
@@ -708,21 +820,25 @@
                     if (response.success) {
                         $('#productTable tbody').append(buildProductRow(response.data));
                         $('#cntAll').text($('#productTable tbody tr.product-row').length);
-                        if (response.data.product_status === 'Pending Delivery') {
-                            $('#cntPending').text((parseInt($('#cntPending').text()) || 0) + 1);
+                        if (response.data.product_status === 'Unavailable') {
+                            $('#cntUnavailable').text((parseInt($('#cntUnavailable').text()) || 0) + 1);
                         }
                         $('#createProductForm')[0].reset();
                         $('#generatedCode').val('');
-                        alert('New item created.');
+                        setDuplicateNameError('#createProductName', '#createProductNameError', false);
+                        showToast('New item created.');
+                    } else if (response.message === 'Item Already Exists') {
+                        setDuplicateNameError('#createProductName', '#createProductNameError', true);
+                        showToast('Item Already Exists', 'warning');
                     } else {
                         // Show detailed validation errors when available to help
                         // the user correct missing/invalid fields.
                         var msg = response.errors && response.errors.length ? response.errors.join('\n') : (response.message || 'Error saving product.');
-                        alert(msg);
+                        showToast(msg, 'error');
                     }
                 },
                 error: function() {
-                    alert('Server error occurred.');
+                    showToast('Server error occurred.', 'error');
                 },
                 complete: function() {
                     $btn.prop('disabled', false);
@@ -743,5 +859,12 @@
                 closeSelectedPanel();
             }
         });
+
+        const requestedStatus = new URLSearchParams(window.location.search).get('status');
+        if (requestedStatus) {
+            $('#filterStatus').val(requestedStatus);
+            $('.filter-badge').removeClass('active');
+            applyFilters();
+        }
 });
 </script>

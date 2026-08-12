@@ -10,6 +10,10 @@ namespace Capstone_RJTech.Models
         [Key]
         public int product_ID { get; set; }
 
+        [Required(ErrorMessage = "Product name is required")]
+        [StringLength(150)]
+        public string product_name { get; set; } = string.Empty;
+
         [Required(ErrorMessage = "Brand is required")]
         [StringLength(100)]
         public string product_brand { get; set; } = string.Empty;
@@ -28,7 +32,10 @@ namespace Capstone_RJTech.Models
 
         [Required]
         [StringLength(50)]
-        public string product_status { get; set; } = "Available";
+        public string product_status { get; set; } = "Unavailable";
+
+        // A new catalog item remains unavailable until its first delivery is completed.
+        public bool has_received_initial_delivery { get; set; }
 
         [Required]
         [Range(0, int.MaxValue, ErrorMessage = "Reorder level cannot be negative")]

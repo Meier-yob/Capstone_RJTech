@@ -15,6 +15,8 @@ namespace Capstone_RJTech.Models
         [Required]
         public int product_ID { get; set; }
 
+        public int? reorder_ID { get; set; }
+
         [Required]
         public int delivery_ID { get; set; }
 
