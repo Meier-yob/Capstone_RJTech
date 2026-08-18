@@ -55,7 +55,6 @@
             product_name: row.querySelector('.bulk-name').value,
             product_brand: row.querySelector('.bulk-brand').value,
             Product_price: Number(row.querySelector('.bulk-price').value),
-            product_quantity: Number(row.querySelector('.bulk-qty').value),
             reorder_level: Number(row.querySelector('.bulk-reorder').value)
         };
     }

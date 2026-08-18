@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="~/css/navigation.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DraftSYSTEM.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
     
 </head>
 
@@ -102,11 +103,11 @@
             </div>
 
             <div class="sidebar-footer">
-                <div class="nav-section-label">System</div>
-                <ul class="sidebar-nav">
-                    <li class="nav-item"><a href="#" class="nav-link-custom" data-nav-placeholder="Settings"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span><span class="nav-label">Settings</span></a></li>
-                    <li class="nav-item"><a href="#" class="nav-link-custom nav-logout" data-nav-placeholder="Logout"><span class="nav-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span><span class="nav-label">Logout</span></a></li>
-                </ul>
+                <div class="sidebar-user">
+                    <span class="sidebar-user-avatar">RJ</span>
+                    <span class="sidebar-user-copy"><strong>RJTech Admin</strong><small>Administrator</small></span>
+                    <button class="sidebar-user-action" type="button" data-nav-placeholder="Logout" aria-label="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                </div>
             </div>
         </aside>
 
@@ -114,39 +115,42 @@
         <div class="main-wrapper">
             <header class="top-navbar">
                 <div class="header-primary">
-                    <button type="button" class="header-icon-button d-lg-none" id="sidebarToggle" aria-label="Open navigation">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <div class="selected-page">
-                        <h5 class="page-eyebrow">RJTech Workspace</h5>
-                        
-                    </div>
-                </div>
-
-                <div class="header-actions">
                     <label class="search-bar" aria-label="Quick search">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="search" placeholder="Search workspace">
                         <kbd>⌘ K</kbd>
                     </label>
-                    <a asp-controller="Notification" asp-action="Notification" class="header-icon-button header-notification" aria-label="Notifications">
+                </div>
+
+                <div class="header-actions">
+                    <button id="notificationToggle" class="header-icon-button header-notification" type="button"
+                            aria-label="Notifications" aria-expanded="false" aria-controls="notificationFlyout">
                         <i class="fa-regular fa-bell"></i>
-                        <span class="notification-dot"></span>
-                    </a>
+                        <span id="notificationDot" class="notification-dot d-none"></span>
+                        <span id="notificationBadge" class="notification-badge d-none">0</span>
+                    </button>
+                    <div id="notificationFlyout" class="notification-flyout d-none"
+                         data-list-url="@Url.Action("GetNotifications", "Notification")"
+                         data-read-url="@Url.Action("MarkAsRead", "Notification")"
+                         data-read-all-url="@Url.Action("MarkAllAsRead", "Notification")">
+                        <div class="notification-flyout-header">
+                            <div><strong>Notifications</strong><span id="flyoutUnreadCount" class="notification-count">0</span></div>
+                            <button id="flyoutMarkAllRead" class="btn btn-sm btn-link" type="button">Mark all read</button>
+                        </div>
+                        <div id="notificationFlyoutList" class="notification-flyout-list">
+                            <div class="notification-loading">Loading notifications…</div>
+                        </div>
+                        <a asp-controller="Notification" asp-action="Notification" class="notification-flyout-footer">View all notifications</a>
+                    </div>
                     <div class="header-divider"></div>
                     <button type="button" class="profile-chip" data-nav-placeholder="Account settings" aria-label="Open account menu">
                         <span class="profile-avatar">RJ</span>
-                        <span class="user-info d-none d-sm-flex">
-                            <strong class="name">RJTech Admin</strong>
-                            <small>Administrator</small>
-                        </span>
-                        <i class="fa-solid fa-chevron-down profile-chevron d-none d-sm-block"></i>
                     </button>
                 </div>
             </header>
 
             <!-- MAIN VIEW AREA -->
-            <div class="main-content d-flex flex-column" style="background-color:#ffffff;">
+            <div class="main-content d-flex flex-column">
                 <main role="main" class="flex-grow-1">
                     @RenderBody()
                 </main>
@@ -156,7 +160,9 @@
         </div>
     </div>
 
-    <div id="appToastContainer" class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="appToastContainer" class="toast-container position-fixed top-0 end-0 p-3"
+         data-success-message="@TempData["ImageSuccess"]"
+         data-error-message="@TempData["ImageError"]">
         <div id="appToast" class="toast border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body d-flex align-items-center gap-2">
@@ -168,24 +174,12 @@
         </div>
     </div>
 
-    <style>
-            #appToastContainer {
-                z-index: 200000 !important;
-                margin-top: 64px;
-                pointer-events: none;
-            }
-
-            #appToastContainer .toast {
-                pointer-events: auto;
-            }
-
-    </style>
-
     <!-- SCRIPTS -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/navigation.js" asp-append-version="true"></script>
+    <script src="~/js/notification-center.js" asp-append-version="true"></script>
     
     @await RenderSectionAsync("Scripts", required: false)
 </body>

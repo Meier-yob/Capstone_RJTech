@@ -1,0 +1,41 @@
+/* Product Management page */
+
+.category-picker {
+    min-width: 250px;
+    position: relative;
+}
+
+.category-picker-panel {
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 1070;
+}
+
+.category-options {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.category-option {
+    border-radius: 7px;
+    cursor: pointer;
+    padding: 0.45rem 0.55rem 0.45rem 2rem;
+}
+
+.category-option:hover {
+    background: #f5f6f7;
+}
+
+.low-stock-alert {
+    background: #fff8e6;
+    border: 1px solid #ffe19a;
+    color: #754c00;
+}
+
+@media (max-width: 767.98px) {
+    .category-picker {
+        width: 100%;
+    }
+}

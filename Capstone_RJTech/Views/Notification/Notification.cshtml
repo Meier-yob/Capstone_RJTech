@@ -1,6 +1,54 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model IEnumerable<Capstone_RJTech.Models.AppNotification>
 @{
-    Layout = "_Layout";
+    ViewData["Title"] = "Notifications";
+    ViewData["Description"] = "Stay up to date with inventory alerts and scheduled activity.";
+}
+
+<div class="app-page notification-page" id="notificationPage" data-read-url="@Url.Action("MarkAsRead")" data-read-all-url="@Url.Action("MarkAllAsRead")">
+    <div class="page-heading">
+        <div><h1>Notifications</h1><p>Stay up to date with inventory alerts and scheduled activity.</p></div>
+        <button id="markAllNotificationsRead" class="btn btn-primary" type="button"><i class="bi bi-check2-all me-1"></i>Mark all as read</button>
+    </div>
+
+    <div class="app-card notification-panel">
+        <div class="notification-panel-header">
+            <div class="d-flex align-items-center gap-2"><h2 class="card-title-sm">All Notifications</h2><span id="pageUnreadCount" class="badge text-bg-primary">@Model.Count(item => !item.is_read) unread</span></div>
+            <div class="filter-tabs notification-filter" role="group" aria-label="Notification filters">
+                <button class="btn active" type="button" data-filter="all">All</button>
+                <button class="btn" type="button" data-filter="unread">Unread</button>
+                <button class="btn" type="button" data-filter="read">Read</button>
+            </div>
+        </div>
+
+        <div id="notificationList" class="notification-list">
+            @foreach (var notification in Model)
+            {
+                string icon = notification.notification_type switch
+                {
+                    "low-stock" => "bi-exclamation-triangle",
+                    "out-of-stock" => "bi-x-circle",
+                    "calendar" => "bi-calendar-event",
+                    _ => "bi-info-circle"
+                };
+                <a class="notification-row @(!notification.is_read ? "is-unread" : "")" href="@notification.action_url"
+                   data-id="@notification.notification_ID" data-read="@notification.is_read.ToString().ToLowerInvariant()">
+                    <span class="notification-icon notification-icon-@notification.notification_type"><i class="bi @icon"></i></span>
+                    <span class="notification-copy">
+                        <span class="notification-title">@notification.title @if (!notification.is_read) { <span class="unread-dot"></span> }</span>
+                        <span class="notification-message">@notification.message</span>
+                        <time datetime="@notification.created_at.ToString("O")">@notification.created_at.ToString("MMM d, yyyy · h:mm tt")</time>
+                    </span>
+                </a>
+            }
+            <div id="notificationEmpty" class="empty-state @(Model.Any() ? "d-none" : "")"><i class="bi bi-bell-slash"></i>No notifications to show.</div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/notification.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/notification-page.js" asp-append-version="true"></script>
 }

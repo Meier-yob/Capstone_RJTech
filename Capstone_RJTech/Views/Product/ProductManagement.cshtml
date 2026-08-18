@@ -41,18 +41,28 @@
         </div>
 
         <a asp-action="Create"
-           class="btn btn-dark">
+           class="btn btn-primary">
 
             <i class="bi bi-plus-lg me-1"></i>
             Add Product
         </a>
     </div>
 
+    @if (Model.Any(product => product.product_status is "Low Stock" or "Out of Stock"))
+    {
+        int lowStockCount = Model.Count(product => product.product_status == "Low Stock");
+        int outOfStockCount = Model.Count(product => product.product_status == "Out of Stock");
+        <div class="alert low-stock-alert d-flex align-items-center justify-content-between gap-3" role="alert">
+            <div><i class="bi bi-exclamation-triangle-fill me-2"></i><strong>Stock attention required</strong><span class="ms-2">@lowStockCount low stock · @outOfStockCount out of stock</span></div>
+            <a asp-controller="Notification" asp-action="Notification" class="btn btn-sm btn-primary">View alerts</a>
+        </div>
+    }
+
     <div class="filter-tabs product-status-tabs"
          role="group"
          aria-label="Product status filters">
 
-        <button class="btn active"
+        <button class="btn active "
                 type="button"
                 data-status="all">
 
@@ -89,7 +99,7 @@
     </div>
 
     <div class="toolbar">
-        <div class="toolbar-group flex-wrap">
+        <div class="toolbar-group">
             <div class="input-group search-control">
                 <span class="input-group-text">
                     <i class="bi bi-search"></i>
@@ -213,19 +223,6 @@
 
                             <td>
                                 <div class="d-flex align-items-center gap-3">
-                                    @if (!string.IsNullOrWhiteSpace(product.product_image_path))
-                                    {
-                                        <img class="product-thumb product-thumb-image"
-                                             src="@product.product_image_path"
-                                             alt="" />
-                                    }
-                                    else
-                                    {
-                                        <span class="product-thumb">
-                                            <i class="bi bi-box-seam"></i>
-                                        </span>
-                                    }
-
                                     <div>
                                         <div class="product-name">
                                             @product.product_name
@@ -372,6 +369,10 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/product-management.css" asp-append-version="true" />
+}
 
 @section Scripts {
     <script src="~/js/product-management.js"

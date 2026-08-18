@@ -1,0 +1,28 @@
+/* Product Details page */
+
+.image-placeholder {
+    align-items: center;
+    aspect-ratio: 4 / 3;
+    background: #f7f8f8;
+    border: 1px dashed #d6ddda;
+    border-radius: 10px;
+    color: #90a09c;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.image-placeholder i {
+    font-size: 2.2rem;
+}
+
+.product-detail-image {
+    background: #f7f8f8;
+    border: 1px solid var(--rj-border);
+    border-radius: 10px;
+    display: block;
+    max-height: 360px;
+    object-fit: contain;
+    width: 100%;
+}

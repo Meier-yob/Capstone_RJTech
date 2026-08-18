@@ -38,11 +38,11 @@
         <div>
             <h1>New Product</h1>
             <p>
-                Add a catalog item and its planned delivery quantity.
+                Add a catalog item. Stock is updated only when products are received.
             </p>
         </div>
 
-        <button class="btn btn-outline-dark"
+        <button class="btn btn-primary"
                 type="button"
                 data-bs-toggle="modal"
                 data-bs-target="#bulkAddModal">
@@ -113,12 +113,12 @@
                                 <input asp-for="product_quantity"
                                        class="form-control"
                                        type="number"
-                                       min="1"
-                                       step="1"
-                                       value="1"
-                                       required />
+                                       value="0"
+                                       disabled />
 
-                                
+                                <div class="form-hint mt-1">
+                                    New products start at zero. Update stock through Delivery.
+                                </div>
                             </div>
 
                             <div class="col-12">
@@ -175,9 +175,8 @@
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <div class="app-card card sticky-lg-top"
-                     style="top:1rem">
+    <div class="col-lg-4">
+        <div class="app-card card sticky-lg-top new-product-sidebar">
 
                     <div class="card-header">
                         <h2 class="card-title-sm">
@@ -231,7 +230,7 @@
 
                         <button id="submitProduct"
                                 type="submit"
-                                class="btn btn-dark w-100 mb-2">
+                                class="btn btn-primary w-100 mb-2">
 
                             <span class="spinner-border spinner-border-sm d-none me-1"></span>
                             Create Product
@@ -266,7 +265,7 @@
                     </h2>
 
                     <p class="small text-muted mb-0">
-                        Create multiple unavailable catalog items with planned quantities.
+                        Create multiple unavailable catalog items. Stock starts at zero.
                     </p>
                 </div>
 
@@ -290,7 +289,7 @@
                                 <th>Product Name</th>
                                 <th>Brand</th>
                                 <th>Price</th>
-                                <th>Qty</th>
+                                <th>Stock</th>
                                 <th>Reorder</th>
                                 <th></th>
                             </tr>
@@ -319,7 +318,7 @@
                 </button>
 
                 <button id="saveBulkProducts"
-                        class="btn btn-dark"
+                        class="btn btn-primary"
                         type="button">
 
                     <span class="spinner-border spinner-border-sm d-none me-1"></span>
@@ -370,10 +369,8 @@
         <td>
             <input class="form-control form-control-sm bulk-qty"
                    type="number"
-                   min="1"
-                   step="1"
-                   value="1"
-                   required />
+                   value="0"
+                   disabled />
         </td>
 
         <td>
@@ -440,6 +437,10 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/new-product.css" asp-append-version="true" />
+}
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

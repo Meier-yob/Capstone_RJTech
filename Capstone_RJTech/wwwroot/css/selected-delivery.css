@@ -1,0 +1,23 @@
+/* Delivery Receipt page */
+
+@media print {
+    .sidebar,
+    .top-navbar,
+    .page-heading .btn,
+    .breadcrumb,
+    .dropdown {
+        display: none !important;
+    }
+
+    .main-wrapper {
+        margin: 0 !important;
+    }
+
+    .app-page {
+        padding: 0;
+    }
+
+    .app-card {
+        break-inside: avoid;
+    }
+}

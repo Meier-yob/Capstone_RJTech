@@ -1,5 +1,71 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model IEnumerable<Capstone_RJTech.Models.ScheduleEvent>
 @{
+    ViewData["Title"] = "Calendar";
+    ViewData["Description"] = "Schedule and manage inventory events.";
+}
+
+<div class="app-page calendar-page" id="calendarPage" data-events-url="@Url.Action("GetEvents")" data-create-url="@Url.Action("CreateEvent")" data-delete-url="@Url.Action("DeleteEvent")">
+    <div class="page-heading">
+        <div><h1>Calendar</h1><p>Schedule and manage events.</p></div>
+        <button id="addCalendarEvent" class="btn btn-primary" type="button"><i class="bi bi-plus-lg me-1"></i>Add Event</button>
+    </div>
+
+    <div class="calendar-layout">
+        <section class="app-card calendar-board">
+            <div class="calendar-toolbar">
+                <div class="d-flex align-items-center gap-2">
+                    <button id="previousMonth" class="btn btn-outline-secondary btn-icon" type="button" aria-label="Previous month"><i class="bi bi-chevron-left"></i></button>
+                    <button id="nextMonth" class="btn btn-outline-secondary btn-icon" type="button" aria-label="Next month"><i class="bi bi-chevron-right"></i></button>
+                    <h2 id="calendarMonth" class="calendar-month"></h2>
+                </div>
+                <button id="calendarToday" class="btn btn-outline-secondary" type="button">Today</button>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+        </section>
+
+        <aside class="calendar-sidebar">
+            <section class="app-card selected-day-card">
+                <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div><h2 id="selectedDateTitle" class="card-title-sm"></h2><p id="selectedEventCount" class="card-subtitle-sm"></p></div>
+                    <button id="addSelectedDateEvent" class="btn btn-sm btn-outline-primary" type="button"><i class="bi bi-plus-lg me-1"></i>Add</button>
+                </div>
+                <div id="selectedDateEvents" class="selected-date-events"></div>
+            </section>
+            <section class="app-card upcoming-card"><h2 class="card-title-sm">Upcoming Events</h2><div id="upcomingEvents" class="upcoming-events"></div></section>
+        </aside>
+    </div>
+</div>
+
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form id="eventForm">
+        <div class="modal-header"><h2 class="modal-title fs-5" id="eventModalTitle">Add Event</h2><button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body"><div id="eventError" class="alert alert-danger d-none"></div><div class="row g-3">
+            <div class="col-12"><label class="form-label" for="eventTitle">Event Title</label><input id="eventTitle" class="form-control" required maxlength="120" /></div>
+            <div class="col-12"><label class="form-label" for="eventDate">Date</label><input id="eventDate" class="form-control" type="date" required /></div>
+            <div class="col-6"><label class="form-label" for="eventStart">Start Time</label><input id="eventStart" class="form-control" type="time" required /></div>
+            <div class="col-6"><label class="form-label" for="eventEnd">End Time</label><input id="eventEnd" class="form-control" type="time" required /></div>
+            <div class="col-12">
+                <label class="form-label" for="eventColor">Event Color</label>
+                <select id="eventColor" class="form-select">
+                    <option value="blue">Blue</option>
+                    <option value="gray">Gray</option>
+                    <option value="green">Green</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="red">Red</option>
+                    <option value="cyan">Cyan</option>
+                </select>
+            </div>
+            <div class="col-12"><label class="form-label" for="eventNotes">Notes</label><textarea id="eventNotes" class="form-control" rows="3"></textarea></div>
+        </div></div>
+        <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button id="saveEvent" class="btn btn-primary" type="submit"><span class="spinner-border spinner-border-sm d-none me-1"></span>Save Event</button></div>
+    </form></div></div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/calendar.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/calendar.js" asp-append-version="true"></script>
 }

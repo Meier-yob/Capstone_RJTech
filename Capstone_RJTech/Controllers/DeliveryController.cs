@@ -188,7 +188,8 @@ namespace Capstone_RJTech.Controllers
                 var delivery = new Delivery
                 {
                     delivery_ID = Deliveries.Any() ? Deliveries.Max(item => item.delivery_ID) + 1 : 1,
-                    date_delivered = request.delivery_date?.Date.Add(DateTime.Now.TimeOfDay) ?? DateTime.Now,
+                    // The receipt date is system-controlled and cannot be overridden by the client.
+                    date_delivered = DateTime.Today.Add(DateTime.Now.TimeOfDay),
                     received_by = request.received_by.Trim(),
                     batch_ID = request.batch_ID.Trim()
                 };

@@ -107,9 +107,6 @@ namespace Capstone_RJTech.Controllers
         {
             ModelState.Remove("Category");
 
-            if (product.product_quantity < 1)
-                ModelState.AddModelError(nameof(product.product_quantity), "Quantity must be at least 1.");
-
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(value => value.Errors).Select(error => error.ErrorMessage);
@@ -128,8 +125,8 @@ namespace Capstone_RJTech.Controllers
             if (alreadyExists) return Json(new { success = false, message = "Item Already Exists" });
 
             product.product_ID = Products.Any() ? Products.Max(item => item.product_ID) + 1 : 1;
-            // Show the entered quantity in the catalog while keeping the item
-            // unavailable until Delivery confirms that it was received.
+            // Stock can only be added through the Delivery receiving workflow.
+            product.product_quantity = 0;
             product.product_status = "Unavailable";
             Products.Add(product);
 
@@ -180,7 +177,6 @@ namespace Capstone_RJTech.Controllers
             public string? product_name { get; set; }
             public string? product_brand { get; set; }
             public string? product_description { get; set; }
-            public int product_quantity { get; set; }
             public int reorder_level { get; set; }
             public decimal Product_price { get; set; }
         }
@@ -214,7 +210,6 @@ namespace Capstone_RJTech.Controllers
                 if (string.IsNullOrWhiteSpace(name)) errors.Add($"{label}: product name is required.");
                 if (string.IsNullOrWhiteSpace(brand)) errors.Add($"{label}: brand is required.");
                 if (row.Product_price <= 0) errors.Add($"{label}: price must be greater than zero.");
-                if (row.product_quantity <= 0) errors.Add($"{label}: planned receive quantity must be greater than zero.");
                 if (row.reorder_level < 0) errors.Add($"{label}: reorder level cannot be negative.");
 
                 string key = $"{row.category_ID}|{name}|{brand}";
@@ -241,7 +236,7 @@ namespace Capstone_RJTech.Controllers
                     product_name = entry.Name,
                     product_brand = entry.Brand,
                     product_description = entry.Row.product_description?.Trim(),
-                    product_quantity = entry.Row.product_quantity,
+                    product_quantity = 0,
                     reorder_level = entry.Row.reorder_level,
                     Product_price = entry.Row.Product_price,
                     product_status = "Unavailable"

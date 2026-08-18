@@ -1,0 +1,42 @@
+:root {
+    --category-primary: #0d6efd;
+    --category-primary-hover: #0a58ca;
+}
+
+/* Helpers and buttons */
+.text-teal { color: var(--category-primary) !important; }
+.bg-teal { background-color: var(--category-primary) !important; }
+.btn-teal { background-color: var(--category-primary); border-color: var(--category-primary); }
+.btn-teal:hover { background-color: var(--category-primary-hover); border-color: var(--category-primary-hover); }
+.btn-outline-teal { border-color: var(--category-primary); color: var(--category-primary); }
+.btn-outline-teal:hover { background-color: var(--category-primary); color: #fff !important; }
+.fs-7 { font-size: 0.85rem; }
+.fs-8 { font-size: 0.75rem; }
+.category-name-truncate { max-width: 160px; }
+.category-product-search { width: 220px; }
+.category-description-truncate { max-width: 200px; }
+
+/* Category list */
+.category-item { background-color: #f8f9fa; color: #212529; cursor: pointer; transition: all 0.2s ease-in-out; }
+.category-item .category-icon { color: var(--category-primary); }
+.category-item.active { background-color: var(--category-primary) !important; color: #fff !important; }
+.category-item.active .category-sub,
+.category-item.active .category-icon { color: #fff !important; }
+.category-item.active .btn-outline-teal { border-color: rgba(255, 255, 255, 0.4); color: #fff; }
+.category-item.active .btn-outline-teal:hover { background-color: rgba(255, 255, 255, 0.2); color: #fff !important; }
+.category-item:hover:not(.active) { background-color: #e9ecef; }
+
+/* Product table */
+.custom-product-table { border-collapse: separate; border-spacing: 0; font-size: 0.875rem; width: 100%; }
+.custom-product-table thead th { background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; color: #495057; font-size: 0.75rem; letter-spacing: 0.5px; padding: 12px 16px; text-transform: uppercase; white-space: nowrap; }
+.custom-product-table tbody tr { cursor: pointer; transition: background-color 0.2s ease; }
+.custom-product-table tbody tr:hover { background-color: #f1f5f4 !important; }
+.custom-product-table tbody td { border-bottom: 1px solid #f1f3f5; padding: 14px 16px; vertical-align: middle; }
+
+/* Status badges */
+.badge-pill-custom { border-radius: 50rem; display: inline-block; font-size: 0.725rem; font-weight: 600; letter-spacing: 0.3px; padding: 0.35em 0.8em; }
+.badge-available { background-color: #e6f4ea; color: #137333; }
+.badge-lowstock { background-color: #fff4e5; color: #b45f00; }
+.badge-outofstock { background-color: #fce8e6; color: #c5221f; }
+.badge-pendingdelivery { background-color: #f2f2f2; color: #6c757d; }
+.badge-unavailable { background-color: #edf0f2; color: #5f6870; }

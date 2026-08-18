@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Capstone_RJTech.Models.ProductCategory>
+@model IEnumerable<Capstone_RJTech.Models.ProductCategory>
 @{
     ViewData["Title"] = "Category Management";
     ViewData["Description"] = "Manage product categories and their associated products.";
@@ -55,7 +55,7 @@
                                     <a href="javascript:void(0)" class="list-group-item list-group-item-action category-item rounded border-0 d-flex justify-content-between align-items-center p-3" data-category-id="@cat.category_ID" data-category-name="@cat.category_name">
                                         <div class="d-flex align-items-center me-2">
                                             <i class="bi bi-folder2-open me-3 fs-5 category-icon"></i>
-                                            <div class="text-truncate" style="max-width: 160px;">
+                                            <div class="text-truncate category-name-truncate">
                                                 <h6 class="mb-0 fw-bold category-title">@cat.category_name</h6>
                                                 <small class="text-muted fs-8 category-sub">ID: CAT-@cat.category_ID.ToString("D3")</small>
                                             </div>
@@ -88,7 +88,7 @@
                         <h5 class="card-title fw-bold text-dark mb-0 fs-6" id="selectedCategoryHeader">All Products</h5>
                         <span class="text-muted fs-8" id="selectedCategorySub">Showing items across all categories</span>
                     </div>
-                    <div class="position-relative" style="width: 220px;">
+                    <div class="position-relative category-product-search">
                         <div class="input-group input-group-sm border-bottom">
                             <span class="input-group-text bg-transparent border-0 ps-0 text-muted">
                                 <i class="bi bi-search"></i>
@@ -117,7 +117,7 @@
                                     <tr class="product-row-item" data-category-id="@prod.category_ID">
                                         <td class="fw-bold text-dark ps-3">@Capstone_RJTech.Controllers.ProductController.GetFormattedCodeForProduct(prod)</td>
                                         <td class="text-secondary">@(string.IsNullOrEmpty(prod.product_brand) ? "-" : prod.product_brand)</td>
-                                        <td class="text-secondary text-truncate" style="max-width: 200px;">@prod.product_description</td>
+                                        <td class="text-secondary text-truncate category-description-truncate">@prod.product_description</td>
                                         <td class="text-center fw-semibold text-dark">@prod.product_quantity</td>
                                         <td class="fw-semibold text-dark">₱@prod.Product_price.ToString("#,##0.00")</td>
                                         <td class="text-center pe-3">
@@ -218,153 +218,9 @@
     </div>
 </div>
 
-<style>
-    :root {
-        --teal-color: #0b6b5d;
-        --teal-hover: #085247;
-    }
-
-    .text-teal {
-        color: var(--teal-color) !important;
-    }
-
-    .bg-teal {
-        background-color: var(--teal-color) !important;
-    }
-
-    .btn-teal {
-        background-color: var(--teal-color);
-        border-color: var(--teal-color);
-    }
-
-        .btn-teal:hover {
-            background-color: var(--teal-hover);
-            border-color: var(--teal-hover);
-        }
-
-    .btn-outline-teal {
-        color: var(--teal-color);
-        border-color: var(--teal-color);
-    }
-
-        .btn-outline-teal:hover {
-            background-color: var(--teal-color);
-            color: #ffffff !important;
-        }
-
-    .fs-7 {
-        font-size: 0.85rem;
-    }
-
-    .fs-8 {
-        font-size: 0.75rem;
-    }
-
-    /* Category List Styling */
-    .category-item {
-        transition: all 0.2s ease-in-out;
-        cursor: pointer;
-        color: #212529;
-        background-color: #f8f9fa;
-    }
-
-        .category-item .category-icon {
-            color: var(--teal-color);
-        }
-
-        .category-item.active {
-            background-color: var(--teal-color) !important;
-            color: #fff !important;
-        }
-
-            .category-item.active .category-sub,
-            .category-item.active .category-icon {
-                color: #ffffff !important;
-            }
-
-            .category-item.active .btn-outline-teal {
-                color: #ffffff;
-                border-color: rgba(255, 255, 255, 0.4);
-            }
-
-                .category-item.active .btn-outline-teal:hover {
-                    background-color: rgba(255, 255, 255, 0.2);
-                    color: #ffffff !important;
-                }
-
-        .category-item:hover:not(.active) {
-            background-color: #e9ecef;
-        }
-
-    /* Custom Table Design matched to Product Management */
-    .custom-product-table {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        font-size: 0.875rem;
-    }
-
-        .custom-product-table thead th {
-            background-color: #f8f9fa;
-            color: #495057;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 12px 16px;
-            border-bottom: 1px solid #e9ecef;
-            white-space: nowrap;
-        }
-
-        .custom-product-table tbody tr {
-            transition: background-color 0.2s ease;
-            cursor: pointer;
-        }
-
-            .custom-product-table tbody tr:hover {
-                background-color: #f1f5f4 !important;
-            }
-
-        .custom-product-table tbody td {
-            padding: 14px 16px;
-            border-bottom: 1px solid #f1f3f5;
-            vertical-align: middle;
-        }
-
-    /* Soft Pill Badges */
-    .badge-pill-custom {
-        font-size: 0.725rem;
-        font-weight: 600;
-        padding: 0.35em 0.8em;
-        border-radius: 50rem;
-        letter-spacing: 0.3px;
-        display: inline-block;
-    }
-
-    .badge-available {
-        background-color: #e6f4ea;
-        color: #137333;
-    }
-
-    .badge-lowstock {
-        background-color: #fff4e5;
-        color: #b45f00;
-    }
-
-    .badge-outofstock {
-        background-color: #fce8e6;
-        color: #c5221f;
-    }
-
-    .badge-pendingdelivery {
-        background-color: #f2f2f2;
-        color: #6c757d;
-    }
-
-    .badge-unavailable {
-        background-color: #edf0f2;
-        color: #5f6870;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/category-management.css" asp-append-version="true" />
+}
 
 <!-- jQuery Client Script -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

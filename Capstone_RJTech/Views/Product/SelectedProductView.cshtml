@@ -219,7 +219,7 @@
 
                         <div class="d-flex gap-2 mt-4">
                             <button type="submit"
-                                    class="btn btn-rj">
+                                    class="btn btn-primary">
 
                                 Save Changes
                             </button>
@@ -304,7 +304,7 @@
 
                     <div class="detail-row d-flex justify-content-between">
                         <span class="detail-label mb-0">
-                            Current Stock
+                            Current Quantity
                         </span>
 
                         <strong>
@@ -410,6 +410,10 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/selected-product.css" asp-append-version="true" />
+}
 
 @section Scripts {
     <script src="~/js/product-details.js"

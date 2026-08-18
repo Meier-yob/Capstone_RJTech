@@ -35,7 +35,7 @@
                 </div>
                 <div class="col-lg-4">
                     <label class="form-label" for="deliveryDate">Delivery Date</label>
-                    <input id="deliveryDate" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                    <input id="deliveryDate" class="form-control bg-light" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" readonly required />
                 </div>
                 <div class="col-lg-4">
                     <label class="form-label" for="receivedBy">Received By</label>
@@ -47,13 +47,13 @@
 
     <div class="row g-4">
         <!-- Available Products Selection Column -->
-        <div class="col-lg-5">
-            <div class="app-card card h-100">
+        <div class="col-lg-5 receive-product-column">
+            <div class="app-card card available-products-card">
                 <div class="card-header">
                     <h2 class="card-title-sm">Available Products</h2>
                     <p class="card-subtitle-sm">Select products included in this delivery.</p>
                 </div>
-                <div class="card-body border-bottom py-3">
+                <div class="card-body border-bottom">
                     <div class="row g-2">
                         <div class="col-sm-7">
                             <div class="input-group">
@@ -82,14 +82,14 @@
                         <div class="selectable-product"
                              tabindex="0"
                              role="button"
+                             aria-pressed="false"
                              data-id="@product.product_ID"
                              data-code="@product.formatted_code"
                              data-name="@product.product_name"
                              data-brand="@product.product_brand"
                              data-category="@category"
                              data-description="@product.product_description"
-                             data-stock="@product.product_quantity"
-                             data-pending-quantity="@product.product_quantity"
+                             data-quantity="@product.product_quantity"
                              data-reorder="@product.reorder_level"
                              data-price="@product.Product_price"
                              data-status="@product.product_status.ToLowerInvariant()"
@@ -109,7 +109,7 @@
                                     <div class="product-meta">@category · @product.product_brand</div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="small fw-semibold">@product.product_quantity stock</div>
+                                    <div class="small fw-semibold">@product.product_quantity quantity</div>
                                     <span class="status-badge status-@StatusClass(product.product_status)">@product.product_status</span>
                                 </div>
                             </div>
@@ -183,7 +183,7 @@
                         <div class="col-sm-auto">
                             <div class="d-flex gap-2">
                                 <a asp-action="DeliveryManagement" class="btn btn-outline-secondary">Cancel</a>
-                                <button id="completeDelivery" class="btn btn-dark" type="button" disabled>
+                                <button id="completeDelivery" class="btn btn-primary" type="button" disabled>
                                     <span class="spinner-border spinner-border-sm d-none me-1"></span>Receive Products
                                 </button>
                             </div>
@@ -217,8 +217,8 @@
                     <strong id="detailCategory"></strong>
                 </div>
                 <div class="detail-row d-flex justify-content-between">
-                    <span class="detail-label mb-0">Current Stock</span>
-                    <strong id="detailStock"></strong>
+                    <span class="detail-label mb-0">Current Quantity</span>
+                    <strong id="detailQuantity"></strong>
                 </div>
                 <div class="detail-row d-flex justify-content-between">
                     <span class="detail-label mb-0">Reorder Level</span>
@@ -255,6 +255,10 @@
         </div>
     </div>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/receive-product.css" asp-append-version="true" />
+}
 
 @section Scripts {
     <script>
@@ -333,7 +337,12 @@
                 availablePage = Math.min(availablePage, pages);
 
                 rows.forEach(row => row.classList.add('d-none'));
-                filtered.slice((availablePage - 1) * size, availablePage * size).forEach(row => row.classList.remove('d-none'));
+                const visibleRows = filtered.slice((availablePage - 1) * size, availablePage * size);
+                visibleRows.forEach(row => row.classList.remove('d-none'));
+
+                if (visibleRows.length === 1) {
+                    document.getElementById('productSelector').scrollTop = 0;
+                }
 
                 document.getElementById('availableEmpty').classList.toggle('d-none', filtered.length !== 0);
 
@@ -348,29 +357,33 @@
             }
 
             // Product Selection Handlers
-            function select(row) {
-                if (selected.has(row.dataset.id)) return;
+            function toggleSelection(row) {
+                const productId = row.dataset.id;
 
-                const pendingQuantity = Number(row.dataset.pendingQuantity);
-                const defaultReceiveQuantity = pendingQuantity > 0 ? pendingQuantity : 1;
+                if (selected.has(productId)) {
+                    selected.delete(productId);
+                    row.classList.remove('is-selected');
+                    row.setAttribute('aria-pressed', 'false');
+                } else {
+                    selected.set(productId, {
+                        row,
+                        quantity: 0
+                    });
+                    row.classList.add('is-selected');
+                    row.setAttribute('aria-pressed', 'true');
+                    selectedPage = Math.ceil(selected.size / Number(document.getElementById('selectedPageSize').value));
+                }
 
-                selected.set(row.dataset.id, {
-                    row,
-                    quantity: defaultReceiveQuantity
-                });
-                row.classList.add('is-selected');
                 dirty = true;
-
-                selectedPage = Math.ceil(selected.size / Number(document.getElementById('selectedPageSize').value));
                 renderSelected();
             }
 
             rows.forEach(row => {
-                row.addEventListener('click', () => select(row));
+                row.addEventListener('click', () => toggleSelection(row));
                 row.addEventListener('keydown', event => {
                     if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
-                        select(row);
+                        toggleSelection(row);
                     }
                 });
             });
@@ -401,8 +414,8 @@
                                 <div class="product-meta">${escape(p.category)} · ${escape(p.brand)} · ${escape(p.code)}</div>
                             </div>
                             <div class="receive-stock text-center">
-                                <div class="detail-label">Stock</div>
-                                <strong>${escape(p.stock)}</strong>
+                                <div class="detail-label">Quantity</div>
+                                <strong>${escape(p.quantity)}</strong>
                             </div>
                             <div class="receive-qty">
                                 <label class="detail-label" for="qty-${id}">Receive Qty</label>
@@ -423,10 +436,7 @@
                 selectedContainer.querySelectorAll('.remove-item').forEach(button => {
                     button.addEventListener('click', event => {
                         const id = event.currentTarget.closest('.receive-item').dataset.id;
-                        selected.get(id).row.classList.remove('is-selected');
-                        selected.delete(id);
-                        dirty = true;
-                        renderSelected();
+                        toggleSelection(selected.get(id).row);
                     });
                 });
 
@@ -466,7 +476,7 @@
                 document.getElementById('receiveDetailsMeta').textContent = `${p.category} · ${p.code}`;
                 document.getElementById('detailBrand').textContent = p.brand;
                 document.getElementById('detailCategory').textContent = p.category;
-                document.getElementById('detailStock').textContent = p.stock;
+                document.getElementById('detailQuantity').textContent = p.quantity;
                 document.getElementById('detailReorder').textContent = p.reorder;
                 document.getElementById('detailPrice').textContent = `₱${Number(p.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
                 document.getElementById('detailDescription').textContent = p.description || 'No description provided.';
