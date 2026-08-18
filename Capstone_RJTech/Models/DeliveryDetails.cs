@@ -11,11 +11,14 @@ namespace Capstone_RJTech.Models
         [Required]
         public int product_quantity { get; set; }
 
+        // Inventory snapshots retained for delivery audit/history.
+        public int previous_quantity { get; set; }
+
+        public int new_quantity { get; set; }
+
         // Foreign Keys
         [Required]
         public int product_ID { get; set; }
-
-        public int? reorder_ID { get; set; }
 
         [Required]
         public int delivery_ID { get; set; }

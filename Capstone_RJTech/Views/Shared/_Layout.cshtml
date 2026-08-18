@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/navigation.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DraftSYSTEM.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/overlays.css" asp-append-version="true" />
     
 </head>
 
@@ -24,168 +24,129 @@
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
+        <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
             <div class="sidebar-header">
-                <img src="~/sources/logo-svg.png" alt="Logo">
-                <h5>RJTech Inventory</h5>
+                <div class="mild-bg">
+                    <div class="brand-mark"><img src="~/sources/logo-svg.png" alt="RJTech logo"></div>
+                    <div class="brand-copy">
+                        <h5>RJTech</h5>
+                        <span>Inventory System</span>
+                    </div>
+                </div> 
             </div>
 
-        
-            <div class="nav-section-label">Main Menu</div>
-            <ul class="sidebar-nav">
-                <a asp-action="Dashboard" asp-controller="Home"
-                   class="nav-link-custom @(currentAction == "Dashboard" && currentController == "Home" ? "active" : "")">
-                    <li class="nav-item">
-                        <i class="fa-solid fa-house-chimney"></i>
-                        <span>Dashboard</span>
-                    </li>
-                </a>
+            <div class="sidebar-scroll">
+                <section class="nav-section" aria-labelledby="mainMenuLabel">
+                    <div class="nav-section-label" id="mainMenuLabel">Main Menu</div>
+                    <ul class="sidebar-nav">
+                        <li class="nav-item">
+                            <a asp-action="Dashboard" asp-controller="Home" class="nav-link-custom @(currentAction == "Dashboard" && currentController == "Home" ? "active" : "")">
+                                <span class="nav-icon"><i class="fa-solid fa-house"></i></span>
+                                <span class="nav-label">Dashboard</span>
+                            </a>
+                        </li>
 
-                <a asp-action="ProductManagement" asp-controller="Home"
-                   class="nav-link-custom @(currentAction == "ProductManagement" && currentController == "Home" ? "active" : "")">
-                    <li class="nav-item">
-                        <i class="fa-solid fa-box-archive"></i>
-                        <span>Product</span>
-                    </li>
-                </a>
+                        <li class="nav-item nav-group @(currentController == "Product" ? "open" : "")">
+                            <button type="button" class="nav-link-custom nav-group-toggle" aria-expanded="@(currentController == "Product" ? "true" : "false")" aria-controls="productSubmenu">
+                                <span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
+                                <span class="nav-label">Product</span>
+                                <i class="fa-solid fa-chevron-down nav-chevron"></i>
+                            </button>
+                            <div class="nav-submenu-shell" id="productSubmenu">
+                                <ul class="nav-submenu">
+                                    <li><a asp-action="ProductManagement" asp-controller="Product" class="nav-sublink @(currentAction == "ProductManagement" ? "active" : "")"><span></span>All Products</a></li>
+                                    <li><a asp-action="Create" asp-controller="Product" class="nav-sublink @(currentAction == "Create" ? "active" : "")"><span></span>Add New Product</a></li>
+                                    <li><a asp-action="CategoryManagement" asp-controller="Product" class="nav-sublink @(currentAction == "CategoryManagement" ? "active" : "")"><span></span>Category</a></li>
+                                </ul>
+                            </div>
+                        </li>
 
-                <a asp-action="CategoryManagement" asp-controller="Home"
-                   class="nav-link-custom @(currentAction == "CategoryManagement" && currentController == "Home" ? "active" : "")">
-                    <li class="nav-item">
-                        <i class="fa-solid fa-list-ul"></i>
-                        <span>Category</span>
-                    </li>
-                </a>
+                        <li class="nav-item nav-group @(currentController == "Delivery" ? "open" : "")">
+                            <button type="button" class="nav-link-custom nav-group-toggle" aria-expanded="@(currentController == "Delivery" ? "true" : "false")" aria-controls="deliverySubmenu">
+                                <span class="nav-icon"><i class="fa-solid fa-truck-ramp-box"></i></span>
+                                <span class="nav-label">Delivery</span>
+                                <i class="fa-solid fa-chevron-down nav-chevron"></i>
+                            </button>
+                            <div class="nav-submenu-shell" id="deliverySubmenu">
+                                <ul class="nav-submenu">
+                                    <li><a asp-action="DeliveryManagement" asp-controller="Delivery" class="nav-sublink @(currentAction == "DeliveryManagement" ? "active" : "")"><span></span>Delivery</a></li>
+                                    <li><a asp-action="Receive" asp-controller="Delivery" class="nav-sublink @(currentAction == "Receive" ? "active" : "")"><span></span>Receive Products</a></li>
+                                </ul>
+                            </div>
+                        </li>
 
-                <a asp-action="DeliveryManagement" asp-controller="Home"
-                   class="nav-link-custom @(currentAction == "DeliveryManagement" && currentController == "Home" ? "active" : "")">
-                    <li class="nav-item">
-                        <i class="fa-solid fa-truck"></i>
-                        <span>Delivery</span>
-                    </li>
-                </a>
-            </ul>
-            <!--
-        <div class="nav-section-label">Analytics</div>
-        <ul class="sidebar-nav">
-            <a asp-action="Sales" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-chart-simple"></i>
-                        <span>Sales</span>
-                </li>
-            </a>
-            <a asp-action="Checkout" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-cash-register"></i>
-                        <span>Checkout</span>
-                </li>
-            </a>
-            <a asp-action="Refund" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-hand-holding-dollar"></i>
-                        <span>Refund</span>
-                </li>
-            </a>
-            <a asp-action="Stock" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-warehouse"></i>
-                        <span>Stock</span>
-                </li>
-            </a>
-        </ul>
+                        <li class="nav-item">
+                            <a asp-controller="ScanSN" asp-action="ScanSerialNumber" class="nav-link-custom @(currentController == "ScanSN" ? "active" : "")">
+                                <span class="nav-icon"><i class="fa-solid fa-barcode"></i></span>
+                                <span class="nav-label">Scan SN</span>
+                            </a>
+                        </li>
+                    </ul>
+                </section>
 
-        <div class="nav-section-label">Notification</div>
-        <ul class="sidebar-nav">
-            <a asp-action="Notification" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-bell"></i>
-                        <span>Notification</span>
-                </li>
-            </a>
-            <a asp-action="Calendar" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-calendar-check"></i>
-                        <span>Calendar</span>
-                </li>
-            </a>
-             <a asp-action="Email" asp-controller="Dashboard" class="nav-link-custom">
-                <li class="nav-item">
-                        <i class="fa-solid fa-envelope-open-text"></i>
-                        <span>Email</span>
-                </li>
-            </a>
-        </ul>
+                <section class="nav-section" aria-labelledby="analyticsLabel">
+                    <div class="nav-section-label" id="analyticsLabel">Analytics</div>
+                    <ul class="sidebar-nav">
+                        <li class="nav-item"><a asp-controller="Sales" asp-action="Checkout" class="nav-link-custom @(currentAction == "Checkout" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></span><span class="nav-label">Checkout</span></a></li>
+                        <li class="nav-item"><a asp-controller="Sales" asp-action="Refund" class="nav-link-custom @(currentAction == "Refund" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span><span class="nav-label">Refund</span></a></li>
+                    </ul>
+                </section>
 
-        <div class="nav-section-label" style="margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05);">System</div>
-        <ul class="sidebar-nav">
-            <li class="nav-item">
-                <a href="#" class="nav-link-custom dropdown-btn">
-                    <i class="fa-solid fa-user"></i>
-                    <span>Account</span>
-                    <i class="fa-solid fa-chevron-right arrow"></i>
-                </a>
-                <ul class="dropdown-container">
-                    <li class="dropdown-item-custom">
-                        <a asp-action="AddRecoveryEmail" asp-controller="Account" class="dropdown-item-custom">
-                            <i class="fa-solid fa-user-edit"></i>
-                            <span>Update UserEmail</span>
-                        </a>
-                    </li>
-                    <li class="dropdown-item-custom">
-                        <a asp-action="ChangePassword" asp-controller="Account" class="dropdown-item-custom">
-                            <i class="fa-solid fa-cog"></i>
-                            <span>Account</span>
-                        </a>
-                    </li>
+                <section class="nav-section" aria-labelledby="notificationLabel">
+                    <div class="nav-section-label" id="notificationLabel">Notification</div>
+                    <ul class="sidebar-nav">
+                        <li class="nav-item"><a asp-controller="Notification" asp-action="Notification" class="nav-link-custom @(currentAction == "Notification" ? "active" : "")"><span class="nav-icon"><i class="fa-regular fa-bell"></i></span><span class="nav-label">Notification</span><span class="nav-count">3</span></a></li>
+                        <li class="nav-item"><a asp-controller="Notification" asp-action="Calendar" class="nav-link-custom @(currentAction == "Calendar" ? "active" : "")"><span class="nav-icon"><i class="fa-regular fa-calendar"></i></span><span class="nav-label">Calendar</span></a></li>
+                    </ul>
+                </section>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="nav-section-label">System</div>
+                <ul class="sidebar-nav">
+                    <li class="nav-item"><a href="#" class="nav-link-custom" data-nav-placeholder="Settings"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span><span class="nav-label">Settings</span></a></li>
+                    <li class="nav-item"><a href="#" class="nav-link-custom nav-logout" data-nav-placeholder="Logout"><span class="nav-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span><span class="nav-label">Logout</span></a></li>
                 </ul>
-
-            </li>
-            <li class="nav-item">
-                <a class="nav-link-custom text-danger" asp-controller="Account" asp-action="Logout">
-                    <i class="fa-solid fa-power-off"></i>
-                    <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-        -->
-        </div>
+            </div>
+        </aside>
 
         <!-- Main Content Area -->
         <div class="main-wrapper">
             <header class="top-navbar">
-                <div class="selected-page">
-                    <h5>@ViewData["Title"]</h5>
-                    <p>@ViewData["Description"]</p>
+                <div class="header-primary">
+                    <button type="button" class="header-icon-button d-lg-none" id="sidebarToggle" aria-label="Open navigation">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="selected-page">
+                        <h5 class="page-eyebrow">RJTech Workspace</h5>
+                        
+                    </div>
                 </div>
 
-           
-                <div class="user-profile">
-                    <div class="d-flex align-items-center">
-                        <button class="btn d-lg-none me-2 p-0" id="sidebarToggle">
-                            <i class="fa-solid fa-bars fs-5"></i>
-                        </button>
-
-                        <div class="search-bar">
-                            <i class="fa-solid fa-magnifying-glass text-muted" style="font-size: 0.8rem;"></i>
-                            <input type="text" placeholder="Quick Search...">
-                        </div>
-                    </div>
-                    <div class="position-relative me-2">
-                        <i class="fa-regular fa-bell fs-5 text-muted"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-                    </div>
-                    <div class="user-info d-none d-sm-block text-end">
-                        <h8 class="name">Rjtech</h8>
-                        <!-- <p class="role">@ViewBag.Role</p> -->
-                    </div>
-                    <div class="bg-primary rounded-circle text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
+                <div class="header-actions">
+                    <label class="search-bar" aria-label="Quick search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="search" placeholder="Search workspace">
+                        <kbd>⌘ K</kbd>
+                    </label>
+                    <a asp-controller="Notification" asp-action="Notification" class="header-icon-button header-notification" aria-label="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-dot"></span>
+                    </a>
+                    <div class="header-divider"></div>
+                    <button type="button" class="profile-chip" data-nav-placeholder="Account settings" aria-label="Open account menu">
+                        <span class="profile-avatar">RJ</span>
+                        <span class="user-info d-none d-sm-flex">
+                            <strong class="name">RJTech Admin</strong>
+                            <small>Administrator</small>
+                        </span>
+                        <i class="fa-solid fa-chevron-down profile-chevron d-none d-sm-block"></i>
+                    </button>
                 </div>
             </header>
 
             <!-- MAIN VIEW AREA -->
-            <div class="main-content d-flex flex-column">
+            <div class="main-content d-flex flex-column" style="background-color:#ffffff;">
                 <main role="main" class="flex-grow-1">
                     @RenderBody()
                 </main>
@@ -195,7 +156,7 @@
         </div>
     </div>
 
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000; margin-top: 64px;">
+    <div id="appToastContainer" class="toast-container position-fixed top-0 end-0 p-3">
         <div id="appToast" class="toast border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body d-flex align-items-center gap-2">
@@ -208,87 +169,22 @@
     </div>
 
     <style>
-            .sidebar,
-            .top-navbar,
-            .main-content {
-                transition: filter 0.3s ease-in-out;
+            #appToastContainer {
+                z-index: 200000 !important;
+                margin-top: 64px;
+                pointer-events: none;
             }
 
-            /* Blur only the background elements when overlay-open is active on body */
-            body.overlay-open .sidebar,
-            body.overlay-open .top-navbar,
-            body.overlay-open .main-content > main > *:not(#addProductOverlay):not(#selectedProductOverlay):not(#createDeliveryOverlay):not(#selectedDeliveryOverlay):not(#deliveryNewItemModal) {
-                filter: blur(12px) !important;
-                pointer-events: none !important;
-                user-select: none !important;
+            #appToastContainer .toast {
+                pointer-events: auto;
             }
+
     </style>
 
     <!-- SCRIPTS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-            // Prevent browser from navigating away when dropping files anywhere on the page
-            window.addEventListener("dragover", function(e) {
-                e.preventDefault();
-            }, false);
-
-            window.addEventListener("drop", function(e) {
-                e.preventDefault();
-            }, false);
-            function enableLayoutBlur() {
-                $('body').addClass('overlay-open');
-            }
-
-            function disableLayoutBlur() {
-                $('body').removeClass('overlay-open');
-            }
-
-            window.showToast = function(message, type) {
-                const toastElement = document.getElementById('appToast');
-                const messageElement = document.getElementById('appToastMessage');
-                const iconElement = document.getElementById('appToastIcon');
-                if (!toastElement || !messageElement || !iconElement) return;
-
-                const toastType = type || 'success';
-                toastElement.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning', 'text-bg-info');
-                iconElement.className = 'bi';
-
-                if (toastType === 'error') {
-                    toastElement.classList.add('text-bg-danger');
-                    iconElement.classList.add('bi-exclamation-circle-fill');
-                } else if (toastType === 'warning') {
-                    toastElement.classList.add('text-bg-warning');
-                    iconElement.classList.add('bi-exclamation-triangle-fill');
-                } else if (toastType === 'info') {
-                    toastElement.classList.add('text-bg-info');
-                    iconElement.classList.add('bi-info-circle-fill');
-                } else {
-                    toastElement.classList.add('text-bg-success');
-                    iconElement.classList.add('bi-check-circle-fill');
-                }
-
-                messageElement.textContent = message || '';
-                bootstrap.Toast.getOrCreateInstance(toastElement, { delay: 3200 }).show();
-            };
-            $(document).ready(function() {
-                // Get current page path (e.g., "/Home/ProductManagement")
-                var currentPath = window.location.pathname;
-
-                // Remove static active class from all links first
-                $('.sidebar-nav .nav-link-custom').removeClass('active');
-
-                // Loop through links and add 'active' to the one matching current URL
-                $('.sidebar-nav .nav-link-custom').each(function() {
-                    var linkHref = $(this).attr('href');
-                    if (linkHref && currentPath.toLowerCase() === linkHref.toLowerCase()) {
-                        $(this).addClass('active');
-                    }
-                });
-            });
-    </script>
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/navigation.js" asp-append-version="true"></script>
     
     @await RenderSectionAsync("Scripts", required: false)

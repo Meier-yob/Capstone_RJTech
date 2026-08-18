@@ -1,0 +1,380 @@
+@model IEnumerable<Capstone_RJTech.Models.Product>
+
+@{
+    ViewData["Title"] = "Products";
+    ViewData["Description"] = "Browse and manage your product inventory.";
+
+    var categories =
+        ViewBag.Categories as IEnumerable<ProductCategory>
+        ?? Enumerable.Empty<ProductCategory>();
+
+    string StatusClass(string status) =>
+        status.ToLowerInvariant().Replace(" ", "-");
+}
+
+<div class="app-page"
+     id="productManagementPage"
+     data-delete-url="@Url.Action("DeleteProduct")">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home"
+                   asp-action="Dashboard">
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="breadcrumb-item active">
+                Products
+            </li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>Products</h1>
+
+            <p>
+                Browse and manage your product inventory.
+            </p>
+        </div>
+
+        <a asp-action="Create"
+           class="btn btn-dark">
+
+            <i class="bi bi-plus-lg me-1"></i>
+            Add Product
+        </a>
+    </div>
+
+    <div class="filter-tabs product-status-tabs"
+         role="group"
+         aria-label="Product status filters">
+
+        <button class="btn active"
+                type="button"
+                data-status="all">
+
+            All
+
+            <span class="ms-1 text-muted">
+                @Model.Count()
+            </span>
+        </button>
+
+        <button class="btn"
+                type="button"
+                data-status="available">
+            Available
+        </button>
+
+        <button class="btn"
+                type="button"
+                data-status="low stock">
+            Low Stock
+        </button>
+
+        <button class="btn"
+                type="button"
+                data-status="out of stock">
+            Out of Stock
+        </button>
+
+        <button class="btn"
+                type="button"
+                data-status="unavailable">
+            Unavailable
+        </button>
+    </div>
+
+    <div class="toolbar">
+        <div class="toolbar-group flex-wrap">
+            <div class="input-group search-control">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+
+                <input id="productSearch"
+                       type="search"
+                       class="form-control"
+                       placeholder="Search name, code, brand, or category..."
+                       autocomplete="off" />
+            </div>
+
+            <div class="category-picker"
+                 id="categoryPicker">
+
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-tags text-muted"></i>
+                    </span>
+
+                    <input id="categoryPickerInput"
+                           class="form-control border-start-0"
+                           type="text"
+                           placeholder="Filter categories..."
+                           readonly
+                           aria-expanded="false" />
+                </div>
+
+                <div class="category-picker-panel app-card d-none"
+                     id="categoryPickerPanel">
+
+                    <div class="p-2 border-bottom">
+                        <input id="categoryLiveSearch"
+                               class="form-control form-control-sm"
+                               type="search"
+                               placeholder="Search categories..."
+                               autocomplete="off" />
+                    </div>
+
+                    <div class="category-options p-2">
+                        @foreach (var category in categories)
+                        {
+                            <label class="category-option form-check mb-0"
+                                   data-category-name="@category.category_name.ToLowerInvariant()">
+
+                                <input class="form-check-input category-checkbox"
+                                       type="checkbox"
+                                       value="@category.category_name.ToLowerInvariant()" />
+
+                                <span class="form-check-label">
+                                    @category.category_name
+                                </span>
+                            </label>
+                        }
+                    </div>
+
+                    <div class="p-2 border-top d-flex justify-content-between align-items-center">
+                        <small id="categorySelectedCount"
+                               class="text-muted">
+                            All categories
+                        </small>
+
+                        <button id="clearCategories"
+                                class="btn btn-sm btn-link text-decoration-none"
+                                type="button">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="exportProducts"
+                type="button"
+                class="btn btn-outline-secondary">
+
+            <i class="bi bi-download me-1"></i>
+            Export
+        </button>
+    </div>
+
+    <div class="app-card management-card">
+        <div class="table-responsive management-table-responsive">
+            <table class="table app-table"
+                   id="productTable">
+
+                <thead>
+                    <tr>
+                        <th>Product Code</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">Reorder Level</th>
+                        <th class="text-end">Selling Price</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var product in Model)
+                    {
+                        var category =
+                            product.Category?.category_name
+                            ?? "Uncategorized";
+
+                        var search =
+                            $"{product.formatted_code} {product.product_name} {product.product_brand} {product.product_description} {category}"
+                                .ToLowerInvariant();
+
+                        <tr class="product-row clickable-row"
+                            data-id="@product.product_ID"
+                            data-href="@Url.Action("Details", new { id = product.product_ID })"
+                            data-search="@search"
+                            data-category="@category.ToLowerInvariant()"
+                            data-status="@product.product_status.ToLowerInvariant()">
+
+                            <td class="fw-semibold">
+                                @product.formatted_code
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    @if (!string.IsNullOrWhiteSpace(product.product_image_path))
+                                    {
+                                        <img class="product-thumb product-thumb-image"
+                                             src="@product.product_image_path"
+                                             alt="" />
+                                    }
+                                    else
+                                    {
+                                        <span class="product-thumb">
+                                            <i class="bi bi-box-seam"></i>
+                                        </span>
+                                    }
+
+                                    <div>
+                                        <div class="product-name">
+                                            @product.product_name
+                                        </div>
+
+                                        <div class="product-meta">
+@product.product_brand@(string.IsNullOrWhiteSpace(product.product_description)
+                                                ? ""
+                                                                                        : $" · {product.product_description}")
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                @category
+                            </td>
+
+                            <td>
+                                <span class="status-badge status-@StatusClass(product.product_status)">
+                                    @product.product_status
+                                </span>
+                            </td>
+
+                            <td class="text-end fw-semibold">
+                                @product.product_quantity
+                            </td>
+
+                            <td class="text-end">
+                                @product.reorder_level
+                            </td>
+
+                            <td class="text-end fw-semibold">
+                                ₱@product.Product_price.ToString("N2")
+                            </td>
+
+                            <td class="text-end action-cell">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light no-caret dropdown-toggle"
+                                            data-bs-toggle="dropdown"
+                                            data-bs-boundary="viewport"
+                                            aria-label="Actions for @product.product_name">
+
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item"
+                                               asp-action="Details"
+                                               asp-route-id="@product.product_ID">
+
+                                                <i class="bi bi-eye me-2"></i>
+                                                View
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <a class="dropdown-item"
+                                               asp-action="Details"
+                                               asp-route-id="@product.product_ID"
+                                               asp-fragment="edit">
+
+                                                <i class="bi bi-pencil me-2"></i>
+                                                Edit
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <hr class="dropdown-divider" />
+                                        </li>
+
+                                        <li>
+                                            <button class="dropdown-item text-danger delete-product"
+                                                    type="button"
+                                                    data-id="@product.product_ID"
+                                                    data-name="@product.product_name">
+
+                                                <i class="bi bi-trash me-2"></i>
+                                                Delete
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                    <tr id="emptyProducts"
+                        class="d-none">
+
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="bi bi-search"></i>
+                                No products match these filters.
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="list-footer">
+            <div class="range-indicator">
+                <div id="productRangeText"
+                     class="small text-muted">
+                    Showing 0 items
+                </div>
+
+                <div class="pagination-range-track">
+                    <span id="productRangeBar"></span>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <label for="productPageSize"
+                       class="small text-muted text-nowrap">
+                    Items per page
+                </label>
+
+                <select id="productPageSize"
+                        class="form-select form-select-sm page-size-select">
+
+                    <option value="5">
+                        5
+                    </option>
+
+                    <option value="10"
+                            selected>
+                        10
+                    </option>
+
+                    <option value="25">
+                        25
+                    </option>
+                </select>
+            </div>
+
+            <nav aria-label="Product pages">
+                <ul class="pagination pagination-sm mb-0"
+                    id="productPagination">
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/product-management.js"
+            asp-append-version="true">
+    </script>
+}

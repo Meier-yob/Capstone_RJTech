@@ -1,0 +1,449 @@
+@model Capstone_RJTech.Models.Product
+
+@{
+    ViewData["Title"] = "New Product";
+    ViewData["Description"] = "Add a new product to the catalog.";
+
+    var categories =
+        ViewBag.Categories as IEnumerable<ProductCategory>
+        ?? Enumerable.Empty<ProductCategory>();
+}
+
+<div class="app-page"
+     id="newProductPage"
+     data-products-url="@Url.Action("ProductManagement")"
+     data-bulk-create-url="@Url.Action("BulkCreate")">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Dashboard">
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="breadcrumb-item">
+                <a asp-action="ProductManagement">
+                    Products
+                </a>
+            </li>
+
+            <li class="breadcrumb-item active">
+                New Product
+            </li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>New Product</h1>
+            <p>
+                Add a catalog item and its planned delivery quantity.
+            </p>
+        </div>
+
+        <button class="btn btn-outline-dark"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#bulkAddModal">
+
+            <i class="bi bi-table me-1"></i>
+            Bulk Add Products
+        </button>
+    </div>
+
+    <form id="createProductForm"
+          method="post"
+          asp-action="Create"
+          novalidate>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="app-card card">
+                    <div class="card-header">
+                        <h2 class="card-title-sm">
+                            Product Information
+                        </h2>
+
+                        <p class="card-subtitle-sm">
+                            Enter the basic details of the product
+                        </p>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="product_name"
+                                       class="form-label">
+                                    Product Name
+                                </label>
+
+                                <input asp-for="product_name"
+                                       class="form-control"
+                                       placeholder="e.g. Mechanical Gaming Keyboard"
+                                       required />
+
+                                <span asp-validation-for="product_name"
+                                      class="text-danger small">
+                                </span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="product_brand"
+                                       class="form-label">
+                                    Brand
+                                </label>
+
+                                <input asp-for="product_brand"
+                                       class="form-control"
+                                       placeholder="e.g. Logitech"
+                                       required />
+
+                                <span asp-validation-for="product_brand"
+                                      class="text-danger small">
+                                </span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="product_quantity"
+                                       class="form-label">
+                                    Quantity
+                                </label>
+
+                                <input asp-for="product_quantity"
+                                       class="form-control"
+                                       type="number"
+                                       min="1"
+                                       step="1"
+                                       value="1"
+                                       required />
+
+                                
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="product_description"
+                                       class="form-label">
+                                    Description
+                                </label>
+
+                                <textarea asp-for="product_description"
+                                          class="form-control"
+                                          rows="5"
+                                          placeholder="Describe the model, features, or compatibility."></textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Product_price"
+                                       class="form-label">
+                                    Selling Price
+                                </label>
+
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        ₱
+                                    </span>
+
+                                    <input asp-for="Product_price"
+                                           class="form-control"
+                                           type="number"
+                                           min="0.01"
+                                           step="0.01"
+                                           required />
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="reorder_level"
+                                       class="form-label">
+                                    Reorder Level
+                                </label>
+
+                                <input asp-for="reorder_level"
+                                       class="form-control"
+                                       type="number"
+                                       min="0"
+                                       step="1"
+                                       required />
+
+                                <div class="form-hint mt-1">
+                                    A low-stock warning appears at or below this quantity.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="app-card card sticky-lg-top"
+                     style="top:1rem">
+
+                    <div class="card-header">
+                        <h2 class="card-title-sm">
+                            Organization
+                        </h2>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="category_ID"
+                                   class="form-label">
+                                Category
+                            </label>
+
+                            <select asp-for="category_ID"
+                                    class="form-select"
+                                    required>
+
+                                <option value="">
+                                    Select a category
+                                </option>
+
+                                @foreach (var category in categories)
+                                {
+                                    <option value="@category.category_ID">
+                                        @category.category_name
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                Initial Status
+                            </label>
+
+                            <div>
+                                <span class="status-badge status-unavailable">
+                                    Unavailable
+                                </span>
+                            </div>
+
+                            <div class="form-hint mt-2">
+                                The status changes only after stock is received through Delivery.
+                            </div>
+                        </div>
+
+                        <input asp-for="product_status"
+                               type="hidden"
+                               value="Unavailable" />
+
+                        <button id="submitProduct"
+                                type="submit"
+                                class="btn btn-dark w-100 mb-2">
+
+                            <span class="spinner-border spinner-border-sm d-none me-1"></span>
+                            Create Product
+                        </button>
+
+                        <a asp-action="ProductManagement"
+                           class="btn btn-outline-secondary w-100">
+
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade"
+     id="bulkAddModal"
+     tabindex="-1"
+     aria-labelledby="bulkAddTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title fs-5"
+                        id="bulkAddTitle">
+
+                        Bulk Add Products
+                    </h2>
+
+                    <p class="small text-muted mb-0">
+                        Create multiple unavailable catalog items with planned quantities.
+                    </p>
+                </div>
+
+                <button class="btn-close"
+                        type="button"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div id="bulkErrors"
+                     class="alert alert-danger d-none small">
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle bulk-product-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Product Name</th>
+                                <th>Brand</th>
+                                <th>Price</th>
+                                <th>Qty</th>
+                                <th>Reorder</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="bulkRows">
+                        </tbody>
+                    </table>
+                </div>
+
+                <button id="addBulkRow"
+                        class="btn btn-sm btn-outline-dark"
+                        type="button">
+
+                    <i class="bi bi-plus-lg me-1"></i>
+                    Add Row
+                </button>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary"
+                        type="button"
+                        data-bs-dismiss="modal">
+
+                    Cancel
+                </button>
+
+                <button id="saveBulkProducts"
+                        class="btn btn-dark"
+                        type="button">
+
+                    <span class="spinner-border spinner-border-sm d-none me-1"></span>
+                    Add Products
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="bulkRowTemplate">
+    <tr class="bulk-row">
+        <td>
+            <select class="form-select form-select-sm bulk-category"
+                    required>
+
+                <option value="">
+                    Category
+                </option>
+
+                @foreach (var category in categories)
+                {
+                    <option value="@category.category_ID">
+                        @category.category_name
+                    </option>
+                }
+            </select>
+        </td>
+
+        <td>
+            <input class="form-control form-control-sm bulk-name"
+                   required />
+        </td>
+
+        <td>
+            <input class="form-control form-control-sm bulk-brand"
+                   required />
+        </td>
+
+        <td>
+            <input class="form-control form-control-sm bulk-price"
+                   type="number"
+                   min="0.01"
+                   step="0.01"
+                   required />
+        </td>
+
+        <td>
+            <input class="form-control form-control-sm bulk-qty"
+                   type="number"
+                   min="1"
+                   step="1"
+                   value="1"
+                   required />
+        </td>
+
+        <td>
+            <input class="form-control form-control-sm bulk-reorder"
+                   type="number"
+                   min="0"
+                   step="1"
+                   value="0"
+                   required />
+        </td>
+
+        <td>
+            <button class="btn btn-sm btn-outline-danger remove-bulk-row"
+                    type="button"
+                    aria-label="Remove row">
+
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </td>
+    </tr>
+</template>
+
+<div class="modal fade"
+     id="confirmExitModal"
+     tabindex="-1"
+     aria-labelledby="confirmExitTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5"
+                    id="confirmExitTitle">
+
+                    Unsaved changes
+                </h2>
+
+                <button class="btn-close"
+                        type="button"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                You have unsaved changes. Are you sure you want to leave?
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary"
+                        type="button"
+                        data-bs-dismiss="modal">
+
+                    Cancel
+                </button>
+
+                <button id="discardAndLeave"
+                        class="btn btn-danger"
+                        type="button">
+
+                    Discard &amp; Leave
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/product-create.js"
+            asp-append-version="true">
+    </script>
+}

@@ -1,0 +1,245 @@
+@model Capstone_RJTech.Models.Delivery
+
+@{
+    string deliveryCode =
+        Model.batch_ID.Replace(
+            "BATCH-",
+            "DEL-"
+        );
+
+    int totalUnits =
+        Model.DeliveryDetails.Sum(
+            detail => detail.product_quantity
+        );
+
+    ViewData["Title"] = deliveryCode;
+    ViewData["Description"] = "Completed inventory delivery details.";
+}
+
+<div class="app-page">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home"
+                   asp-action="Dashboard">
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="breadcrumb-item">
+                <a asp-action="DeliveryManagement">
+                    Deliveries
+                </a>
+            </li>
+
+            <li class="breadcrumb-item active">
+                @deliveryCode
+            </li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>@deliveryCode</h1>
+
+            <p>
+                Completed inventory delivery receipt.
+            </p>
+        </div>
+
+        <button class="btn btn-outline-secondary"
+                type="button"
+                onclick="window.print()">
+
+            <i class="bi bi-printer me-1"></i>
+            Print
+        </button>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="app-card card h-100">
+                <div class="card-header">
+                    <h2 class="card-title-sm">
+                        Delivery Information
+                    </h2>
+
+                    <p class="card-subtitle-sm">
+                        Receipt identity and receiving information.
+                    </p>
+                </div>
+
+                <div class="card-body detail-list">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    Delivery ID
+                                </div>
+
+                                <div class="detail-value">
+                                    @deliveryCode
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    Batch ID
+                                </div>
+
+                                <div class="detail-value">
+                                    @Model.batch_ID
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    Received By
+                                </div>
+
+                                <div class="detail-value">
+                                    @Model.received_by
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="detail-row">
+                                <div class="detail-label">
+                                    Date Received
+                                </div>
+
+                                <div class="detail-value">
+                                    @Model.date_delivered.ToString("MMMM d, yyyy · h:mm tt")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="app-card card h-100">
+                <div class="card-header">
+                    <h2 class="card-title-sm">
+                        Delivery Summary
+                    </h2>
+                </div>
+
+                <div class="card-body detail-list py-2">
+                    <div class="detail-row d-flex justify-content-between">
+                        <span class="detail-label mb-0">
+                            Products
+                        </span>
+
+                        <strong>
+                            @Model.DeliveryDetails.Count
+                        </strong>
+                    </div>
+
+                    <div class="detail-row d-flex justify-content-between">
+                        <span class="detail-label mb-0">
+                            Total Units
+                        </span>
+
+                        <strong>
+                            @totalUnits
+                        </strong>
+                    </div>
+
+                    <div class="detail-row d-flex justify-content-between align-items-center">
+                        <span class="detail-label mb-0">
+                            Status
+                        </span>
+
+                        <span class="status-badge status-completed">
+                            Completed
+                        </span>
+                    </div>
+
+                    <div class="detail-row d-flex justify-content-between">
+                        <span class="detail-label mb-0">
+                            Received Date
+                        </span>
+
+                        <strong>
+                            @Model.date_delivered.ToString("MMM d, yyyy")
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-card card">
+        <div class="card-header">
+            <h2 class="card-title-sm">
+                Received Products
+            </h2>
+
+            <p class="card-subtitle-sm">
+                Inventory quantities before and after this delivery.
+            </p>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table app-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Product Code</th>
+                        <th class="text-end">Previous Qty</th>
+                        <th class="text-end">Received</th>
+                        <th class="text-end">New Qty</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var detail in Model.DeliveryDetails)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="product-thumb">
+                                        <i class="bi bi-box-seam"></i>
+                                    </span>
+
+                                    <div>
+                                        <div class="product-name">
+                                            @detail.Product?.product_name
+                                        </div>
+
+                                        <div class="product-meta">
+                                            @detail.Product?.product_brand
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="fw-semibold">
+                                @Capstone_RJTech.Controllers.ProductController.GetFormattedCodeForProduct(detail.Product)
+                            </td>
+
+                            <td class="text-end">
+                                @detail.previous_quantity
+                            </td>
+
+                            <td class="text-end fw-semibold text-success">
+                                +@detail.product_quantity
+                            </td>
+
+                            <td class="text-end fw-bold">
+                                @detail.new_quantity
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

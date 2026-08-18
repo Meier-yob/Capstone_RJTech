@@ -115,7 +115,7 @@
                                 foreach (var prod in products)
                                 {
                                     <tr class="product-row-item" data-category-id="@prod.category_ID">
-                                        <td class="fw-bold text-dark ps-3">@Capstone_RJTech.Controllers.HomeController.GetFormattedCodeForProduct(prod)</td>
+                                        <td class="fw-bold text-dark ps-3">@Capstone_RJTech.Controllers.ProductController.GetFormattedCodeForProduct(prod)</td>
                                         <td class="text-secondary">@(string.IsNullOrEmpty(prod.product_brand) ? "-" : prod.product_brand)</td>
                                         <td class="text-secondary text-truncate" style="max-width: 200px;">@prod.product_description</td>
                                         <td class="text-center fw-semibold text-dark">@prod.product_quantity</td>
@@ -439,7 +439,7 @@
         $('#editCategoryForm').on('submit', function(e) {
             e.preventDefault();
             $.ajax({
-                url: '/Home/EditCategory',
+                url: '/Product/EditCategory',
                 type: 'POST',
                 data: $(this).serialize(),
                 success: function(res) {
@@ -456,7 +456,7 @@
         $('#createCategoryForm').on('submit', function(e) {
             e.preventDefault();
             $.ajax({
-                url: '/Home/CreateCategory',
+                url: '/Product/CreateCategory',
                 type: 'POST',
                 data: $(this).serialize(),
                 success: function(res) {

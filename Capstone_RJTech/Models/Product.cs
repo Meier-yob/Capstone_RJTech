@@ -21,9 +21,16 @@ namespace Capstone_RJTech.Models
         [StringLength(500)]
         public string? product_description { get; set; }
 
+        [StringLength(300)]
+        public string? product_image_path { get; set; }
+
         [Required]
         [Range(0, int.MaxValue, ErrorMessage = "Quantity cannot be negative")]
         public int product_quantity { get; set; }
+
+        [Required]
+        [Range(0, int.MaxValue, ErrorMessage = "Reorder level cannot be negative")]
+        public int reorder_level { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]
@@ -33,13 +40,6 @@ namespace Capstone_RJTech.Models
         [Required]
         [StringLength(50)]
         public string product_status { get; set; } = "Unavailable";
-
-        // A new catalog item remains unavailable until its first delivery is completed.
-        public bool has_received_initial_delivery { get; set; }
-
-        [Required]
-        [Range(0, int.MaxValue, ErrorMessage = "Reorder level cannot be negative")]
-        public int reorder_level { get; set; }
 
         // Foreign Key
         [Required]
@@ -54,7 +54,7 @@ namespace Capstone_RJTech.Models
 
         // Computed formatted code (not mapped to the database)
         [NotMapped]
-        public string formatted_code => HomeController.GetFormattedCodeForProduct(this);
+        public string formatted_code => ProductController.GetFormattedCodeForProduct(this);
 
         // Backwards-compatible alias expected by some views/controllers
         // Exposes the same formatted code using the older snake_case name

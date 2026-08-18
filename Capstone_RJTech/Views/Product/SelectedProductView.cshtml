@@ -1,0 +1,418 @@
+@model Capstone_RJTech.Models.Product
+
+@{
+    ViewData["Title"] = Model.product_name;
+    ViewData["Description"] = "Product catalog and inventory details.";
+
+    string statusClass = Model.product_status
+        .ToLowerInvariant()
+        .Replace(" ", "-");
+
+    DateTime lastDelivery =
+        ViewBag.LastDelivery is DateTime date
+            ? date
+            : DateTime.MinValue;
+}
+
+<div class="app-page"
+     id="productDetailsPage"
+     data-product-id="@Model.product_ID"
+     data-delete-url="@Url.Action("DeleteProduct")"
+     data-products-url="@Url.Action("ProductManagement")">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home"
+                   asp-action="Dashboard">
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="breadcrumb-item">
+                <a asp-action="ProductManagement">
+                    Products
+                </a>
+            </li>
+
+            <li class="breadcrumb-item active">
+                @Model.product_name
+            </li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>@Model.product_name</h1>
+
+            <p>
+                @(Model.Category?.category_name ?? "Uncategorized")
+                ·
+                @Model.product_brand
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button id="editToggle"
+                    class="btn btn-outline-secondary"
+                    type="button">
+
+                <i class="bi bi-pencil me-1"></i>
+                Edit
+            </button>
+
+            <button id="deleteProduct"
+                    class="btn btn-outline-danger"
+                    type="button">
+
+                <i class="bi bi-trash me-1"></i>
+                Delete
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="app-card card h-100">
+                <div class="card-header">
+                    <h2 class="card-title-sm">
+                        Product Details
+                    </h2>
+
+                    <p class="card-subtitle-sm">
+                        Catalog identity and descriptive information.
+                    </p>
+                </div>
+
+                <div class="card-body">
+                    <div id="readOnlyDetails"
+                         class="detail-list">
+
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                Name
+                            </div>
+
+                            <div class="detail-value">
+                                @Model.product_name
+                            </div>
+                        </div>
+
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                Description
+                            </div>
+
+                            <div class="detail-value fw-normal">
+                                @(string.IsNullOrWhiteSpace(Model.product_description)
+                                    ? "No description provided."
+                                    : Model.product_description)
+                            </div>
+                        </div>
+
+                        <div class="detail-row">
+                            <div class="detail-label">
+                                Brand
+                            </div>
+
+                            <div class="detail-value">
+                                @Model.product_brand
+                            </div>
+                        </div>
+
+                        <div class="row pt-3">
+                            <div class="col-md-6 mb-3">
+                                <div class="detail-label">
+                                    Status
+                                </div>
+
+                                <span class="status-badge status-@statusClass">
+                                    @Model.product_status
+                                </span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="detail-label">
+                                    Category
+                                </div>
+
+                                <div class="detail-value">
+                                    @(Model.Category?.category_name ?? "Uncategorized")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="editForm"
+                          class="d-none"
+                          asp-action="UpdateProductDetails"
+                          method="post">
+
+                        <input type="hidden"
+                               name="product_ID"
+                               value="@Model.product_ID" />
+
+                        <input type="hidden"
+                               name="product_status"
+                               value="@Model.product_status" />
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">
+                                    Product Name
+                                </label>
+
+                                <input name="product_name"
+                                       class="form-control"
+                                       value="@Model.product_name"
+                                       required />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Brand
+                                </label>
+
+                                <input name="product_brand"
+                                       class="form-control"
+                                       value="@Model.product_brand"
+                                       required />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Selling Price
+                                </label>
+
+                                <input name="product_price"
+                                       class="form-control"
+                                       type="number"
+                                       min="0.01"
+                                       step="0.01"
+                                       value="@Model.Product_price"
+                                       required />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">
+                                    Description
+                                </label>
+
+                                <textarea name="product_description"
+                                          class="form-control"
+                                          rows="4">@Model.product_description</textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Reorder Level
+                                </label>
+
+                                <input name="reorder_level"
+                                       class="form-control"
+                                       type="number"
+                                       min="0"
+                                       value="@Model.reorder_level"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit"
+                                    class="btn btn-rj">
+
+                                Save Changes
+                            </button>
+
+                            <button id="cancelEdit"
+                                    type="button"
+                                    class="btn btn-outline-secondary">
+
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="app-card card mb-4">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h2 class="card-title-sm">
+                        Image
+                    </h2>
+
+                    <button class="btn btn-sm btn-outline-dark"
+                            type="button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#uploadImageModal">
+
+                        <i class="bi bi-upload me-1"></i>
+                        Upload Image
+                    </button>
+                </div>
+
+                <div class="card-body">
+                    @if (TempData["ImageError"] is string imageError)
+                    {
+                        <div class="alert alert-danger py-2 small">
+                            @imageError
+                        </div>
+                    }
+
+                    @if (TempData["ImageSuccess"] is string imageSuccess)
+                    {
+                        <div class="alert alert-success py-2 small">
+                            @imageSuccess
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.product_image_path))
+                    {
+                        <img class="product-detail-image"
+                             src="@Model.product_image_path"
+                             alt="@Model.product_name" />
+                    }
+                    else
+                    {
+                        <div class="image-placeholder">
+                            <i class="bi bi-box-seam"></i>
+                            <span>No product image</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="app-card card">
+                <div class="card-header">
+                    <h2 class="card-title-sm">
+                        Pricing &amp; Inventory
+                    </h2>
+                </div>
+
+                <div class="card-body detail-list py-2">
+                    <div class="detail-row d-flex justify-content-between">
+                        <span class="detail-label mb-0">
+                            Selling Price
+                        </span>
+
+                        <strong>
+                            ₱@Model.Product_price.ToString("N2")
+                        </strong>
+                    </div>
+
+                    <div class="detail-row d-flex justify-content-between">
+                        <span class="detail-label mb-0">
+                            Current Stock
+                        </span>
+
+                        <strong>
+                            @Model.product_quantity
+                        </strong>
+                    </div>
+
+                    <div class="detail-row d-flex justify-content-between">
+                        <span class="detail-label mb-0">
+                            Reorder Level
+                        </span>
+
+                        <strong>
+                            @Model.reorder_level
+                        </strong>
+                    </div>
+
+                    <div class="detail-row d-flex justify-content-between">
+                        <span class="detail-label mb-0">
+                            Last Delivery
+                        </span>
+
+                        <strong>
+                            @(lastDelivery == DateTime.MinValue
+                                ? "—"
+                                : lastDelivery.ToString("MMM d, yyyy"))
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade"
+     id="uploadImageModal"
+     tabindex="-1"
+     aria-labelledby="uploadImageTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="UploadImage"
+                  method="post"
+                  enctype="multipart/form-data">
+
+                <input type="hidden"
+                       name="id"
+                       value="@Model.product_ID" />
+
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5"
+                        id="uploadImageTitle">
+
+                        Upload Product Image
+                    </h2>
+
+                    <button class="btn-close"
+                            type="button"
+                            data-bs-dismiss="modal"
+                            aria-label="Close">
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <label class="form-label"
+                           for="productImage">
+
+                        Product Image
+                    </label>
+
+                    <input id="productImage"
+                           name="image"
+                           class="form-control"
+                           type="file"
+                           accept="image/jpeg,image/png,image/webp"
+                           required />
+
+                    <div class="form-hint mt-2">
+                        JPG, PNG, or WebP up to 5 MB.
+                    </div>
+
+                    <img id="imagePreview"
+                         class="product-detail-image mt-3 d-none"
+                         alt="Image preview" />
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-outline-secondary"
+                            type="button"
+                            data-bs-dismiss="modal">
+
+                        Cancel
+                    </button>
+
+                    <button class="btn btn-dark"
+                            type="submit">
+
+                        Upload Image
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/product-details.js"
+            asp-append-version="true">
+    </script>
+}

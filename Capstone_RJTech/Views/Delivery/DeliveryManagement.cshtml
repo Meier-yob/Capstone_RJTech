@@ -1,0 +1,216 @@
+@model IEnumerable<Capstone_RJTech.Models.Delivery>
+
+@{
+    ViewData["Title"] = "Deliveries";
+    ViewData["Description"] = "Track and manage incoming inventory deliveries.";
+}
+
+<div class="app-page"
+     id="deliveryManagementPage"
+     data-delete-url="@Url.Action("DeleteDeliveryReceipt")">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home"
+                   asp-action="Dashboard">
+                    Dashboard
+                </a>
+            </li>
+
+            <li class="breadcrumb-item active">
+                Deliveries
+            </li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>Deliveries</h1>
+
+            <p>
+                Track and manage incoming inventory deliveries.
+            </p>
+        </div>
+
+        <a asp-action="Receive"
+           class="btn btn-dark">
+
+            <i class="bi bi-plus-lg me-1"></i>
+            Receive Products
+        </a>
+    </div>
+
+    <div class="filter-tabs"
+         role="group">
+
+        <button class="btn active"
+                type="button"
+                data-status="all">
+
+            All
+
+            <span class="ms-1 text-muted">
+                @Model.Count()
+            </span>
+        </button>
+
+        <button class="btn"
+                type="button"
+                data-status="completed">
+
+            Completed
+        </button>
+    </div>
+
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <div class="input-group search-control">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+
+                <input id="deliverySearch"
+                       class="form-control"
+                       type="search"
+                       placeholder="Search delivery ID, batch, or receiver..." />
+            </div>
+        </div>
+
+        <button id="exportDeliveries"
+                class="btn btn-outline-secondary"
+                type="button">
+
+            <i class="bi bi-download me-1"></i>
+            Export
+        </button>
+    </div>
+
+    <div class="app-card management-card">
+        <div class="table-responsive management-table-responsive">
+            <table class="table app-table"
+                   id="deliveryTable">
+
+                <thead>
+                    <tr>
+                        <th>Delivery ID</th>
+                        <th>Batch ID</th>
+                        <th>Received By</th>
+                        <th>Date Received</th>
+                        <th class="text-end">Products</th>
+                        <th class="text-end">Total Units</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var delivery in Model)
+                    {
+                        string code =
+                            delivery.batch_ID.Replace(
+                                "BATCH-",
+                                "DEL-"
+                            );
+
+                        int units =
+                            delivery.DeliveryDetails.Sum(
+                                detail => detail.product_quantity
+                            );
+
+                        <tr class="delivery-row"
+                            data-search="@($"{code} {delivery.batch_ID} {delivery.received_by}".ToLowerInvariant())"
+                            data-status="completed">
+
+                            <td class="fw-semibold">
+                                @code
+                            </td>
+
+                            <td>
+                                @delivery.batch_ID
+                            </td>
+
+                            <td>
+                                @delivery.received_by
+                            </td>
+
+                            <td>
+                                @delivery.date_delivered.ToString("MMM d, yyyy")
+                            </td>
+
+                            <td class="text-end">
+                                @delivery.DeliveryDetails.Count
+                            </td>
+
+                            <td class="text-end fw-semibold">
+                                @units
+                            </td>
+
+                            <td>
+                                <span class="status-badge status-completed">
+                                    Completed
+                                </span>
+                            </td>
+
+                            <td class="text-end action-cell">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light no-caret dropdown-toggle"
+                                            data-bs-toggle="dropdown"
+                                            data-bs-boundary="viewport"
+                                            aria-label="Delivery actions">
+
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item"
+                                               asp-action="Details"
+                                               asp-route-id="@delivery.delivery_ID">
+
+                                                <i class="bi bi-eye me-2"></i>
+                                                View
+                                            </a>
+                                        </li>
+
+                                        <li>
+                                            <hr class="dropdown-divider" />
+                                        </li>
+
+                                        <li>
+                                            <button class="dropdown-item text-danger delete-delivery"
+                                                    type="button"
+                                                    data-id="@delivery.delivery_ID"
+                                                    data-code="@code">
+
+                                                <i class="bi bi-trash me-2"></i>
+                                                Delete
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+
+                    <tr id="emptyDeliveries"
+                        class="@(Model.Any() ? "d-none" : "")">
+
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <i class="bi bi-truck"></i>
+                                No deliveries found.
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/delivery-management.js"
+            asp-append-version="true">
+    </script>
+}
