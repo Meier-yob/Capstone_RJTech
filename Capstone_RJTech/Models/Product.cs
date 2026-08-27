@@ -21,8 +21,11 @@ namespace Capstone_RJTech.Models
         [StringLength(500)]
         public string? product_description { get; set; }
 
-        [StringLength(300)]
-        public string? product_image_path { get; set; }
+        [Column(TypeName = "varbinary(max)")]
+        public byte[]? product_Image { get; set; }
+
+        [StringLength(50)]
+        public string? product_ImageContentType { get; set; }
 
         [Required]
         [Range(0, int.MaxValue, ErrorMessage = "Quantity cannot be negative")]
@@ -49,12 +52,13 @@ namespace Capstone_RJTech.Models
         [ForeignKey("category_ID")]
         public virtual ProductCategory? Category { get; set; }
 
-        public virtual ICollection<ProductSerial> ProductSerials { get; set; } = new List<ProductSerial>();
         public virtual ICollection<DeliveryDetails> DeliveryDetails { get; set; } = new List<DeliveryDetails>();
+        public virtual ICollection<CheckoutItem> CheckoutItems { get; set; } = new List<CheckoutItem>();
+
 
         // Computed formatted code (not mapped to the database)
         [NotMapped]
-        public string formatted_code => ProductController.GetFormattedCodeForProduct(this);
+        public string formatted_code => ProductController.FormatProductCode(Category?.category_name, product_ID);
 
         // Backwards-compatible alias expected by some views/controllers
         // Exposes the same formatted code using the older snake_case name

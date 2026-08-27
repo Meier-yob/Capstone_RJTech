@@ -1,18 +1,21 @@
+using Capstone_RJTech.Data;
 using Capstone_RJTech.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone_RJTech.Controllers
 {
     public class ProductController : Controller
     {
+        private const long MaxProductImageBytes = 5 * 1024 * 1024;
+        private const long ProductImageRequestLimitBytes = 7 * 1024 * 1024;
+
+        private readonly ApplicationDbContext _db;
         private readonly ILogger<ProductController> _logger;
 
-        private static List<ProductCategory> Categories => InventoryStore.Categories;
-        private static List<Product> Products => InventoryStore.Products;
-        private static List<ProductSerial> ProductSerials => InventoryStore.ProductSerials;
-
-        public ProductController(ILogger<ProductController> logger)
+        public ProductController(ApplicationDbContext db, ILogger<ProductController> logger)
         {
+            _db = db;
             _logger = logger;
         }
 
@@ -20,44 +23,60 @@ namespace Capstone_RJTech.Controllers
 
         public IActionResult ProductManagement()
         {
-            ViewBag.Categories = Categories;
-            foreach (var product in Products)
-            {
-                product.Category = Categories.FirstOrDefault(category => category.category_ID == product.category_ID);
-                product.product_status = EvaluateProductStatus(product);
-            }
+            var categories = _db.ProductCategories.OrderBy(category => category.category_name).ToList();
+            var products = _db.Products.Include(product => product.Category).ToList();
 
-            return View(Products);
+            bool statusChanged = false;
+            foreach (var product in products)
+            {
+                string status = EvaluateProductStatus(product);
+                if (product.product_status != status)
+                {
+                    product.product_status = status;
+                    statusChanged = true;
+                }
+            }
+            if (statusChanged) _db.SaveChanges();
+
+            ViewBag.Categories = categories;
+            return View(products);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            ViewBag.Categories = Categories;
+            ViewBag.Categories = _db.ProductCategories.OrderBy(category => category.category_name).ToList();
             return View("NewProductView", new Product());
         }
 
         [HttpGet]
         public IActionResult Details(int id)
         {
-            var product = Products.FirstOrDefault(item => item.product_ID == id);
+            var product = _db.Products
+                .Include(item => item.Category)
+                .FirstOrDefault(item => item.product_ID == id);
             if (product == null) return NotFound();
 
-            product.Category = Categories.FirstOrDefault(category => category.category_ID == product.category_ID);
             product.product_status = EvaluateProductStatus(product);
-            ViewBag.Serials = ProductSerials.Where(serial => serial.product_ID == id).ToList();
-            ViewBag.LastDelivery = InventoryStore.DeliveryDetails
+            _db.SaveChanges();
+
+            var latestDelivery = _db.DeliveryDetails
                 .Where(detail => detail.product_ID == id)
-                .Join(InventoryStore.Deliveries, detail => detail.delivery_ID, delivery => delivery.delivery_ID, (_, delivery) => delivery.date_delivered)
-                .OrderByDescending(date => date)
+                .Select(detail => detail.Delivery)
+                .Where(delivery => delivery != null)
+                .OrderByDescending(delivery => delivery!.date_delivered)
+                .ThenByDescending(delivery => delivery!.delivery_ID)
                 .FirstOrDefault();
+
+            ViewBag.LastDelivery = latestDelivery?.date_delivered;
+            ViewBag.LatestBatchId = latestDelivery?.batch_ID;
             return View("SelectedProductView", product);
         }
 
         public IActionResult CategoryManagement()
         {
-            ViewBag.Products = Products;
-            return View(Categories);
+            ViewBag.Products = _db.Products.AsNoTracking().ToList();
+            return View(_db.ProductCategories.AsNoTracking().OrderBy(category => category.category_name).ToList());
         }
 
         public static string GetCategoryPrefix(string? categoryName)
@@ -74,15 +93,10 @@ namespace Capstone_RJTech.Controllers
             => $"{GetCategoryPrefix(categoryName)}-{productId:D3}";
 
         public static string GetFormattedCodeForProduct(Product? product)
-        {
-            if (product == null) return "P-000";
-            var categoryName = Categories.FirstOrDefault(category => category.category_ID == product.category_ID)?.category_name;
-            return FormatProductCode(categoryName, product.product_ID);
-        }
+            => product == null ? "P-000" : FormatProductCode(product.Category?.category_name, product.product_ID);
 
         internal static string EvaluateProductStatus(Product product)
         {
-            // Unavailable identifies a catalog item that has not been received yet.
             if (product.product_status == "Unavailable") return "Unavailable";
             if (product.product_quantity <= 0) return "Out of Stock";
             if (product.product_quantity <= product.reorder_level) return "Low Stock";
@@ -95,10 +109,10 @@ namespace Capstone_RJTech.Controllers
         [HttpGet]
         public IActionResult GetNextCategoryCode(int categoryId)
         {
-            var category = Categories.FirstOrDefault(item => item.category_ID == categoryId);
+            var category = _db.ProductCategories.AsNoTracking().FirstOrDefault(item => item.category_ID == categoryId);
             if (category == null) return Json(new { success = false, message = "Invalid category." });
 
-            int nextProductId = Products.Any() ? Products.Max(product => product.product_ID) + 1 : 1;
+            int nextProductId = (_db.Products.Max(product => (int?)product.product_ID) ?? 0) + 1;
             return Json(new { success = true, formattedCode = FormatProductCode(category.category_name, nextProductId) });
         }
 
@@ -118,19 +132,22 @@ namespace Capstone_RJTech.Controllers
             if (string.IsNullOrWhiteSpace(product.product_name) || string.IsNullOrWhiteSpace(product.product_brand))
                 return Json(new { success = false, message = "Validation failed.", errors = new[] { "Product name and brand are required." } });
 
-            bool alreadyExists = Products.Any(existing =>
+            bool categoryExists = _db.ProductCategories.Any(category => category.category_ID == product.category_ID);
+            if (!categoryExists) return Json(new { success = false, message = "Select a valid category." });
+
+            bool alreadyExists = _db.Products.Any(existing =>
                 existing.category_ID == product.category_ID &&
-                string.Equals(NormalizeProductIdentity(existing.product_name), product.product_name, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(NormalizeProductIdentity(existing.product_brand), product.product_brand, StringComparison.OrdinalIgnoreCase));
+                existing.product_name == product.product_name &&
+                existing.product_brand == product.product_brand);
             if (alreadyExists) return Json(new { success = false, message = "Item Already Exists" });
 
-            product.product_ID = Products.Any() ? Products.Max(item => item.product_ID) + 1 : 1;
-            // Stock can only be added through the Delivery receiving workflow.
+            product.product_ID = 0;
             product.product_quantity = 0;
             product.product_status = "Unavailable";
-            Products.Add(product);
+            _db.Products.Add(product);
+            _db.SaveChanges();
 
-            var category = Categories.FirstOrDefault(item => item.category_ID == product.category_ID);
+            var category = _db.ProductCategories.AsNoTracking().First(item => item.category_ID == product.category_ID);
             return Json(new
             {
                 success = true,
@@ -141,34 +158,59 @@ namespace Capstone_RJTech.Controllers
         }
 
         [HttpPost]
-        [RequestSizeLimit(5_242_880)]
+        [RequestSizeLimit(ProductImageRequestLimitBytes)]
         public async Task<IActionResult> UploadImage(int id, IFormFile? image)
         {
-            var product = Products.FirstOrDefault(item => item.product_ID == id);
-            if (product == null) return NotFound();
-            if (image == null || image.Length == 0)
+            try
             {
-                TempData["ImageError"] = "Choose an image to upload.";
-                return RedirectToAction(nameof(Details), new { id });
+                var product = await _db.Products.FindAsync(id);
+                if (product == null)
+                {
+                    TempData["ImageError"] = "Product not found.";
+                    return RedirectToAction(nameof(ProductManagement));
+                }
+
+                var imageResult = await ReadProductImageAsync(image, required: true);
+                if (imageResult.Error != null)
+                {
+                    TempData["ImageError"] = imageResult.Error;
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+
+                product.product_Image = imageResult.Data;
+                product.product_ImageContentType = imageResult.ContentType;
+                await _db.SaveChangesAsync();
+                TempData["ImageSuccess"] = "Product image updated.";
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Unable to store the image for product {ProductId}.", id);
+                TempData["ImageError"] = "The image could not be uploaded. Please try again.";
             }
 
-            var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
-            string[] allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
-            if (!allowedExtensions.Contains(extension) || image.Length > 5_242_880)
-            {
-                TempData["ImageError"] = "Use a JPG, PNG, or WebP image up to 5 MB.";
-                return RedirectToAction(nameof(Details), new { id });
-            }
-
-            string uploadDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "products");
-            Directory.CreateDirectory(uploadDirectory);
-            string fileName = $"product-{id}-{Guid.NewGuid():N}{extension}";
-            await using (var stream = System.IO.File.Create(Path.Combine(uploadDirectory, fileName)))
-                await image.CopyToAsync(stream);
-
-            product.product_image_path = $"/uploads/products/{fileName}";
-            TempData["ImageSuccess"] = "Product image updated.";
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpGet]
+        [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+        public async Task<IActionResult> Image(int id)
+        {
+            var image = await _db.Products
+                .AsNoTracking()
+                .Where(product => product.product_ID == id)
+                .Select(product => new
+                {
+                    product.product_Image,
+                    product.product_ImageContentType
+                })
+                .FirstOrDefaultAsync();
+
+            if (image?.product_Image == null || image.product_Image.Length == 0)
+                return NotFound();
+
+            return File(
+                image.product_Image,
+                image.product_ImageContentType ?? "application/octet-stream");
         }
 
         public class ProductCreateRequest
@@ -195,6 +237,8 @@ namespace Capstone_RJTech.Controllers
             if (rows.Count > 100)
                 return Json(new { success = false, message = "A bulk upload is limited to 100 products." });
 
+            var categories = _db.ProductCategories.AsNoTracking().ToDictionary(category => category.category_ID);
+            var existingProducts = _db.Products.AsNoTracking().ToList();
             var errors = new List<string>();
             var normalizedRows = new List<(ProductCreateRequest Row, string Name, string Brand)>();
             var batchKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -206,7 +250,7 @@ namespace Capstone_RJTech.Controllers
                 string brand = NormalizeProductIdentity(row.product_brand);
                 string label = $"Row {index + 1}";
 
-                if (!Categories.Any(category => category.category_ID == row.category_ID)) errors.Add($"{label}: select a valid category.");
+                if (!categories.ContainsKey(row.category_ID)) errors.Add($"{label}: select a valid category.");
                 if (string.IsNullOrWhiteSpace(name)) errors.Add($"{label}: product name is required.");
                 if (string.IsNullOrWhiteSpace(brand)) errors.Add($"{label}: brand is required.");
                 if (row.Product_price <= 0) errors.Add($"{label}: price must be greater than zero.");
@@ -214,7 +258,7 @@ namespace Capstone_RJTech.Controllers
 
                 string key = $"{row.category_ID}|{name}|{brand}";
                 if (!batchKeys.Add(key)) errors.Add($"{label}: this product is duplicated in the bulk list.");
-                if (Products.Any(existing => existing.category_ID == row.category_ID &&
+                if (existingProducts.Any(existing => existing.category_ID == row.category_ID &&
                     string.Equals(NormalizeProductIdentity(existing.product_name), name, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(NormalizeProductIdentity(existing.product_brand), brand, StringComparison.OrdinalIgnoreCase)))
                     errors.Add($"{label}: item already exists.");
@@ -225,38 +269,35 @@ namespace Capstone_RJTech.Controllers
             if (errors.Count > 0)
                 return Json(new { success = false, message = "Please correct the bulk product list.", errors });
 
-            int nextId = Products.Any() ? Products.Max(product => product.product_ID) + 1 : 1;
-            var createdProducts = new List<object>();
-            foreach (var entry in normalizedRows)
+            var products = normalizedRows.Select(entry => new Product
             {
-                var product = new Product
-                {
-                    product_ID = nextId++,
-                    category_ID = entry.Row.category_ID,
-                    product_name = entry.Name,
-                    product_brand = entry.Brand,
-                    product_description = entry.Row.product_description?.Trim(),
-                    product_quantity = 0,
-                    reorder_level = entry.Row.reorder_level,
-                    Product_price = entry.Row.Product_price,
-                    product_status = "Unavailable"
-                };
-                Products.Add(product);
-                createdProducts.Add(ToProductResponse(product, Categories.First(category => category.category_ID == product.category_ID)));
-            }
+                category_ID = entry.Row.category_ID,
+                product_name = entry.Name,
+                product_brand = entry.Brand,
+                product_description = entry.Row.product_description?.Trim(),
+                product_quantity = 0,
+                reorder_level = entry.Row.reorder_level,
+                Product_price = entry.Row.Product_price,
+                product_status = "Unavailable"
+            }).ToList();
 
+            _db.Products.AddRange(products);
+            _db.SaveChanges();
+
+            var createdProducts = products
+                .Select(product => ToProductResponse(product, categories[product.category_ID]))
+                .ToList();
             return Json(new { success = true, message = $"{createdProducts.Count} products created successfully.", data = createdProducts });
         }
 
         [HttpGet]
         public IActionResult GetDetails(int id)
         {
-            var product = Products.FirstOrDefault(item => item.product_ID == id);
+            var product = _db.Products.Include(item => item.Category).FirstOrDefault(item => item.product_ID == id);
             if (product == null) return Json(new { success = false, message = "Product not found." });
 
             product.product_status = EvaluateProductStatus(product);
-            var categoryName = Categories.FirstOrDefault(category => category.category_ID == product.category_ID)?.category_name ?? "N/A";
-            var serials = ProductSerials.Where(serial => serial.product_ID == id).Select(serial => new { serial.serial_No, serial.batch_ID }).ToList();
+            _db.SaveChanges();
             return Json(new
             {
                 success = true,
@@ -264,13 +305,12 @@ namespace Capstone_RJTech.Controllers
                 formatted_code = GetFormattedCodeForProduct(product),
                 product_name = product.product_name,
                 product_brand = product.product_brand,
-                category_name = categoryName,
+                category_name = product.Category?.category_name ?? "N/A",
                 product_quantity = product.product_quantity,
                 reorder_level = product.reorder_level,
                 product_price = product.Product_price,
                 product_description = product.product_description,
-                product_status = product.product_status,
-                serials
+                product_status = product.product_status
             });
         }
 
@@ -279,7 +319,7 @@ namespace Capstone_RJTech.Controllers
         {
             try
             {
-                var product = Products.FirstOrDefault(item => item.product_ID == product_ID);
+                var product = _db.Products.FirstOrDefault(item => item.product_ID == product_ID);
                 if (product == null) return Json(new { success = false, message = "Product not found." });
 
                 string normalizedName = NormalizeProductIdentity(product_name);
@@ -287,10 +327,10 @@ namespace Capstone_RJTech.Controllers
                 if (string.IsNullOrWhiteSpace(normalizedName) || string.IsNullOrWhiteSpace(normalizedBrand))
                     return Json(new { success = false, message = "Product name and brand are required." });
 
-                bool alreadyExists = Products.Any(existing => existing.product_ID != product_ID &&
+                bool alreadyExists = _db.Products.Any(existing => existing.product_ID != product_ID &&
                     existing.category_ID == product.category_ID &&
-                    string.Equals(NormalizeProductIdentity(existing.product_name), normalizedName, StringComparison.OrdinalIgnoreCase) &&
-                    string.Equals(NormalizeProductIdentity(existing.product_brand), normalizedBrand, StringComparison.OrdinalIgnoreCase));
+                    existing.product_name == normalizedName &&
+                    existing.product_brand == normalizedBrand);
                 if (alreadyExists) return Json(new { success = false, message = "Item Already Exists" });
 
                 product.product_name = normalizedName;
@@ -299,6 +339,7 @@ namespace Capstone_RJTech.Controllers
                 product.product_description = product_description?.Trim();
                 product.reorder_level = Math.Max(0, reorder_level);
                 product.product_status = EvaluateProductStatus(product);
+                _db.SaveChanges();
                 return Json(new { success = true, message = "Product updated successfully!" });
             }
             catch (Exception exception)
@@ -313,10 +354,15 @@ namespace Capstone_RJTech.Controllers
         {
             try
             {
-                var product = Products.FirstOrDefault(item => item.product_ID == id);
+                var product = _db.Products.Find(id);
                 if (product == null) return Json(new { success = false, message = "Product not found." });
-                ProductSerials.RemoveAll(serial => serial.product_ID == id);
-                Products.Remove(product);
+                if (_db.DeliveryDetails.Any(detail => detail.product_ID == id))
+                    return Json(new { success = false, message = "Products with delivery history cannot be deleted." });
+                if (_db.CheckoutItems.Any(item => item.ProductID == id))
+                    return Json(new { success = false, message = "Products with sales history cannot be deleted." });
+
+                _db.Products.Remove(product);
+                _db.SaveChanges();
                 return Json(new { success = true, message = "Product deleted successfully!" });
             }
             catch (Exception exception)
@@ -331,25 +377,22 @@ namespace Capstone_RJTech.Controllers
         {
             try
             {
-                var filteredProducts = Products.AsEnumerable();
+                var filteredProducts = _db.Products.Include(product => product.Category).AsNoTracking().AsEnumerable();
                 if (!string.IsNullOrWhiteSpace(query))
                 {
                     string term = query.Trim().ToLowerInvariant();
                     filteredProducts = filteredProducts.Where(product =>
-                    {
-                        string categoryName = Categories.FirstOrDefault(category => category.category_ID == product.category_ID)?.category_name ?? string.Empty;
-                        return GetFormattedCodeForProduct(product).ToLowerInvariant().Contains(term) ||
-                               product.product_name.ToLowerInvariant().Contains(term) ||
-                               product.product_brand.ToLowerInvariant().Contains(term) ||
-                               categoryName.ToLowerInvariant().Contains(term) ||
-                               (product.product_description?.ToLowerInvariant().Contains(term) ?? false);
-                    });
+                        GetFormattedCodeForProduct(product).ToLowerInvariant().Contains(term) ||
+                        product.product_name.ToLowerInvariant().Contains(term) ||
+                        product.product_brand.ToLowerInvariant().Contains(term) ||
+                        (product.Category?.category_name.ToLowerInvariant().Contains(term) ?? false) ||
+                        (product.product_description?.ToLowerInvariant().Contains(term) ?? false));
                 }
 
                 var result = filteredProducts.Select(product =>
                 {
                     product.product_status = EvaluateProductStatus(product);
-                    return ToProductResponse(product, Categories.FirstOrDefault(category => category.category_ID == product.category_ID));
+                    return ToProductResponse(product, product.Category);
                 }).ToList();
                 return Json(new { success = true, data = result });
             }
@@ -366,23 +409,28 @@ namespace Capstone_RJTech.Controllers
             string normalizedName = NormalizeProductIdentity(category.category_name);
             if (string.IsNullOrWhiteSpace(normalizedName))
                 return Json(new { success = false, message = "Invalid category name." });
-            if (Categories.Any(existing => string.Equals(NormalizeProductIdentity(existing.category_name), normalizedName, StringComparison.OrdinalIgnoreCase)))
+            if (_db.ProductCategories.Any(existing => existing.category_name == normalizedName))
                 return Json(new { success = false, message = "Category already exists" });
 
+            category.category_ID = 0;
             category.category_name = normalizedName;
-            category.category_ID = Categories.Any() ? Categories.Max(item => item.category_ID) + 1 : 1;
-            Categories.Add(category);
+            _db.ProductCategories.Add(category);
+            _db.SaveChanges();
             return Json(new { success = true, message = "Category created successfully!" });
         }
 
         [HttpPost]
         public IActionResult EditCategory(int category_ID, string category_name)
         {
-            var category = Categories.FirstOrDefault(item => item.category_ID == category_ID);
-            if (category == null || string.IsNullOrWhiteSpace(category_name))
+            var category = _db.ProductCategories.Find(category_ID);
+            string normalizedName = NormalizeProductIdentity(category_name);
+            if (category == null || string.IsNullOrWhiteSpace(normalizedName))
                 return Json(new { success = false, message = "Category not found or invalid input." });
+            if (_db.ProductCategories.Any(existing => existing.category_ID != category_ID && existing.category_name == normalizedName))
+                return Json(new { success = false, message = "Category already exists" });
 
-            category.category_name = NormalizeProductIdentity(category_name);
+            category.category_name = normalizedName;
+            _db.SaveChanges();
             return Json(new { success = true, message = "Category updated successfully!" });
         }
 
@@ -399,5 +447,47 @@ namespace Capstone_RJTech.Controllers
             product_price = product.Product_price,
             product_status = product.product_status
         };
+
+        private static async Task<(byte[]? Data, string? ContentType, string? Error)> ReadProductImageAsync(
+            IFormFile? image,
+            bool required)
+        {
+            if (image == null || image.Length == 0)
+            {
+                return required
+                    ? (null, null, "Choose an image to upload.")
+                    : (null, null, null);
+            }
+
+            if (image.Length > MaxProductImageBytes)
+                return (null, null, "Use a JPG, PNG, or WebP image up to 5 MB.");
+
+            await using var imageStream = new MemoryStream((int)image.Length);
+            await image.CopyToAsync(imageStream);
+            byte[] imageBytes = imageStream.ToArray();
+            string? contentType = DetectImageContentType(imageBytes);
+
+            return contentType == null
+                ? (null, null, "The selected file is not a valid JPG, PNG, or WebP image.")
+                : (imageBytes, contentType, null);
+        }
+
+        private static string? DetectImageContentType(ReadOnlySpan<byte> imageBytes)
+        {
+            if (imageBytes.Length >= 3 &&
+                imageBytes[0] == 0xFF && imageBytes[1] == 0xD8 && imageBytes[2] == 0xFF)
+                return "image/jpeg";
+
+            if (imageBytes.Length >= 8 &&
+                imageBytes[..8].SequenceEqual(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }))
+                return "image/png";
+
+            if (imageBytes.Length >= 12 &&
+                imageBytes[..4].SequenceEqual("RIFF"u8) &&
+                imageBytes.Slice(8, 4).SequenceEqual("WEBP"u8))
+                return "image/webp";
+
+            return null;
+        }
     }
 }

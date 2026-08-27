@@ -1,25 +1,129 @@
 (() => {
     const page = document.getElementById('deliveryManagementPage');
-    const rows = [...document.querySelectorAll('.delivery-row')];
     const searchInput = document.getElementById('deliverySearch');
-    const emptyRow = document.getElementById('emptyDeliveries');
-    const statusTabs = [...document.querySelectorAll('.filter-tabs [data-status]')];
-    let selectedStatus = 'all';
+    const tabs = [...document.querySelectorAll('[data-delivery-tab]')];
 
-    function applyFilters() {
+    let activeList = 'active';
+
+    function createList(prefix) {
+        return {
+            prefix,
+            panel: document.getElementById(`${prefix}DeliveryPanel`),
+            rows: [...document.querySelectorAll(`.${prefix}-delivery-row`)],
+            emptyRow: document.getElementById(`${prefix}DeliveryEmpty`),
+            pageSize: document.getElementById(`${prefix}DeliveryPageSize`),
+            pagination: document.getElementById(`${prefix}DeliveryPagination`),
+            rangeText: document.getElementById(`${prefix}DeliveryRangeText`),
+            rangeBar: document.getElementById(`${prefix}DeliveryRangeBar`),
+            currentPage: 1
+        };
+    }
+
+    const lists = {
+        active: createList('active'),
+        archive: createList('archive')
+    };
+
+    function filteredRows(list) {
         const searchTerm = searchInput.value.trim().toLowerCase();
-        let visibleCount = 0;
+        return list.rows.filter(row => !searchTerm || row.dataset.search.includes(searchTerm));
+    }
 
-        rows.forEach(row => {
-            const matchesSearch = !searchTerm || row.dataset.search.includes(searchTerm);
-            const matchesStatus = selectedStatus === 'all' || row.dataset.status === selectedStatus;
-            const isVisible = matchesSearch && matchesStatus;
+    function addPageButton(list, label, targetPage, options = {}) {
+        const item = document.createElement('li');
+        const button = document.createElement('button');
 
-            row.classList.toggle('d-none', !isVisible);
-            visibleCount += isVisible ? 1 : 0;
+        item.className = `page-item${options.disabled ? ' disabled' : ''}${options.active ? ' active' : ''}`;
+        button.className = 'page-link';
+        button.type = 'button';
+        button.innerHTML = label;
+        button.disabled = options.disabled ?? false;
+        button.addEventListener('click', () => {
+            list.currentPage = targetPage;
+            renderList(list);
         });
 
-        emptyRow.classList.toggle('d-none', visibleCount > 0);
+        item.appendChild(button);
+        list.pagination.appendChild(item);
+    }
+
+    function renderPagination(list, pageCount) {
+        list.pagination.innerHTML = '';
+        addPageButton(list, '<i class="bi bi-chevron-left"></i>', list.currentPage - 1, {
+            disabled: list.currentPage === 1
+        });
+
+        for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
+            addPageButton(list, String(pageNumber), pageNumber, {
+                active: pageNumber === list.currentPage
+            });
+        }
+
+        addPageButton(list, '<i class="bi bi-chevron-right"></i>', list.currentPage + 1, {
+            disabled: list.currentPage === pageCount
+        });
+    }
+
+    function renderList(list) {
+        const matchingRows = filteredRows(list);
+        const pageSize = Number(list.pageSize.value);
+        const pageCount = Math.max(1, Math.ceil(matchingRows.length / pageSize));
+
+        list.currentPage = Math.min(list.currentPage, pageCount);
+        list.rows.forEach(row => row.classList.add('d-none'));
+
+        const firstIndex = (list.currentPage - 1) * pageSize;
+        matchingRows
+            .slice(firstIndex, firstIndex + pageSize)
+            .forEach(row => row.classList.remove('d-none'));
+
+        list.emptyRow.classList.toggle('d-none', matchingRows.length > 0);
+
+        const firstItem = matchingRows.length ? firstIndex + 1 : 0;
+        const lastItem = Math.min(firstIndex + pageSize, matchingRows.length);
+        const progress = matchingRows.length ? (lastItem / matchingRows.length) * 100 : 0;
+
+        list.rangeText.textContent = `Showing ${firstItem}–${lastItem} of ${matchingRows.length} items`;
+        list.rangeBar.style.width = `${progress}%`;
+        renderPagination(list, pageCount);
+    }
+
+    function selectList(listName) {
+        activeList = listName;
+
+        tabs.forEach(tab => {
+            const selected = tab.dataset.deliveryTab === listName;
+            tab.classList.toggle('active', selected);
+            tab.setAttribute('aria-selected', String(selected));
+        });
+
+        Object.entries(lists).forEach(([name, list]) => {
+            list.panel.classList.toggle('d-none', name !== listName);
+        });
+
+        lists[listName].currentPage = 1;
+        renderList(lists[listName]);
+    }
+
+    async function postDeliveryAction(url, deliveryId) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ delivery_ID: deliveryId })
+        });
+
+        return response.json();
+    }
+
+    async function archiveDelivery(button) {
+        if (!confirm(`Archive ${button.dataset.code}?`)) {
+            return;
+        }
+
+        const result = await postDeliveryAction(page.dataset.archiveUrl, button.dataset.id);
+        if (result.success) {
+            window.reloadWithToast(result.message || 'Delivery archived.');
+        }
     }
 
     async function deleteDelivery(button) {
@@ -30,25 +134,17 @@
             return;
         }
 
-        const response = await fetch(page.dataset.deleteUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ delivery_ID: button.dataset.id })
-        });
-        const result = await response.json();
-
+        const result = await postDeliveryAction(page.dataset.deleteUrl, button.dataset.id);
         if (result.success) {
-            location.reload();
-            return;
+            window.reloadWithToast(result.message || 'Delivery receipt deleted.');
         }
-
-        window.showToast(result.message || 'Unable to delete delivery.', 'error');
     }
 
     function downloadCsv() {
+        const list = lists[activeList];
         const csvRows = [['Delivery ID', 'Batch ID', 'Received By', 'Date', 'Products', 'Units', 'Status']];
 
-        rows.filter(row => !row.classList.contains('d-none')).forEach(row => {
+        filteredRows(list).forEach(row => {
             const values = [...row.querySelectorAll('td')]
                 .slice(0, 7)
                 .map(cell => cell.innerText.trim());
@@ -61,26 +157,45 @@
         const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
         const link = Object.assign(document.createElement('a'), {
             href: url,
-            download: 'rjtech-deliveries.csv'
+            download: activeList === 'archive' ? 'rjtech-delivery-archive.csv' : 'rjtech-deliveries.csv'
         });
 
         link.click();
         URL.revokeObjectURL(url);
     }
 
-    searchInput.addEventListener('input', applyFilters);
-    document.getElementById('exportDeliveries').addEventListener('click', downloadCsv);
+    searchInput.addEventListener('input', () => {
+        lists[activeList].currentPage = 1;
+        renderList(lists[activeList]);
+    });
 
-    statusTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            statusTabs.forEach(item => item.classList.remove('active'));
-            tab.classList.add('active');
-            selectedStatus = tab.dataset.status;
-            applyFilters();
+    Object.values(lists).forEach(list => {
+        list.pageSize.addEventListener('change', () => {
+            list.currentPage = 1;
+            renderList(list);
         });
     });
 
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => selectList(tab.dataset.deliveryTab));
+    });
+
+    document.querySelectorAll('.delivery-row').forEach(row => {
+        row.addEventListener('click', event => {
+            if (!event.target.closest('a, button, .dropdown-menu')) {
+                location.href = row.dataset.href;
+            }
+        });
+    });
+
+    document.querySelectorAll('.archive-delivery').forEach(button => {
+        button.addEventListener('click', () => archiveDelivery(button));
+    });
     document.querySelectorAll('.delete-delivery').forEach(button => {
         button.addEventListener('click', () => deleteDelivery(button));
     });
+    document.getElementById('exportDeliveries').addEventListener('click', downloadCsv);
+
+    renderList(lists.active);
+    renderList(lists.archive);
 })();

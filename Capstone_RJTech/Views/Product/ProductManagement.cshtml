@@ -217,18 +217,18 @@
                             data-category="@category.ToLowerInvariant()"
                             data-status="@product.product_status.ToLowerInvariant()">
 
-                            <td class="fw-semibold">
+                            <td class="fw-bold">
                                 @product.formatted_code
                             </td>
 
                             <td>
                                 <div class="d-flex align-items-center gap-3">
                                     <div>
-                                        <div class="product-name">
+                                        <div class="product-name fw-bold">
                                             @product.product_name
                                         </div>
 
-                                        <div class="product-meta">
+                                        <div class="product-meta fw-semibold">
 @product.product_brand@(string.IsNullOrWhiteSpace(product.product_description)
                                                 ? ""
                                                                                         : $" · {product.product_description}")
@@ -237,7 +237,7 @@
                                 </div>
                             </td>
 
-                            <td>
+                            <td class="fw-semibold">
                                 @category
                             </td>
 
@@ -251,11 +251,11 @@
                                 @product.product_quantity
                             </td>
 
-                            <td class="text-end">
+                            <td class="text-end fw-semibold">
                                 @product.reorder_level
                             </td>
 
-                            <td class="text-end fw-semibold">
+                            <td class="text-end fw-bold">
                                 ₱@product.Product_price.ToString("N2")
                             </td>
 

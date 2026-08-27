@@ -1,0 +1,98 @@
+@model IEnumerable<Customer>
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="app-page sales-page" id="customerPage">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Customers</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>Customers</h1>
+            <p>View and manage your customer base.</p>
+        </div>
+    </div>
+
+    <div class="toolbar sales-toolbar">
+        <div class="input-group search-control">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="customerSearch" class="form-control" type="search"
+                   placeholder="Search customers..." autocomplete="off" />
+        </div>
+    </div>
+
+    <div class="app-card management-card">
+        <div class="table-responsive management-table-responsive">
+            <table class="table app-table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in Model)
+                    {
+                        var nameParts = customer.customer_FullName
+                            .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        var initials = string.Concat(nameParts.Take(2).Select(part => char.ToUpperInvariant(part[0])));
+                        var search = $"{customer.customer_FullName} {customer.customer_Email} {customer.customer_Phone} {customer.customer_Address}".ToLowerInvariant();
+
+                        <tr class="customer-row" data-search="@search">
+                            <td>
+                                <div class="customer-identity">
+                                    <span class="customer-avatar">@initials</span>
+                                    <div>
+                                        <div class="customer-name">@customer.customer_FullName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@customer.customer_Email</td>
+                            <td>@customer.customer_Phone</td>
+                            <td>@(string.IsNullOrWhiteSpace(customer.customer_Address) ? "—" : customer.customer_Address)</td>
+                        </tr>
+                    }
+                    <tr id="emptyCustomers" class="d-none">
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="bi bi-people"></i>
+                                <span>No customers found.</span>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="list-footer">
+            <div id="customerRangeText" class="small text-muted">Showing 0 items</div>
+            <div class="d-flex align-items-center gap-2">
+                <label for="customerPageSize" class="small text-muted text-nowrap">Items per page</label>
+                <select id="customerPageSize" class="form-select form-select-sm page-size-select">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="25">25</option>
+                </select>
+            </div>
+            <nav aria-label="Customer pages">
+                <ul id="customerPagination" class="pagination pagination-sm mb-0"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/customer-management.js" asp-append-version="true"></script>
+}

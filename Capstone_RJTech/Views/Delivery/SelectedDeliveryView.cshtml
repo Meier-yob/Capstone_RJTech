@@ -43,7 +43,7 @@
             <h1>@deliveryCode</h1>
 
             <p>
-                Completed inventory delivery receipt.
+                @(Model.is_archived ? "Archived inventory delivery receipt." : "Completed inventory delivery receipt.")
             </p>
         </div>
 
@@ -157,8 +157,8 @@
                             Status
                         </span>
 
-                        <span class="status-badge status-completed">
-                            Completed
+                        <span class="status-badge @(Model.is_archived ? "status-archived" : "status-completed")">
+                            @(Model.is_archived ? "Archived" : "Completed")
                         </span>
                     </div>
 
@@ -205,16 +205,12 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center gap-3">
-                                    <span class="product-thumb">
-                                        <i class="bi bi-box-seam"></i>
-                                    </span>
-
                                     <div>
-                                        <div class="product-name">
+                                        <div class="product-name fw-bold">
                                             @detail.Product?.product_name
                                         </div>
 
-                                        <div class="product-meta">
+                                        <div class="product-meta fw-semibold">
                                             @detail.Product?.product_brand
                                         </div>
                                     </div>
@@ -224,8 +220,8 @@
                             <td class="fw-semibold">
                                 @Capstone_RJTech.Controllers.ProductController.GetFormattedCodeForProduct(detail.Product)
                             </td>
-
-                            <td class="text-end">
+                             
+                            <td class="text-end fw-semibold">
                                 @detail.previous_quantity
                             </td>
 

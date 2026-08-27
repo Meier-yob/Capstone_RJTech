@@ -1,5 +1,202 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+@model Capstone_RJTech.ViewModels.CheckoutFormViewModel
+@using System.Text.Json
+
 @{
+    ViewData["Title"] = "New Sales Order";
+    var initialItemsJson = JsonSerializer.Serialize(
+        Model.Items,
+        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+}
+
+<div class="app-page sales-page checkout-page"
+     id="checkoutPage"
+     data-customer-search-url="@Url.Action("SearchCustomers")"
+     data-product-search-url="@Url.Action("SearchProducts")"
+     data-serial-check-url="@Url.Action("CheckSerialNumber")"
+     data-save-url="@Url.Action("CompleteCheckout")"
+     data-orders-url="@Url.Action("SalesOrders")">
+
+    <nav aria-label="breadcrumb" class="print-hidden">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="SalesOrders">Sales Orders</a></li>
+            <li class="breadcrumb-item active">Checkout</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading checkout-heading print-hidden">
+        <div>
+            <h1>New Sales Order</h1>
+            <p>Create a customer sale and update inventory in one transaction.</p>
+        </div>
+    </div>
+
+    <div class="checkout-layout">
+        <div class="checkout-main">
+            <section class="app-card checkout-section">
+                <div class="section-heading">
+                    <div><span class="section-step">1</span><h2>Customer Details</h2></div>
+                    <small>Search an existing customer or enter a new one.</small>
+                </div>
+
+                <input id="customerId" type="hidden" value="@Model.CustomerID" />
+                <div class="row g-3">
+                    <div class="col-12 customer-search-shell">
+                        <label class="form-label" for="customerFullName">Customer Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input id="customerFullName" class="form-control" type="text"
+                                   value="@Model.CustomerFullName" placeholder="Start typing a customer name..."
+                                   autocomplete="off" maxlength="150" required />
+                        </div>
+                        <div id="customerSearchResults" class="live-search-results app-card d-none"></div>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label" for="customerEmail">Email</label>
+                        <input id="customerEmail" class="form-control" type="email" value="@Model.CustomerEmail"
+                               placeholder="customer@gmail.com" maxlength="200"
+                               pattern="^[^@@\s]+@@[Gg][Mm][Aa][Ii][Ll]\.[Cc][Oo][Mm]$"
+                               title="Enter a valid Gmail address, such as customer@gmail.com" required />
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label" for="customerPhone">Phone</label>
+                        <input id="customerPhone" class="form-control" type="tel" value="@Model.CustomerPhone"
+                               placeholder="09XXXXXXXXX" inputmode="numeric" pattern="[0-9]{11}"
+                               minlength="11" maxlength="11" title="Enter exactly 11 numeric digits" required />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="customerAddress">Address</label>
+                        <textarea id="customerAddress" class="form-control" rows="2" maxlength="300"
+                                  placeholder="Complete customer address" required>@Model.CustomerAddress</textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-card checkout-section">
+                <div class="section-heading">
+                    <div><span class="section-step">2</span><h2>Add Product</h2></div>
+                    <small>Items remain temporary until checkout is completed.</small>
+                </div>
+
+                <div class="product-search-shell mb-3">
+                    <label class="form-label" for="productSearch">Search Product</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input id="productSearch" class="form-control" type="search"
+                               placeholder="Search by name, code, brand, or category..." autocomplete="off" />
+                    </div>
+                    <div id="productSearchResults" class="live-search-results app-card d-none"></div>
+                </div>
+
+                <div id="selectedProductPanel" class="selected-product-panel d-none">
+                    <div class="selected-product-summary">
+                        <div>
+                            <strong id="selectedProductName"></strong>
+                            <span id="selectedProductMeta"></span>
+                        </div>
+                        <div class="stock-pill">Available: <strong id="selectedProductStock">0</strong></div>
+                    </div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-lg-3 col-md-4">
+                            <label class="form-label" for="itemQuantity">Quantity</label>
+                            <input id="itemQuantity" class="form-control" type="number" min="1" step="1" value="1" />
+                        </div>
+                        <div class="col-lg-3 col-md-4">
+                            <label class="form-label" for="itemPrice">Price</label>
+                            <input id="itemPrice" class="form-control" type="text" readonly />
+                        </div>
+                        <div class="col-lg-3 col-md-4">
+                            <label class="form-label" for="itemSubtotal">Subtotal</label>
+                            <input id="itemSubtotal" class="form-control" type="text" readonly />
+                        </div>
+                        <div class="col-lg-3 d-grid">
+                            <button id="addCheckoutItem" class="btn btn-primary" type="button"><i class="bi bi-plus-lg me-1"></i><span>Add Item</span></button>
+                        </div>
+                    </div>
+                    <div class="serial-entry-section">
+                        <div class="serial-entry-heading">
+                            <label class="form-label mb-0">Serial Numbers</label>
+                            <small>One unique serial number is required for each unit.</small>
+                        </div>
+                        <div id="serialInputsContainer" class="serial-inputs-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="app-card checkout-section">
+                <div class="section-heading">
+                    <div><span class="section-step">3</span><h2>Selected Items</h2></div>
+                    <span id="selectedItemsCount" class="badge text-bg-primary">0 items</span>
+                </div>
+
+                <div class="table-responsive checkout-items-table-wrap">
+                    <table class="table app-table checkout-items-table">
+                        <thead><tr><th>Product</th><th>Serial Number</th><th class="text-end">Quantity</th><th class="text-end">Price</th><th class="text-end">Subtotal</th><th class="text-end">Remove</th></tr></thead>
+                        <tbody id="checkoutItemsBody"></tbody>
+                    </table>
+                    <div id="emptyCheckoutItems" class="checkout-empty-items">
+                        <i class="bi bi-cart3"></i><strong>No items added</strong><span>Search for a product and add it to this order.</span>
+                    </div>
+                </div>
+                <div id="checkoutItemsFooter" class="list-footer d-none">
+                    <div id="checkoutItemsRange" class="small text-muted">Showing 0 items</div>
+                    <nav aria-label="Selected item pages"><ul id="checkoutItemsPagination" class="pagination pagination-sm mb-0"></ul></nav>
+                </div>
+            </section>
+        </div>
+
+        <aside class="checkout-sidebar">
+            <section class="app-card checkout-section checkout-summary-card">
+                <h2>Order Summary</h2>
+                <div class="mb-3">
+                    <label class="form-label" for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" class="form-select">
+                        @foreach (var payment in new[] { "Cash", "GCash", "Maya", "Bank Transfer" })
+                        {
+                            <option value="@payment" selected="@(Model.PaymentMethod == payment)">@payment</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="datePurchased">Date Purchased</label>
+                    <input id="datePurchased" class="form-control" type="text"
+                           value="@Model.DatePurchased.ToString("MMM d, yyyy h:mm tt")" readonly />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label" for="checkoutStatus">Status</label>
+                    <input id="checkoutStatus" class="form-control" type="text" value="Completed" readonly />
+                </div>
+                <div class="summary-line"><span>Items</span><strong id="summaryItemCount">0</strong></div>
+                <div class="summary-total"><span>Total Amount</span><strong id="checkoutTotal">₱0.00</strong></div>
+                <div class="checkout-summary-actions">
+                    <a asp-action="SalesOrders" class="btn btn-outline-secondary" id="cancelCheckout">Cancel</a>
+                    <button class="btn btn-primary" type="button" id="completeCheckout" disabled>
+                        <span class="spinner-border spinner-border-sm d-none me-1" aria-hidden="true"></span>
+                        <i class="bi bi-check2-circle me-1"></i>
+                        Complete Checkout
+                    </button>
+                </div>
+            </section>
+        </aside>
+    </div>
+</div>
+
+<div class="modal fade" id="checkoutExitModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Unsaved changes</h5><button class="btn-close" type="button" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">You have unsaved changes. Are you sure you want to leave?</div>
+            <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button id="discardCheckout" class="btn btn-danger" type="button">Discard &amp; Leave</button></div>
+        </div>
+    </div>
+</div>
+
+<script id="initialCheckoutItems" type="application/json">@Html.Raw(initialItemsJson)</script>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/checkout.js" asp-append-version="true"></script>
 }

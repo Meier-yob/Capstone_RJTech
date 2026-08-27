@@ -1,4 +1,5 @@
 @model Capstone_RJTech.Models.Product
+@using System.Linq
 
 @{
     ViewData["Title"] = Model.product_name;
@@ -139,6 +140,15 @@
                                 <div class="detail-value">
                                     @(Model.Category?.category_name ?? "Uncategorized")
                                 </div>
+
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="detail-label">
+                                    Batch ID
+                                </div>
+                                <div class="detail-value">
+                                    @(ViewBag.LatestBatchId as string ?? "No batch information available.")
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -268,10 +278,10 @@
                         </div>
                     }
 
-                    @if (!string.IsNullOrWhiteSpace(Model.product_image_path))
+                    @if (Model.product_Image is { Length: > 0 })
                     {
                         <img class="product-detail-image"
-                             src="@Model.product_image_path"
+                             src="@Url.Action("Image", "Product", new { id = Model.product_ID })"
                              alt="@Model.product_name" />
                     }
                     else

@@ -96,20 +96,12 @@
                              data-search="@($"{product.formatted_code} {product.product_name} {product.product_brand} {category} {product.product_description}".ToLowerInvariant())">
 
                             <div class="d-flex align-items-center gap-2">
-                                @if (!string.IsNullOrWhiteSpace(product.product_image_path))
-                                {
-                                    <img class="product-thumb product-thumb-sm product-thumb-image" src="@product.product_image_path" alt="" />
-                                }
-                                else
-                                {
-                                    <span class="product-thumb product-thumb-sm"><i class="bi bi-box-seam"></i></span>
-                                }
                                 <div class="flex-grow-1 min-width-0">
-                                    <div class="product-name">@product.product_name</div>
-                                    <div class="product-meta">@category · @product.product_brand</div>
+                                    <div class="product-name fw-bold">@product.product_name</div>
+                                    <div class="product-meta class=" fw-semibold"">@category · @product.product_brand</div>
                                 </div>
                                 <div class="text-end">
-                                    <div class="small fw-semibold">@product.product_quantity quantity</div>
+                                    <div class="small fw-bold">@product.product_quantity quantity</div>
                                     <span class="status-badge status-@StatusClass(product.product_status)">@product.product_status</span>
                                 </div>
                             </div>
@@ -406,12 +398,9 @@
                     card.dataset.id = id;
                     card.innerHTML = `
                         <div class="d-flex align-items-center gap-2">
-                            <span class="product-thumb product-thumb-sm">
-                                <i class="bi bi-box-seam"></i>
-                            </span>
                             <div class="flex-grow-1 min-width-0">
-                                <div class="product-name">${escape(p.name)}</div>
-                                <div class="product-meta">${escape(p.category)} · ${escape(p.brand)} · ${escape(p.code)}</div>
+                                <div class="product-name fw-bold">${escape(p.name)}</div>
+                                <div class="product-meta fw-semibold">${escape(p.category)} · ${escape(p.brand)} · ${escape(p.code)}</div>
                             </div>
                             <div class="receive-stock text-center">
                                 <div class="detail-label">Quantity</div>
@@ -570,7 +559,11 @@
 
                     if (result.success) {
                         dirty = false;
-                        location.href = result.redirectUrl || '@Url.Action("DeliveryManagement")';
+                        window.redirectWithToast(
+                            result.message || 'Delivery completed successfully.',
+                            'success',
+                            result.redirectUrl || '@Url.Action("DeliveryManagement")'
+                        );
                     } else {
                         error.textContent = result.message || 'Unable to complete delivery.';
                         error.classList.remove('d-none');

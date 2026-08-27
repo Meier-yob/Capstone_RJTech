@@ -3,3 +3,8 @@
 .delivery-row {
     cursor: pointer;
 }
+
+.status-archived {
+    background: #e9ecef;
+    color: #495057;
+}

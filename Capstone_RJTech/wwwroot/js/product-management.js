@@ -127,7 +127,7 @@
         const result = await response.json();
 
         if (result.success) {
-            location.reload();
+            window.reloadWithToast(result.message || 'Product deleted successfully.');
             return;
         }
 

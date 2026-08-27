@@ -30,6 +30,5 @@ namespace Capstone_RJTech.Models
         [ForeignKey("delivery_ID")]
         public virtual Delivery? Delivery { get; set; }
 
-        public virtual ICollection<DelSerial> DelSerials { get; set; } = new List<DelSerial>();
     }
 }

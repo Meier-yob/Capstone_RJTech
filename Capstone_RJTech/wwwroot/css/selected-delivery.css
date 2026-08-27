@@ -1,5 +1,10 @@
 /* Delivery Receipt page */
 
+.status-archived {
+    background: #e9ecef;
+    color: #495057;
+}
+
 @media print {
     .sidebar,
     .top-navbar,

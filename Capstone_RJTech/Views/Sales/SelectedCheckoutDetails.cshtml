@@ -1,0 +1,88 @@
+@model Capstone_RJTech.ViewModels.CheckoutDetailsViewModel
+
+@{
+    ViewData["Title"] = "Checkout Details";
+    var checkout = Model.Checkout;
+    var customer = checkout.Customer;
+}
+
+<div class="app-page sales-page checkout-details-page" id="checkoutDetailsPage">
+    <nav aria-label="breadcrumb" class="print-hidden">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="SalesOrders">Sales Orders</a></li>
+            <li class="breadcrumb-item active">Checkout Details</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading print-hidden">
+        <div><h1>Checkout Details</h1><p>Complete transaction information for @checkout.FormattedCheckoutID.</p></div>
+        <div class="d-flex gap-2">
+            <button id="printReceipt" class="btn btn-primary" type="button"><i class="bi bi-printer me-1"></i>Print Receipt</button>
+        </div>
+    </div>
+
+    <article class="receipt-content" id="receiptContent">
+        <header class="receipt-print-header">
+            <div><h2>RJTech</h2><p>Sales Receipt</p></div>
+            <strong>@checkout.FormattedCheckoutID</strong>
+        </header>
+
+        <div class="details-grid">
+            <section class="app-card detail-card">
+                <div class="detail-card-heading"><i class="bi bi-receipt"></i><h2>Checkout Information</h2></div>
+                <dl class="detail-list">
+                    <div><dt>Checkout ID</dt><dd>@checkout.FormattedCheckoutID</dd></div>
+                    <div><dt>Payment Method</dt><dd>@checkout.PaymentMethod</dd></div>
+                    <div><dt>Date Purchased</dt><dd>@checkout.DatePurchased.ToString("MMMM d, yyyy h:mm tt")</dd></div>
+                    <div><dt>Status</dt><dd><span class="sales-status status-@checkout.Status.ToLowerInvariant()">@checkout.Status</span></dd></div>
+                    <div><dt>Total Amount</dt><dd class="detail-total">₱@checkout.TotalAmount.ToString("N2")</dd></div>
+                </dl>
+            </section>
+
+            <section class="app-card detail-card">
+                <div class="detail-card-heading"><i class="bi bi-person"></i><h2>Customer Details</h2></div>
+                <dl class="detail-list">
+                    <div><dt>Full Name</dt><dd>@customer?.customer_FullName</dd></div>
+                    <div><dt>Email</dt><dd>@customer?.customer_Email</dd></div>
+                    <div><dt>Phone</dt><dd>@customer?.customer_Phone</dd></div>
+                    <div><dt>Address</dt><dd>@customer?.customer_Address</dd></div>
+                </dl>
+            </section>
+        </div>
+
+        <section class="app-card detail-card purchased-items-card">
+            <div class="detail-card-heading"><i class="bi bi-bag-check"></i><h2>Purchased Items</h2></div>
+            <div class="table-responsive">
+                <table class="table app-table" id="purchasedItemsTable">
+                    <thead><tr><th>Product</th><th>Serial Number</th><th class="text-end">Quantity</th><th class="text-end">Unit Price</th><th class="text-end">Subtotal</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in checkout.CheckoutItems)
+                        {
+                            <tr class="purchased-item-row">
+                                <td><strong>@item.Product?.product_name</strong><div class="product-meta">@item.Product?.product_brand</div></td>
+                                <td>@(string.IsNullOrWhiteSpace(item.SerialNo) ? "—" : item.SerialNo)</td>
+                                <td class="text-end">@item.ItemQuantity</td>
+                                <td class="text-end">₱@item.Price.ToString("N2")</td>
+                                <td class="text-end fw-semibold">₱@item.SubTotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot><tr><td colspan="4" class="text-end fw-semibold">Total</td><td class="text-end detail-total">₱@checkout.TotalAmount.ToString("N2")</td></tr></tfoot>
+                </table>
+            </div>
+            <div class="list-footer print-hidden">
+                <div id="purchasedItemsRange" class="small text-muted">Showing 0 items</div>
+                <nav aria-label="Purchased item pages"><ul id="purchasedItemsPagination" class="pagination pagination-sm mb-0"></ul></nav>
+            </div>
+        </section>
+    </article>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/checkout-details.js" asp-append-version="true"></script>
+}

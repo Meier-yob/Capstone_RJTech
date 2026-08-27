@@ -1,0 +1,126 @@
+@model IEnumerable<Checkout>
+
+@{
+    ViewData["Title"] = "Sales Orders";
+    string StatusClass(string status) => status.ToLowerInvariant();
+}
+
+<div class="app-page sales-page" id="salesOrdersPage" data-delete-url="@Url.Action("DeleteCheckout")">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Sales Orders</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>Sales Orders</h1>
+            <p>Manage and track all customer sales transactions.</p>
+        </div>
+        <a asp-action="Checkout" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Checkout
+        </a>
+    </div>
+
+    <div class="toolbar sales-toolbar">
+        <div class="input-group search-control">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="salesOrderSearch" class="form-control" type="search"
+                   placeholder="Search sales orders..." autocomplete="off" />
+        </div>
+        <button id="exportSalesOrders" class="btn btn-outline-secondary" type="button">
+            <i class="bi bi-download me-1"></i>Export
+        </button>
+    </div>
+
+    <div class="app-card management-card sales-orders-card">
+        <div class="table-responsive management-table-responsive">
+            <table class="table app-table" id="salesOrdersTable">
+                <thead>
+                    <tr>
+                        <th>Checkout ID</th>
+                        <th>Customer</th>
+                        <th>Payment Method</th>
+                        <th>Date Purchased</th>
+                        <th>Status</th>
+                        <th class="text-end">Total Amount</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var checkout in Model)
+                    {
+                        var customer = checkout.Customer;
+                        var initials = string.Concat((customer?.customer_FullName ?? "Customer")
+                            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Take(2)
+                            .Select(part => char.ToUpperInvariant(part[0])));
+                        var search = $"{checkout.FormattedCheckoutID} {customer?.customer_FullName} {customer?.customer_Email} {checkout.PaymentMethod} {checkout.Status}".ToLowerInvariant();
+
+                        <tr class="sales-order-row clickable-row"
+                            data-id="@checkout.CheckoutID"
+                            data-href="@Url.Action("SelectedCheckoutDetails", new { id = checkout.CheckoutID })"
+                            data-search="@search">
+                            <td class="fw-bold">@checkout.FormattedCheckoutID</td>
+                            <td>
+                                <div class="customer-identity">
+                                    <span class="customer-avatar">@initials</span>
+                                    <div>
+                                        <div class="customer-name">@(customer?.customer_FullName ?? "Unknown customer")</div>
+                                        <div class="customer-email-preview fw-semibold">@customer?.customer_Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="fw-semibold">@checkout.PaymentMethod</td>
+                            <td class="fw-semibold">@checkout.DatePurchased.ToString("MMM d, yyyy h:mm tt")</td>
+                            <td><span class="sales-status status-@StatusClass(checkout.Status)">@checkout.Status</span></td>
+                            <td class="text-end fw-bold">₱@checkout.TotalAmount.ToString("N2")</td>
+                            <td class="text-end action-cell">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light no-caret dropdown-toggle" type="button"
+                                            data-bs-toggle="dropdown" data-bs-boundary="viewport"
+                                            aria-label="Actions for @checkout.FormattedCheckoutID">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" asp-action="SelectedCheckoutDetails" asp-route-id="@checkout.CheckoutID"><i class="bi bi-eye me-2"></i>View</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li>
+                                            <button class="dropdown-item text-danger delete-checkout" type="button"
+                                                    data-id="@checkout.CheckoutID" data-code="@checkout.FormattedCheckoutID">
+                                                <i class="bi bi-trash me-2"></i>Delete
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    <tr id="emptySalesOrders" class="d-none">
+                        <td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i><span>No sales orders found.</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="list-footer">
+            <div id="salesOrderRangeText" class="small text-muted">Showing 0 items</div>
+            <div class="d-flex align-items-center gap-2">
+                <label for="salesOrderPageSize" class="small text-muted text-nowrap">Items per page</label>
+                <select id="salesOrderPageSize" class="form-select form-select-sm page-size-select">
+                    <option value="5">5</option><option value="10" selected>10</option><option value="25">25</option>
+                </select>
+            </div>
+            <nav aria-label="Sales order pages"><ul id="salesOrderPagination" class="pagination pagination-sm mb-0"></ul></nav>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/sales-orders.js" asp-append-version="true"></script>
+}

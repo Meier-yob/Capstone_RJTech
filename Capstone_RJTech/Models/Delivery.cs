@@ -18,6 +18,8 @@ namespace Capstone_RJTech.Models
         [StringLength(100)]
         public string batch_ID { get; set; } = string.Empty;
 
+        public bool is_archived { get; set; }
+
         // Navigation Property (One delivery has many details)
         public virtual ICollection<DeliveryDetails> DeliveryDetails { get; set; } = new List<DeliveryDetails>();
     }

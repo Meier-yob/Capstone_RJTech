@@ -78,7 +78,11 @@
 
             if (result.success) {
                 hasUnsavedChanges = false;
-                location.href = result.redirectUrl || page.dataset.productsUrl;
+                window.redirectWithToast(
+                    result.message || 'Product created successfully.',
+                    'success',
+                    result.redirectUrl || page.dataset.productsUrl
+                );
                 return;
             }
 
@@ -114,7 +118,11 @@
 
             if (result.success) {
                 hasUnsavedChanges = false;
-                location.href = page.dataset.productsUrl;
+                window.redirectWithToast(
+                    result.message || 'Products created successfully.',
+                    'success',
+                    page.dataset.productsUrl
+                );
                 return;
             }
 

@@ -88,7 +88,8 @@
                 <section class="nav-section" aria-labelledby="analyticsLabel">
                     <div class="nav-section-label" id="analyticsLabel">Analytics</div>
                     <ul class="sidebar-nav">
-                        <li class="nav-item"><a asp-controller="Sales" asp-action="Checkout" class="nav-link-custom @(currentAction == "Checkout" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></span><span class="nav-label">Checkout</span></a></li>
+                        <li class="nav-item"><a asp-controller="Sales" asp-action="SalesOrders" class="nav-link-custom @(currentController == "Sales" && currentAction is "SalesOrders" or "Checkout" or "SelectedCheckoutDetails" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-receipt"></i></span><span class="nav-label">Sales Orders</span></a></li>
+                        <li class="nav-item"><a asp-controller="Sales" asp-action="Customer" class="nav-link-custom @(currentController == "Sales" && currentAction == "Customer" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-users"></i></span><span class="nav-label">Customers</span></a></li>
                         <li class="nav-item"><a asp-controller="Sales" asp-action="Refund" class="nav-link-custom @(currentAction == "Refund" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span><span class="nav-label">Refund</span></a></li>
                     </ul>
                 </section>
@@ -161,9 +162,11 @@
     </div>
 
     <div id="appToastContainer" class="toast-container position-fixed top-0 end-0 p-3"
-         data-success-message="@TempData["ImageSuccess"]"
-         data-error-message="@TempData["ImageError"]">
-        <div id="appToast" class="toast border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
+         data-success-message="@(TempData["ToastSuccess"] ?? TempData["ImageSuccess"])"
+         data-error-message="@(TempData["ToastError"] ?? TempData["ImageError"])"
+         data-warning-message="@TempData["ToastWarning"]"
+         data-info-message="@TempData["ToastInfo"]">
+        <div id="appToast" class="toast fade border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
             <div class="d-flex">
                 <div class="toast-body d-flex align-items-center gap-2">
                     <i id="appToastIcon" class="bi bi-check-circle-fill"></i>

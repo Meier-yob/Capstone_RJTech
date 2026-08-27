@@ -6,11 +6,21 @@
     var products = ViewBag.Products as List<Capstone_RJTech.Models.Product> ?? new List<Capstone_RJTech.Models.Product>();
 }
 
-<div class="container-fluid px-4 py-3 bg-light">
-    <!-- Top Action Bar -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="h4 mb-0 text-dark fw-bold">Category Management</h3>
-        <button type="button" class="btn btn-teal btn-sm px-3 fw-semibold text-white d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+<div class="app-page category-page">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="ProductManagement">Products</a></li>
+            <li class="breadcrumb-item active">Categories</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>Category Management</h1>
+            <p>Manage product categories and review their associated products.</p>
+        </div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
             <i class="bi bi-plus-lg me-1"></i> Add Category
         </button>
     </div>
@@ -18,7 +28,7 @@
     <div class="row g-3">
         <!-- LEFT COLUMN: Categories List & Search -->
         <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100 rounded-3 overflow-hidden">
+            <div class="app-card h-100 overflow-hidden">
                 <!-- Category Search Header -->
                 <div class="card-header bg-white py-3 border-bottom-0">
                     <div class="position-relative">
@@ -82,7 +92,7 @@
 
         <!-- RIGHT COLUMN: Products in Selected Category -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-3 overflow-hidden h-100">
+            <div class="app-card overflow-hidden h-100">
                 <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="card-title fw-bold text-dark mb-0 fs-6" id="selectedCategoryHeader">All Products</h5>
@@ -116,7 +126,7 @@
                                 {
                                     <tr class="product-row-item" data-category-id="@prod.category_ID">
                                         <td class="fw-bold text-dark ps-3">@Capstone_RJTech.Controllers.ProductController.GetFormattedCodeForProduct(prod)</td>
-                                        <td class="text-secondary">@(string.IsNullOrEmpty(prod.product_brand) ? "-" : prod.product_brand)</td>
+                                        <td class="text-secondary fw-bold">@(string.IsNullOrEmpty(prod.product_brand) ? "-" : prod.product_brand)</td>
                                         <td class="text-secondary text-truncate category-description-truncate">@prod.product_description</td>
                                         <td class="text-center fw-semibold text-dark">@prod.product_quantity</td>
                                         <td class="fw-semibold text-dark">₱@prod.Product_price.ToString("#,##0.00")</td>
@@ -124,31 +134,31 @@
                                             @if (prod.product_status == "Available")
                                             {
                                                 <span class="badge-pill-custom badge-available">
-                                                    <i class="bi bi-dot me-1"></i>Available
+                                                    Available
                                                 </span>
                                             }
                                             else if (prod.product_status == "Low Stock")
                                             {
                                                 <span class="badge-pill-custom badge-lowstock">
-                                                    <i class="bi bi-dot me-1"></i>Low Stock
+                                                    Low Stock
                                                 </span>
                                             }
                                             else if (prod.product_status == "Out of Stock")
                                             {
                                                 <span class="badge-pill-custom badge-outofstock">
-                                                    <i class="bi bi-dot me-1"></i>Out of Stock
+                                                    Out of Stock
                                                 </span>
                                             }
                                             else if (prod.product_status == "Unavailable")
                                             {
                                                 <span class="badge-pill-custom badge-unavailable">
-                                                    <i class="bi bi-dot me-1"></i>Unavailable
+                                                    Unavailable
                                                 </span>
                                             }
                                             else
                                             {
                                                 <span class="badge-pill-custom badge-pendingdelivery">
-                                                    <i class="bi bi-dot me-1"></i>@prod.product_status
+                                                    @prod.product_status
                                                 </span>
                                             }
                                         </td>
@@ -222,110 +232,6 @@
     <link rel="stylesheet" href="~/css/category-management.css" asp-append-version="true" />
 }
 
-<!-- jQuery Client Script -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function() {
-
-        // 1. FILTER PRODUCTS BY CATEGORY SELECTION
-        $(document).on('click', '.category-item', function(e) {
-            // Avoid triggering category select when clicking the inline edit button
-            if ($(e.target).closest('.edit-category-btn').length) return;
-
-            $('.category-item').removeClass('active');
-            $(this).addClass('active');
-
-            var catId = $(this).data('category-id');
-            var catName = $(this).data('category-name') || 'All Products';
-
-            $('#selectedCategoryHeader').text(catName);
-            $('#selectedCategorySub').text(catId === 'all' ? 'Showing items across all categories' : 'Filtered by selected category');
-
-            var visibleCount = 0;
-            $('.product-row-item').each(function() {
-                var rowCatId = $(this).data('category-id');
-                if (catId === 'all' || rowCatId == catId) {
-                    $(this).show();
-                    visibleCount++;
-                } else {
-                    $(this).hide();
-                }
-            });
-
-            if (visibleCount === 0) {
-                if ($('#noProductsRow').length === 0) {
-                    $('#categoryProductsTable tbody').append('<tr id="noProductsRow"><td colspan="6" class="text-center text-muted py-4 fs-7">No products found in this category.</td></tr>');
-                } else {
-                    $('#noProductsRow').show();
-                }
-            } else {
-                $('#noProductsRow').hide();
-            }
-        });
-
-        // 2. SEARCH CATEGORIES IN REAL-TIME
-        $('#searchCategoryInput').on('keyup', function() {
-            var value = $(this).val().toLowerCase();
-            $('#categoryList .category-wrapper').filter(function() {
-                var title = $(this).find('.category-title').text().toLowerCase();
-                $(this).toggle(title.indexOf(value) > -1);
-            });
-        });
-
-        // 3. FILTER PRODUCTS TABLE BY INPUT
-        $('#searchProductInput').on('keyup', function() {
-            var value = $(this).val().toLowerCase();
-            $('.product-row-item:visible').filter(function() {
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-            });
-        });
-
-        // 4. OPEN EDIT CATEGORY MODAL
-        $(document).on('click', '.edit-category-btn', function(e) {
-            e.stopPropagation();
-            var id = $(this).data('id');
-            var name = $(this).data('name');
-
-            $('#editCategoryID').val(id);
-            $('#editCategoryName').val(name);
-            $('#editCategoryModal').modal('show');
-        });
-
-        // 5. SUBMIT EDIT CATEGORY FORM (AJAX)
-        $('#editCategoryForm').on('submit', function(e) {
-            e.preventDefault();
-            $.ajax({
-                url: '/Product/EditCategory',
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(res) {
-                    if (res.success) {
-                        location.reload(); // Refresh to sync category names
-                    } else {
-                        showToast(res.message || 'Failed to update category.', 'error');
-                    }
-                }
-            });
-        });
-
-        // 6. SUBMIT CREATE CATEGORY FORM (AJAX)
-        $('#createCategoryForm').on('submit', function(e) {
-            e.preventDefault();
-            $.ajax({
-                url: '/Product/CreateCategory',
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function(res) {
-                    if (res.success) {
-                        location.reload();
-                    } else if (res.message === 'Category already exists') {
-                        showToast('Category already exists', 'warning');
-                    } else {
-                        showToast(res.message || 'Failed to create category.', 'error');
-                    }
-                }
-            });
-        });
-
-    });
-</script>
+@section Scripts {
+    <script src="~/js/category-management.js" asp-append-version="true"></script>
+}

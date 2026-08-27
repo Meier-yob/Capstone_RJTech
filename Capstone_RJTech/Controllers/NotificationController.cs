@@ -1,32 +1,46 @@
+using Capstone_RJTech.Data;
 using Capstone_RJTech.Models;
+using Capstone_RJTech.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone_RJTech.Controllers
 {
     public class NotificationController : Controller
     {
+        private readonly ApplicationDbContext _db;
+        private readonly StockNotificationService _stockNotifications;
+
+        public NotificationController(ApplicationDbContext db, StockNotificationService stockNotifications)
+        {
+            _db = db;
+            _stockNotifications = stockNotifications;
+        }
+
         public IActionResult Index() => RedirectToAction(nameof(Notification));
 
         public IActionResult Notification()
         {
-            InventoryStore.SyncStockNotifications();
-            return View(InventoryStore.Notifications.OrderByDescending(item => item.created_at).ToList());
+            _stockNotifications.Synchronize();
+            return View(_db.Notifications.AsNoTracking().OrderByDescending(item => item.created_at).ToList());
         }
 
         [HttpGet]
         public IActionResult GetNotifications(int limit = 6)
         {
-            InventoryStore.SyncStockNotifications();
-            var notifications = InventoryStore.Notifications
+            _stockNotifications.Synchronize();
+            var notifications = _db.Notifications
+                .AsNoTracking()
                 .OrderByDescending(item => item.created_at)
                 .Take(Math.Clamp(limit, 1, 20))
+                .ToList()
                 .Select(ToNotificationResponse)
                 .ToList();
 
             return Json(new
             {
                 success = true,
-                unreadCount = InventoryStore.Notifications.Count(item => !item.is_read),
+                unreadCount = _db.Notifications.Count(item => !item.is_read),
                 notifications
             });
         }
@@ -34,30 +48,33 @@ namespace Capstone_RJTech.Controllers
         [HttpPost]
         public IActionResult MarkAsRead(int id)
         {
-            var notification = InventoryStore.Notifications.FirstOrDefault(item => item.notification_ID == id);
+            var notification = _db.Notifications.Find(id);
             if (notification == null)
                 return Json(new { success = false, message = "Notification not found." });
 
             notification.is_read = true;
+            _db.SaveChanges();
             return Json(new { success = true, message = "Notification marked as read." });
         }
 
         [HttpPost]
         public IActionResult MarkAllAsRead()
         {
-            InventoryStore.Notifications.ForEach(item => item.is_read = true);
+            var unreadNotifications = _db.Notifications.Where(item => !item.is_read).ToList();
+            unreadNotifications.ForEach(item => item.is_read = true);
+            _db.SaveChanges();
             return Json(new { success = true, message = "All notifications marked as read." });
         }
 
         public IActionResult Calendar()
         {
-            return View(InventoryStore.ScheduleEvents.OrderBy(item => item.event_date).ThenBy(item => item.start_time).ToList());
+            return View(_db.ScheduleEvents.AsNoTracking().OrderBy(item => item.event_date).ThenBy(item => item.start_time).ToList());
         }
 
         [HttpGet]
         public IActionResult GetEvents()
         {
-            var events = InventoryStore.ScheduleEvents.Select(item => new
+            var events = _db.ScheduleEvents.AsNoTracking().ToList().Select(item => new
             {
                 id = item.event_ID,
                 item.title,
@@ -86,7 +103,6 @@ namespace Capstone_RJTech.Controllers
 
             var calendarEvent = new ScheduleEvent
             {
-                event_ID = InventoryStore.ScheduleEvents.Any() ? InventoryStore.ScheduleEvents.Max(item => item.event_ID) + 1 : 1,
                 title = request.title.Trim(),
                 event_date = eventDate.Date,
                 start_time = startTime,
@@ -94,16 +110,16 @@ namespace Capstone_RJTech.Controllers
                 notes = request.notes?.Trim() ?? string.Empty,
                 color = NormalizeEventColor(request.color)
             };
-            InventoryStore.ScheduleEvents.Add(calendarEvent);
-            InventoryStore.Notifications.Insert(0, new AppNotification
+            _db.ScheduleEvents.Add(calendarEvent);
+            _db.Notifications.Add(new AppNotification
             {
-                notification_ID = InventoryStore.Notifications.Any() ? InventoryStore.Notifications.Max(item => item.notification_ID) + 1 : 1,
                 title = "Calendar event scheduled",
                 message = $"{calendarEvent.title} is scheduled for {calendarEvent.event_date:MMM d, yyyy}.",
                 notification_type = "calendar",
                 action_url = "/Notification/Calendar",
                 created_at = DateTime.Now
             });
+            _db.SaveChanges();
 
             return Json(new { success = true, message = "Event added successfully." });
         }
@@ -111,11 +127,12 @@ namespace Capstone_RJTech.Controllers
         [HttpPost]
         public IActionResult DeleteEvent(int id)
         {
-            var calendarEvent = InventoryStore.ScheduleEvents.FirstOrDefault(item => item.event_ID == id);
+            var calendarEvent = _db.ScheduleEvents.Find(id);
             if (calendarEvent == null)
                 return Json(new { success = false, message = "Calendar event not found." });
 
-            InventoryStore.ScheduleEvents.Remove(calendarEvent);
+            _db.ScheduleEvents.Remove(calendarEvent);
+            _db.SaveChanges();
             return Json(new { success = true, message = "Event deleted successfully." });
         }
 
@@ -133,7 +150,6 @@ namespace Capstone_RJTech.Controllers
         {
             string normalizedColor = color?.Trim().ToLowerInvariant() ?? "blue";
             string[] allowedColors = { "blue", "gray", "green", "yellow", "red", "cyan" };
-
             return allowedColors.Contains(normalizedColor) ? normalizedColor : "blue";
         }
 

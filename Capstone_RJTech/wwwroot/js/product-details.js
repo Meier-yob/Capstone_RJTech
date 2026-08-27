@@ -25,7 +25,7 @@
         const result = await response.json();
 
         if (result.success) {
-            location.reload();
+            window.reloadWithToast(result.message || 'Product updated successfully.');
             return;
         }
 
@@ -45,7 +45,11 @@
         const result = await response.json();
 
         if (result.success) {
-            location.href = page.dataset.productsUrl;
+            window.redirectWithToast(
+                result.message || 'Product deleted successfully.',
+                'success',
+                page.dataset.productsUrl
+            );
             return;
         }
 

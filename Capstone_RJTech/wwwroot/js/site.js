@@ -7,8 +7,39 @@ window.addEventListener('drop', event => event.preventDefault());
  * @param {string} message Message shown to the user.
  * @param {'success'|'error'|'warning'|'info'} [type='success'] Visual toast type.
  */
+const toastDuration = 5000;
+const pendingToastKey = 'rjtech.pendingToast';
 let lastToastMessage = '';
 let lastToastTime = 0;
+
+function savePendingToast(message, type) {
+    try {
+        sessionStorage.setItem(pendingToastKey, JSON.stringify({
+            message,
+            type,
+            createdAt: Date.now()
+        }));
+    } catch {
+        // Navigation still works when browser storage is unavailable.
+    }
+}
+
+function takePendingToast() {
+    try {
+        const storedToast = sessionStorage.getItem(pendingToastKey);
+        sessionStorage.removeItem(pendingToastKey);
+
+        if (!storedToast) {
+            return null;
+        }
+
+        const pendingToast = JSON.parse(storedToast);
+        const isRecent = Date.now() - pendingToast.createdAt < 30000;
+        return isRecent ? pendingToast : null;
+    } catch {
+        return null;
+    }
+}
 
 window.showToast = function showToast(message, type = 'success') {
     const toast = document.getElementById('appToast');
@@ -51,13 +82,32 @@ window.showToast = function showToast(message, type = 'success') {
     messageElement.textContent = message || '';
 
     if (window.bootstrap?.Toast) {
-        bootstrap.Toast.getOrCreateInstance(toast, { delay: 3200 }).show();
+        bootstrap.Toast.getOrCreateInstance(toast, {
+            autohide: true,
+            delay: toastDuration
+        }).show();
         return;
     }
 
     // Basic fallback so feedback remains visible even if Bootstrap fails to load.
     toast.classList.add('show');
-    window.setTimeout(() => toast.classList.remove('show'), 3200);
+    window.setTimeout(() => toast.classList.remove('show'), toastDuration);
+};
+
+/**
+ * Carries a toast across a page navigation and displays it on the destination page.
+ */
+window.redirectWithToast = function redirectWithToast(message, type, url) {
+    savePendingToast(message, type);
+    window.location.assign(url);
+};
+
+/**
+ * Carries a toast across a page refresh and displays it after the refresh.
+ */
+window.reloadWithToast = function reloadWithToast(message, type = 'success') {
+    savePendingToast(message, type);
+    window.location.reload();
 };
 
 // Show feedback consistently for every JSON mutation performed with fetch.
@@ -96,9 +146,17 @@ if (window.jQuery) {
 }
 
 // Display messages carried across a normal form redirect.
+const pendingToast = takePendingToast();
 const toastContainer = document.getElementById('appToastContainer');
-if (toastContainer?.dataset.successMessage) {
+
+if (pendingToast?.message) {
+    window.showToast(pendingToast.message, pendingToast.type);
+} else if (toastContainer?.dataset.successMessage) {
     window.showToast(toastContainer.dataset.successMessage, 'success');
 } else if (toastContainer?.dataset.errorMessage) {
     window.showToast(toastContainer.dataset.errorMessage, 'error');
+} else if (toastContainer?.dataset.warningMessage) {
+    window.showToast(toastContainer.dataset.warningMessage, 'warning');
+} else if (toastContainer?.dataset.infoMessage) {
+    window.showToast(toastContainer.dataset.infoMessage, 'info');
 }
