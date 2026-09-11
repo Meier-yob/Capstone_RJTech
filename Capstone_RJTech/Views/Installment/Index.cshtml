@@ -1,0 +1,170 @@
+@model Capstone_RJTech.ViewModels.InstallmentManagementViewModel
+
+@{
+    ViewData["Title"] = "Installments";
+}
+
+<div class="app-page installment-page" id="installmentPage"
+     data-record-url="@Url.Action("RecordPayment")"
+     data-bulk-delete-url="@Url.Action("DeleteInstallments")"
+     data-return-url="@Url.Action("Index")">
+    @Html.AntiForgeryToken()
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item active">Installments</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>Installments</h1>
+            <p>Manage active installment accounts, balances, payments, and completed plans.</p>
+        </div>
+    </div>
+
+    <div class="filter-tabs compact-filter-tabs installment-status-tabs" role="group" aria-label="Installment status filters">
+        <button class="btn active" type="button" data-status="all" aria-pressed="true">All</button>
+        <button class="btn" type="button" data-status="active" aria-pressed="false">Active</button>
+        <button class="btn" type="button" data-status="overdue" aria-pressed="false">Overdue</button>
+        <button class="btn" type="button" data-status="completed" aria-pressed="false">Completed</button>
+    </div>
+
+    <div class="toolbar installment-toolbar">
+        <div class="input-group search-control installment-search" style="gap:12px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="installmentSearch" class="form-control" type="search"
+                   placeholder="Search installment, checkout, or customer..." autocomplete="off" />
+            <div >
+                <select id="installmentProgressFilter" class="form-select installment-progress-filter" aria-label="Filter by progress">
+                    <option value="all">All progress</option>
+                    <option value="not-started">Not started</option>
+                    <option value="in-progress">In progress</option>
+                    <option value="fully-paid">Fully paid</option>
+                </select>
+            </div>
+            
+        </div>
+        
+           
+        <div>
+            <button id="exportInstallments" class="btn btn-success text-nowrap" type="button"
+                    data-export-url="@Url.Action("Installments", "ExcelExport")">
+                <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Export Excel
+            </button>
+        </div>
+        
+    </div>
+
+    <div class="app-card management-card installment-management-card">
+        <div class="table-responsive management-table-responsive">
+            <table class="table app-table installment-table" id="installmentTable" data-bulk-delete="true">
+                <thead>
+                    <tr>
+                        <th>Installment code</th>
+                        <th>Checkout code</th>
+                        <th>Customer</th>
+                        <th>Monthly payment</th>
+                        <th>Balance</th>
+                        <th>Progress</th>
+                        <th>Next due</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Installments)
+                    {
+                        string contact = !string.IsNullOrWhiteSpace(item.CustomerPhone) ? item.CustomerPhone : item.CustomerEmail;
+                        string search = $"{item.FormattedInstallmentID} {item.InstallmentID} {item.FormattedCheckoutID} {item.CheckoutID} {item.CustomerName} {item.CustomerPhone} {item.CustomerEmail}".ToLowerInvariant();
+                        string progress = item.Status == "Completed" || item.MonthsPaid >= item.Months
+                            ? "fully-paid"
+                            : item.TotalPaid <= 0 ? "not-started" : "in-progress";
+                        decimal suggestedPayment = Math.Min(item.MonthlyPayment, item.Balance);
+                        string displayDate = item.DisplayDate?.ToString("MMM d, yyyy") ?? "—";
+
+                        <tr class="installment-row clickable-row"
+                            data-record-id="@item.InstallmentID"
+                            data-href="@Url.Action("Details", new { id = item.InstallmentID })"
+                            data-search="@search"
+                            data-status="@item.Status.ToLowerInvariant()"
+                            data-progress="@progress">
+                            <td><span class="installment-code">@item.FormattedInstallmentID</span></td>
+                            <td><a asp-controller="Sales" asp-action="SelectedCheckoutDetails" asp-route-id="@item.CheckoutID" class="checkout-code">@item.FormattedCheckoutID</a></td>
+                            <td>
+                                <div class="installment-customer-name">@item.CustomerName</div>
+                                <div class="installment-customer-contact">@contact</div>
+                            </td>
+                            <td class="amount-cell">₱@item.MonthlyPayment.ToString("N2")</td>
+                            <td class="amount-cell balance-@item.Status.ToLowerInvariant()">₱@item.Balance.ToString("N2")</td>
+                            <td>
+                                <div class="progress-copy"><strong>@item.MonthsPaid / @item.Months</strong><span> months</span></div>
+                                <div class="progress installment-progress" role="progressbar" aria-valuenow="@item.ProgressPercentage" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="progress-bar" style="width: @item.ProgressPercentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
+                                </div>
+                            </td>
+                            <td title="@(item.Status == "Completed" && item.DisplayDate.HasValue ? $"Completed on {item.DisplayDate:MMM d, yyyy}" : null)">@displayDate</td>
+                            <td><span class="installment-status status-@item.Status.ToLowerInvariant()">@item.Status</span></td>
+                            <td class="text-end action-cell">
+                                <div class="dropdown table-action-dropdown">
+                                    <button class="btn btn-sm btn-light no-caret dropdown-toggle" type="button"
+                                            data-bs-toggle="dropdown" data-bs-boundary="viewport"
+                                            aria-label="Actions for @item.FormattedInstallmentID">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" asp-action="Details" asp-route-id="@item.InstallmentID"><i class="bi bi-eye me-2"></i>View details</a></li>
+                                        @if (item.Status is "Active" or "Overdue")
+                                        {
+                                            <li>
+                                                <button class="dropdown-item open-payment-modal" type="button"
+                                                        data-bs-toggle="modal" data-bs-target="#recordPaymentModal"
+                                                        data-installment-id="@item.InstallmentID"
+                                                        data-installment-code="@item.FormattedInstallmentID"
+                                                        data-customer="@item.CustomerName"
+                                                        data-monthly="@item.MonthlyPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                        data-balance="@item.Balance.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                        data-next-due="@displayDate"
+                                                        data-suggested="@suggestedPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                                    <i class="bi bi-cash-coin me-2"></i>Record payment
+                                                </button>
+                                            </li>
+                                        }
+                                        <li><a class="dropdown-item" asp-controller="Sales" asp-action="SelectedCheckoutDetails" asp-route-id="@item.CheckoutID"><i class="bi bi-receipt me-2"></i>View checkout</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    <tr id="emptyInstallments" class="d-none">
+                        <td colspan="9"><div class="empty-state"><i class="bi bi-calendar-x"></i><span>No installments found.</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="list-footer">
+            <div id="installmentRangeText" class="small text-muted">Showing 0 installments</div>
+            <div class="d-flex align-items-center gap-2">
+                <label for="installmentPageSize" class="small text-muted text-nowrap">Rows per page</label>
+                <select id="installmentPageSize" class="form-select form-select-sm page-size-select">
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+            <nav aria-label="Installment pages"><ul id="installmentPagination" class="pagination pagination-sm mb-0"></ul></nav>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_RecordPaymentModal")
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/installments.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/excel-export.js" asp-append-version="true"></script>
+    <script src="~/js/installments.js" asp-append-version="true"></script>
+}

@@ -9,7 +9,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("RJTechDatabase")));
 builder.Services.AddScoped<StockNotificationService>();
-builder.Services.AddScoped<DocumentSequenceService>();
+builder.Services.AddScoped<InstallmentService>();
+builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
+builder.Services.AddSingleton<ReportUpdateTracker>();
+builder.Services.AddScoped<ReportRefreshService>();
 
 var app = builder.Build();
 

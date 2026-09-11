@@ -1,6 +1,11 @@
-﻿@{
+@{
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+    var salesSummaryOpen = currentController == "Sales" &&
+        (currentAction == "SalesOrders" || currentAction == "Checkout" || currentAction == "SelectedCheckoutDetails");
+    var salesListActive = currentController == "Sales" &&
+        (currentAction == "SalesOrders" || currentAction == "SelectedCheckoutDetails");
+    var newCheckoutActive = currentController == "Sales" && currentAction == "Checkout";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -8,6 +13,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - DraftSYSTEM</title>
+    <script src="~/js/theme.js" asp-append-version="true"></script>
 
     <!-- Bootstrap CSS & Icons -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -15,9 +21,11 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/navigation.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/global-search.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/DraftSYSTEM.styles.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
-    
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+
 </head>
 
 <body>
@@ -41,12 +49,24 @@
                     <div class="nav-section-label" id="mainMenuLabel">Main Menu</div>
                     <ul class="sidebar-nav">
                         <li class="nav-item">
-                            <a asp-action="Dashboard" asp-controller="Home" class="nav-link-custom @(currentAction == "Dashboard" && currentController == "Home" ? "active" : "")">
+                            <a asp-action="Index" asp-controller="Dashboard" class="nav-link-custom @(currentController == "Dashboard" || currentAction == "Dashboard" && currentController == "Home" ? "active" : "")">
                                 <span class="nav-icon"><i class="fa-solid fa-house"></i></span>
                                 <span class="nav-label">Dashboard</span>
                             </a>
                         </li>
-
+                        <li class="nav-item nav-group @(currentController == "Delivery" ? "open" : "")">
+                            <button type="button" class="nav-link-custom nav-group-toggle" aria-expanded="@(currentController == "Delivery" ? "true" : "false")" aria-controls="deliverySubmenu">
+                                <span class="nav-icon"><i class="fa-solid fa-truck-ramp-box"></i></span>
+                                <span class="nav-label">Delivery</span>
+                                <i class="fa-solid fa-chevron-down nav-chevron"></i>
+                            </button>
+                            <div class="nav-submenu-shell" id="deliverySubmenu">
+                                <ul class="nav-submenu">
+                                    <li><a asp-action="DeliveryManagement" asp-controller="Delivery" class="nav-sublink @(currentAction == "DeliveryManagement" ? "active" : "")"><span></span>Delivery</a></li>
+                                    <li><a asp-action="Receive" asp-controller="Delivery" class="nav-sublink @(currentAction == "Receive" ? "active" : "")"><span></span>Receive Products</a></li>
+                                </ul>
+                            </div>
+                        </li>
                         <li class="nav-item nav-group @(currentController == "Product" ? "open" : "")">
                             <button type="button" class="nav-link-custom nav-group-toggle" aria-expanded="@(currentController == "Product" ? "true" : "false")" aria-controls="productSubmenu">
                                 <span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
@@ -61,36 +81,33 @@
                                 </ul>
                             </div>
                         </li>
+                        <li class="nav-item"><a asp-controller="Reports" asp-action="Index" class="nav-link-custom @(currentController == "Reports" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-chart-column"></i></span><span class="nav-label">Reports</span></a></li>
 
-                        <li class="nav-item nav-group @(currentController == "Delivery" ? "open" : "")">
-                            <button type="button" class="nav-link-custom nav-group-toggle" aria-expanded="@(currentController == "Delivery" ? "true" : "false")" aria-controls="deliverySubmenu">
-                                <span class="nav-icon"><i class="fa-solid fa-truck-ramp-box"></i></span>
-                                <span class="nav-label">Delivery</span>
-                                <i class="fa-solid fa-chevron-down nav-chevron"></i>
-                            </button>
-                            <div class="nav-submenu-shell" id="deliverySubmenu">
-                                <ul class="nav-submenu">
-                                    <li><a asp-action="DeliveryManagement" asp-controller="Delivery" class="nav-sublink @(currentAction == "DeliveryManagement" ? "active" : "")"><span></span>Delivery</a></li>
-                                    <li><a asp-action="Receive" asp-controller="Delivery" class="nav-sublink @(currentAction == "Receive" ? "active" : "")"><span></span>Receive Products</a></li>
-                                </ul>
-                            </div>
-                        </li>
 
-                        <li class="nav-item">
-                            <a asp-controller="ScanSN" asp-action="ScanSerialNumber" class="nav-link-custom @(currentController == "ScanSN" ? "active" : "")">
-                                <span class="nav-icon"><i class="fa-solid fa-barcode"></i></span>
-                                <span class="nav-label">Scan SN</span>
-                            </a>
-                        </li>
+
                     </ul>
                 </section>
 
                 <section class="nav-section" aria-labelledby="analyticsLabel">
-                    <div class="nav-section-label" id="analyticsLabel">Analytics</div>
+                    <div class="nav-section-label" id="analyticsLabel">Sales</div>
                     <ul class="sidebar-nav">
-                        <li class="nav-item"><a asp-controller="Sales" asp-action="SalesOrders" class="nav-link-custom @(currentController == "Sales" && currentAction is "SalesOrders" or "Checkout" or "SelectedCheckoutDetails" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-receipt"></i></span><span class="nav-label">Sales Orders</span></a></li>
+                        <li class="nav-item nav-group @(salesSummaryOpen ? "open" : "")">
+                            <button type="button" class="nav-link-custom nav-group-toggle" aria-expanded="@(salesSummaryOpen ? "true" : "false")" aria-controls="salesSummarySubmenu">
+                                <span class="nav-icon"><i class="fa-solid fa-receipt"></i></span>
+                                <span class="nav-label">Sales</span>
+                                <i class="fa-solid fa-chevron-down nav-chevron"></i>
+                            </button>
+                            <div class="nav-submenu-shell" id="salesSummarySubmenu">
+                                <ul class="nav-submenu">
+                                    <li><a asp-controller="Sales" asp-action="SalesOrders" class="nav-sublink @(salesListActive ? "active" : "")"><span></span>Sales Summary</a></li>
+                                    <li><a asp-controller="Sales" asp-action="Checkout" class="nav-sublink @(newCheckoutActive ? "active" : "")"><span></span>New Checkout</a></li>
+                                </ul>
+                            </div>
+                        </li>
                         <li class="nav-item"><a asp-controller="Sales" asp-action="Customer" class="nav-link-custom @(currentController == "Sales" && currentAction == "Customer" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-users"></i></span><span class="nav-label">Customers</span></a></li>
-                        <li class="nav-item"><a asp-controller="Sales" asp-action="Refund" class="nav-link-custom @(currentAction == "Refund" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-arrow-rotate-left"></i></span><span class="nav-label">Refund</span></a></li>
+
+                        <li class="nav-item"><a asp-controller="Sales" asp-action="SalesHistory" class="nav-link-custom @(currentController == "Sales" && currentAction == "SalesHistory" ? "active" : "")"><span class="nav-icon"><i class="bi bi-clock-history"></i></span><span class="nav-label">Sales History</span></a></li>
+                        <li class="nav-item"><a asp-controller="Installment" asp-action="Index" class="nav-link-custom @(currentController == "Installment" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-calendar-check"></i></span><span class="nav-label">Installments</span></a></li>
                     </ul>
                 </section>
 
@@ -98,7 +115,6 @@
                     <div class="nav-section-label" id="notificationLabel">Notification</div>
                     <ul class="sidebar-nav">
                         <li class="nav-item"><a asp-controller="Notification" asp-action="Notification" class="nav-link-custom @(currentAction == "Notification" ? "active" : "")"><span class="nav-icon"><i class="fa-regular fa-bell"></i></span><span class="nav-label">Notification</span><span class="nav-count">3</span></a></li>
-                        <li class="nav-item"><a asp-controller="Notification" asp-action="Calendar" class="nav-link-custom @(currentAction == "Calendar" ? "active" : "")"><span class="nav-icon"><i class="fa-regular fa-calendar"></i></span><span class="nav-label">Calendar</span></a></li>
                     </ul>
                 </section>
             </div>
@@ -116,14 +132,23 @@
         <div class="main-wrapper">
             <header class="top-navbar">
                 <div class="header-primary">
-                    <label class="search-bar" aria-label="Quick search">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="search" placeholder="Search workspace">
-                        <kbd>⌘ K</kbd>
-                    </label>
+                    <button type="button" id="sidebarToggle" class="header-icon-button d-lg-none" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar"><i class="bi bi-list" aria-hidden="true"></i></button>
+                    <button class="search-bar global-search-trigger" id="globalSearchTrigger" type="button"
+                            aria-label="Search all pages" aria-haspopup="dialog" aria-controls="globalSearchModal"
+                            title="Search all pages (Ctrl+K or Windows+K)">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <span class="global-search-trigger-text">Search all pages</span>
+                        <kbd>Ctrl K</kbd>
+                    </button>
                 </div>
 
                 <div class="header-actions">
+                    <a asp-controller="Sales" asp-action="Checkout" class="btn btn-primary"><span></span>New Checkout</a>
+
+                   
+                    <button id="themeToggle" class="header-icon-button" type="button" aria-label="Dark mode" aria-pressed="false" title="Switch to dark mode">
+                        <i class="bi bi-moon" aria-hidden="true"></i>
+                    </button>
                     <button id="notificationToggle" class="header-icon-button header-notification" type="button"
                             aria-label="Notifications" aria-expanded="false" aria-controls="notificationFlyout">
                         <i class="fa-regular fa-bell"></i>
@@ -151,14 +176,46 @@
             </header>
 
             <!-- MAIN VIEW AREA -->
-            <div class="main-content d-flex flex-column">
+            <div class="main-content d-flex flex-column" style="padding:0;">
                 <main role="main" class="flex-grow-1">
                     @RenderBody()
                 </main>
 
-           
+
             </div>
         </div>
+    </div>
+
+    <div class="global-search-layer" id="globalSearchModal" hidden>
+        <section class="global-search-dialog" role="dialog" aria-modal="true" aria-labelledby="globalSearchTitle">
+            <h2 class="visually-hidden" id="globalSearchTitle">Search all pages</h2>
+            <div class="global-search-input-row">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="globalSearchInput" type="search" placeholder="Type a page name..."
+                       autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list"
+                       aria-expanded="true" aria-controls="globalSearchResults" />
+                <button class="global-search-close" id="globalSearchClose" type="button" aria-label="Close search">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="global-search-content">
+                <div class="global-search-section-heading">
+                    <span>Pages</span>
+                    <span id="globalSearchCount"></span>
+                </div>
+                <div class="global-search-results" id="globalSearchResults" role="listbox" aria-label="Page search results"></div>
+                <div class="global-search-empty" id="globalSearchEmpty" hidden>
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <strong>No pages found</strong>
+                    <span>Try another page name or keyword.</span>
+                </div>
+            </div>
+            <footer class="global-search-footer" aria-hidden="true">
+                <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+                <span><kbd>Enter</kbd> Open</span>
+                <span><kbd>Esc</kbd> Close</span>
+            </footer>
+        </section>
     </div>
 
     <div id="appToastContainer" class="toast-container position-fixed top-0 end-0 p-3"
@@ -181,9 +238,11 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/table-enhancements.js" asp-append-version="true"></script>
     <script src="~/js/navigation.js" asp-append-version="true"></script>
+    <script src="~/js/global-search.js" asp-append-version="true"></script>
     <script src="~/js/notification-center.js" asp-append-version="true"></script>
-    
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

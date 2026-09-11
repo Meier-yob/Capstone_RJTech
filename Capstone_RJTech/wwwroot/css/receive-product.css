@@ -1,93 +1,533 @@
-/* Receive Product page */
+/* =========================================================
+   Receive Products Page
+   Aligned with New Checkout / New Product
+   ========================================================= */
+
+.receive-page {
+    background: var(--theme-surface-soft, #f8fafc);
+}
+
+
+/* ---------------------------------------------------------
+   Page Heading
+   --------------------------------------------------------- */
+
+.receive-page-heading {
+    margin-bottom: 1rem;
+}
+
+
+/* ---------------------------------------------------------
+   Main Section / Card
+   Same structure as Checkout sections
+   --------------------------------------------------------- */
+
+.receive-section {
+    min-width: 0;
+    padding: 1rem;
+    /*
+        Let the shared .app-card handle:
+        - outer border
+        - border radius
+        - background
+        - shared shadow
+    */
+    overflow: visible;
+}
+
+
+/* Space between Delivery Information and workspace */
+
+.receive-info-card {
+    margin-bottom: 0.75rem;
+}
+
+
+/* ---------------------------------------------------------
+   Section Heading
+   Matches Checkout .section-heading
+   --------------------------------------------------------- */
+
+.receive-section-heading {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    /* REMOVE old card-header appearance */
+    background: transparent;
+    border: 0;
+    min-height: 0;
+    padding: 0;
+}
+
+
+.receive-section-title {
+    align-items: center;
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.65rem;
+}
+
+
+    .receive-section-title h2 {
+        font-size: 1rem;
+        margin: 0;
+    }
+
+
+.receive-section-heading p {
+    color: var(--theme-muted, #6b7280);
+    font-size: 0.78rem;
+    margin: 0;
+    margin-right: auto;
+}
+
+
+/* ---------------------------------------------------------
+   Step Indicator
+   Same as Checkout / New Product
+   --------------------------------------------------------- */
+
+.receive-step {
+    align-items: center;
+    background: var(--theme-blue-soft, #e7f2ff);
+    border-radius: 50%;
+    color: var(--theme-blue, #0d6efd);
+    display: inline-flex;
+    flex: 0 0 26px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    height: 26px;
+    justify-content: center;
+    width: 26px;
+}
+
+
+/* ---------------------------------------------------------
+   Inner section content
+   No duplicate card padding
+   --------------------------------------------------------- */
+
+.receive-section-body {
+    padding: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Form Controls
+   Exact same sizing as Checkout
+   --------------------------------------------------------- */
+
+.receive-page .form-label,
+.receive-page .detail-label {
+    color: var(--theme-text, #344054);
+    font-size: 0.75rem;
+    font-weight: 650;
+    margin-bottom: 0.35rem;
+}
+
+
+.receive-page .form-control,
+.receive-page .form-select,
+.receive-page .input-group-text {
+    border-color: var(--theme-border, #dbe1ea);
+    font-size: 0.82rem;
+    min-height: 38px;
+}
+
+
+.receive-page .input-group-text {
+    background: var(--theme-surface, #fff);
+    color: var(--theme-muted, #667085);
+}
+
+
+.receive-page input[readonly] {
+    background: var(--theme-surface-soft, #f3f6fa);
+    color: var(--theme-text, #475467);
+}
+
+
+.receive-page .form-text {
+    color: var(--theme-muted, #667085);
+    font-size: 0.7rem;
+}
+
+
+/* =========================================================
+   RECEIVE WORKSPACE
+   ========================================================= */
+
+.receive-workspace {
+    align-items: stretch;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: minmax(330px, 0.78fr) minmax(0, 1.22fr);
+}
+
+
+.receive-available-column,
+.receive-selected-column {
+    min-width: 0;
+}
+
+
+/*
+    Make both cards use the same available height.
+*/
+
+.available-products-card,
+.products-to-receive-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+
+/* =========================================================
+   AVAILABLE PRODUCTS
+   ========================================================= */
+
+/*
+    Search/filter area is now part of the section itself,
+    not a separate header-like block.
+*/
+
+.receive-filter-bar {
+    border: 0;
+    margin-bottom: 0.75rem;
+    padding: 0;
+}
+
+
+/*
+    Product list gets its own subtle inner boundary.
+    This separates list rows without creating another card header.
+*/
 
 .product-selector {
-    overflow-y: auto;
+    border: 1px solid var(--theme-border, #e1e6ee);
+    border-radius: 0.65rem;
+    max-height: 465px;
+    min-height: 0;
+    overflow: hidden auto;
 }
 
+
+/* ---------------------------------------------------------
+   Available Product Row
+   --------------------------------------------------------- */
+
 .selectable-product {
-    border-bottom: 1px solid #eef0f2;
+    border-bottom: 1px solid var(--theme-border, #eef1f5);
     cursor: pointer;
-    padding: 0.9rem 1rem;
+    padding: 0.75rem;
     position: relative;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
+
 
     .selectable-product:last-child {
         border-bottom: 0;
     }
 
-    .selectable-product:hover {
-        background: #f3f7ff;
+
+    .selectable-product:hover,
+    .selectable-product:focus-visible {
+        background: var(--theme-surface-soft, #f7faff);
+        outline: 0;
     }
 
+
     .selectable-product.is-selected {
-        background: #eaf2ff;
+        background: var(--theme-blue-soft, #eff6ff);
+        box-shadow: inset 3px 0 #0d6efd;
     }
+
+
+/* ---------------------------------------------------------
+   Product Identity
+   --------------------------------------------------------- */
+
+.receive-product-row {
+    align-items: center;
+    display: flex;
+    gap: 0.7rem;
+}
+
+
+.receive-product-thumb,
+.receive-item-thumb {
+    align-items: center;
+    background: var(--theme-surface-soft, #f3f6fa);
+    border-radius: 0.5rem;
+    display: flex;
+    flex: 0 0 42px;
+    height: 42px;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    width: 42px;
+}
+
+
+    .receive-product-thumb i,
+    .receive-item-thumb i {
+        color: var(--theme-muted, #98a2b3);
+        position: absolute;
+    }
+
+
+    .receive-product-thumb img,
+    .receive-item-thumb img {
+        background: var(--theme-surface, #fff);
+        height: 100%;
+        object-fit: cover;
+        position: relative;
+        width: 100%;
+        z-index: 1;
+    }
+
+
+.receive-page .product-name {
+    color: var(--theme-strong, #111827);
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.receive-page .product-meta {
+    color: var(--theme-muted, #667085);
+    font-size: 0.68rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.selectable-product .small {
+    color: var(--theme-text, #344054);
+    font-size: 0.68rem;
+}
+
+
+/* ---------------------------------------------------------
+   Selected Overlay
+   --------------------------------------------------------- */
 
 .selected-overlay {
     align-items: center;
-    background: rgba(234, 242, 255, 0.94);
-    color: var(--rj-primary);
+    background: rgba(239, 246, 255, 0.94);
+    border-radius: inherit;
+    color: var(--theme-blue, #0d6efd);
     display: none;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 700;
     inset: 0;
     justify-content: center;
+    pointer-events: none;
     position: absolute;
+    z-index: 2;
 }
+
 
 .selectable-product.is-selected .selected-overlay {
     display: flex;
 }
 
+
+/* =========================================================
+   LIST FOOTERS
+   ========================================================= */
+
+.available-products-card .list-footer,
+.products-to-receive-card .list-footer {
+    flex: 0 0 auto;
+}
+
+
+/*
+    Footer now sits naturally inside the main section.
+*/
+
+.receive-page .compact-footer {
+    border-top: 1px solid var(--theme-border, #eef1f5);
+    margin-top: 0.75rem;
+    padding: 0.75rem 0 0;
+}
+
+
+.receive-page .page-size-select {
+    min-height: 31px;
+}
+
+
+/* =========================================================
+   PRODUCTS TO RECEIVE
+   ========================================================= */
+
+.receive-selected-list {
+    flex: 1 1 auto;
+    min-height: 225px;
+    /*
+        Card already provides outer padding.
+        Do not add another 1rem here.
+    */
+    padding: 0;
+}
+
+
+/* ---------------------------------------------------------
+   Selected Product Card
+   --------------------------------------------------------- */
+
 .receive-item {
-    border: 1px solid var(--rj-border);
-    border-radius: 10px;
-    padding: 1rem;
+    background: var(--theme-surface, #fff);
+    border: 1px solid var(--theme-border, #e1e6ee);
+    border-radius: 0.65rem;
+    padding: 0.7rem 5.25rem 0.7rem 0.75rem;
+    position: relative;
 }
 
-.receive-item-compact {
-    padding: 0.7rem 0.75rem;
+
+.receive-item-content {
+    align-items: center;
+    display: grid;
+    gap: 0.7rem;
+    grid-template-columns: 42px minmax(140px, 1fr) 65px 105px;
 }
 
-    .receive-item-compact .receive-stock {
-        min-width: 48px;
-    }
 
-    .receive-item-compact .receive-qty {
-        width: 105px;
-    }
+.receive-stock strong {
+    color: var(--theme-strong, #111827);
+    font-size: 0.88rem;
+}
 
-    .receive-item-compact .form-control {
+
+.receive-qty {
+    width: 105px;
+}
+
+
+    .receive-qty .form-control {
         min-height: 34px;
     }
 
-.available-products-card {
+
+/* ---------------------------------------------------------
+   Selected Item Actions
+   --------------------------------------------------------- */
+
+.receive-item-actions {
+    align-items: center;
     display: flex;
-    flex-direction: column;
-    height: auto;
-    overflow: hidden;
+    gap: 0.35rem;
+    position: absolute;
+    right: 0.65rem;
+    top: 0.65rem;
 }
 
-    .available-products-card .product-selector {
-        flex: 0 1 auto;
-        min-height: 0;
-        max-height: 520px;
-        overflow-y: auto;
-        align-self: stretch;
+
+/* =========================================================
+   RECEIVE SUMMARY / ACTION FOOTER
+   Similar to Checkout bottom actions
+   ========================================================= */
+
+.receive-summary-footer {
+    background: transparent;
+    border-top: 1px solid var(--theme-border, #e5e7eb);
+    margin-top: auto;
+    padding: 1rem 0 0;
+}
+
+
+    .receive-summary-footer #selectedCount,
+    .receive-summary-footer #totalQuantity {
+        color: var(--theme-blue, #0d6efd);
+        font-size: 1rem;
     }
 
-    .available-products-card .list-footer {
-        flex: 0 0 auto;
-        margin-top: 0;
+
+/* =========================================================
+   EMPTY STATES
+   ========================================================= */
+
+.receive-page .empty-state {
+    align-items: center;
+    color: var(--theme-muted, #667085);
+    display: flex;
+    flex-direction: column;
+    font-size: 0.78rem;
+    justify-content: center;
+    min-height: 180px;
+    padding: 1rem;
+    text-align: center;
+}
+
+
+    .receive-page .empty-state > i {
+        color: var(--theme-muted, #98a2b3);
+        font-size: 1.7rem;
+        margin-bottom: 0.4rem;
     }
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1199.98px) {
+
+    .receive-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .product-selector {
+        max-height: 420px;
+    }
+}
+
 
 @media (max-width: 767.98px) {
-    .receive-item-compact > .d-flex {
-        align-items: flex-start !important;
-        flex-wrap: wrap;
+
+    .receive-section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.45rem;
     }
 
-    .receive-item-compact .receive-qty {
-        width: calc(100% - 70px);
+
+    .receive-item-content {
+        grid-template-columns: 42px minmax(0, 1fr);
+    }
+
+
+    .receive-stock {
+        grid-column: 2;
+        text-align: left !important;
+    }
+
+
+    .receive-qty {
+        grid-column: 2;
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 575.98px) {
+
+    .receive-summary-footer .col-sm-auto,
+    .receive-summary-footer .d-flex.gap-2 {
+        width: 100%;
+    }
+
+
+    .receive-summary-footer .d-flex.gap-2 {
+        display: grid !important;
+        grid-template-columns: 1fr;
     }
 }

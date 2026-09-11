@@ -69,13 +69,17 @@ namespace Capstone_RJTech.Controllers
                 .FirstOrDefault();
 
             ViewBag.LastDelivery = latestDelivery?.date_delivered;
-            ViewBag.LatestBatchId = latestDelivery?.batch_ID;
+            ViewBag.LatestBatchId = latestDelivery?.FormattedBatchID;
             return View("SelectedProductView", product);
         }
 
         public IActionResult CategoryManagement()
         {
-            ViewBag.Products = _db.Products.AsNoTracking().ToList();
+            var products = _db.Products.Include(product => product.Category)
+                .AsNoTracking().OrderBy(product => product.product_name).ToList();
+            foreach (var product in products)
+                product.product_status = EvaluateProductStatus(product);
+            ViewBag.Products = products;
             return View(_db.ProductCategories.AsNoTracking().OrderBy(category => category.category_name).ToList());
         }
 
@@ -369,6 +373,41 @@ namespace Capstone_RJTech.Controllers
             {
                 _logger.LogError(exception, "Error deleting product.");
                 return Json(new { success = false, message = "An error occurred while deleting the product." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteProducts([FromBody] int[]? ids)
+        {
+            int[] selectedIds = ids?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToArray() ?? Array.Empty<int>();
+
+            if (selectedIds.Length == 0)
+                return Json(new { success = false, message = "Select at least one product to delete." });
+
+            try
+            {
+                bool hasDeliveryHistory = _db.DeliveryDetails.Any(detail => selectedIds.Contains(detail.product_ID));
+                bool hasSalesHistory = _db.CheckoutItems.Any(item => selectedIds.Contains(item.ProductID));
+                if (hasDeliveryHistory || hasSalesHistory)
+                    return Json(new { success = false, message = "One or more selected products have delivery or sales history and cannot be deleted." });
+
+                var products = _db.Products
+                    .Where(product => selectedIds.Contains(product.product_ID))
+                    .ToList();
+                if (products.Count != selectedIds.Length)
+                    return Json(new { success = false, message = "One or more selected products could not be found." });
+
+                _db.Products.RemoveRange(products);
+                _db.SaveChanges();
+                return Json(new { success = true, message = $"{products.Count} products deleted successfully." });
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Error deleting selected products.");
+                return Json(new { success = false, message = "An error occurred while deleting the selected products." });
             }
         }
 

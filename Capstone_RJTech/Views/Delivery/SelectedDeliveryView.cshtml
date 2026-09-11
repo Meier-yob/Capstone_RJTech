@@ -1,11 +1,7 @@
 @model Capstone_RJTech.Models.Delivery
 
 @{
-    string deliveryCode =
-        Model.batch_ID.Replace(
-            "BATCH-",
-            "DEL-"
-        );
+    string deliveryCode = Model.FormattedDeliveryID;
 
     int totalUnits =
         Model.DeliveryDetails.Sum(
@@ -16,9 +12,14 @@
     ViewData["Description"] = "Completed inventory delivery details.";
 }
 
-<div class="app-page">
+<div class="app-page delivery-details-page">
+
+    <!-- =====================================================
+         BREADCRUMB
+         ===================================================== -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+
             <li class="breadcrumb-item">
                 <a asp-controller="Home"
                    asp-action="Dashboard">
@@ -35,211 +36,361 @@
             <li class="breadcrumb-item active">
                 @deliveryCode
             </li>
+
         </ol>
     </nav>
 
-    <div class="page-heading">
+
+    <!-- =====================================================
+         PAGE HEADING
+         ===================================================== -->
+    <div class="page-heading delivery-details-heading">
+
         <div>
+
             <h1>@deliveryCode</h1>
 
-            <p>
-                @(Model.is_archived ? "Archived inventory delivery receipt." : "Completed inventory delivery receipt.")
-            </p>
+            <p>Completed inventory delivery receipt.</p>
+
         </div>
 
-        <button class="btn btn-outline-secondary"
+
+        <button class="btn btn-outline-secondary delivery-print-button"
                 type="button"
                 onclick="window.print()">
 
             <i class="bi bi-printer me-1"></i>
-            Print
+            Print Receipt
+
         </button>
+
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-lg-8">
-            <div class="app-card card h-100">
-                <div class="card-header">
-                    <h2 class="card-title-sm">
+
+    <!-- =====================================================
+         DELIVERY OVERVIEW
+         ===================================================== -->
+    <div class="delivery-details-layout">
+
+
+        <!-- =================================================
+             LEFT SIDE - DELIVERY INFORMATION
+             ================================================= -->
+        <section class="app-card delivery-details-section"
+                 aria-labelledby="deliveryInformationTitle">
+
+            <div class="delivery-section-heading">
+
+                <div class="delivery-section-title">
+
+                    <span class="delivery-section-icon">
+                        <i class="bi bi-truck"></i>
+                    </span>
+
+                    <h2 id="deliveryInformationTitle">
                         Delivery Information
                     </h2>
 
-                    <p class="card-subtitle-sm">
-                        Receipt identity and receiving information.
-                    </p>
                 </div>
 
-                <div class="card-body detail-list">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="detail-row">
-                                <div class="detail-label">
-                                    Delivery ID
-                                </div>
+                
 
-                                <div class="detail-value">
-                                    @deliveryCode
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="detail-row">
-                                <div class="detail-label">
-                                    Batch ID
-                                </div>
-
-                                <div class="detail-value">
-                                    @Model.batch_ID
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="detail-row">
-                                <div class="detail-label">
-                                    Received By
-                                </div>
-
-                                <div class="detail-value">
-                                    @Model.received_by
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="detail-row">
-                                <div class="detail-label">
-                                    Date Received
-                                </div>
-
-                                <div class="detail-value">
-                                    @Model.date_delivered.ToString("MMMM d, yyyy · h:mm tt")
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="app-card card h-100">
-                <div class="card-header">
-                    <h2 class="card-title-sm">
+
+            <div class="delivery-information-grid">
+
+
+                <!-- Delivery ID -->
+                <div class="delivery-information-item">
+
+                    <span class="delivery-information-label">
+                        Delivery ID
+                    </span>
+
+                    <strong class="delivery-information-value">
+                        @deliveryCode
+                    </strong>
+
+                </div>
+
+
+                <!-- Batch ID -->
+                <div class="delivery-information-item">
+
+                    <span class="delivery-information-label">
+                        Batch ID
+                    </span>
+
+                    <strong class="delivery-information-value">
+                        @Model.FormattedBatchID
+                    </strong>
+
+                </div>
+
+
+                <!-- Received By -->
+                <div class="delivery-information-item">
+
+                    <span class="delivery-information-label">
+                        Received By
+                    </span>
+
+                    <strong class="delivery-information-value">
+                        @Model.received_by
+                    </strong>
+
+                </div>
+
+
+                <!-- Date Received -->
+                <div class="delivery-information-item">
+
+                    <span class="delivery-information-label">
+                        Date Received
+                    </span>
+
+                    <strong class="delivery-information-value">
+                        @Model.date_delivered.ToString("MMMM d, yyyy · h:mm tt")
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             RIGHT SIDE - DELIVERY SUMMARY
+             ================================================= -->
+        <aside class="app-card delivery-details-section delivery-summary-section"
+               aria-labelledby="deliverySummaryTitle">
+
+            <div class="delivery-section-heading">
+
+                <div class="delivery-section-title">
+
+                    <span class="delivery-section-icon">
+                        <i class="bi bi-clipboard-check"></i>
+                    </span>
+
+                    <h2 id="deliverySummaryTitle">
                         Delivery Summary
                     </h2>
+
                 </div>
 
-                <div class="card-body detail-list py-2">
-                    <div class="detail-row d-flex justify-content-between">
-                        <span class="detail-label mb-0">
-                            Products
-                        </span>
+                
 
-                        <strong>
-                            @Model.DeliveryDetails.Count
-                        </strong>
-                    </div>
-
-                    <div class="detail-row d-flex justify-content-between">
-                        <span class="detail-label mb-0">
-                            Total Units
-                        </span>
-
-                        <strong>
-                            @totalUnits
-                        </strong>
-                    </div>
-
-                    <div class="detail-row d-flex justify-content-between align-items-center">
-                        <span class="detail-label mb-0">
-                            Status
-                        </span>
-
-                        <span class="status-badge @(Model.is_archived ? "status-archived" : "status-completed")">
-                            @(Model.is_archived ? "Archived" : "Completed")
-                        </span>
-                    </div>
-
-                    <div class="detail-row d-flex justify-content-between">
-                        <span class="detail-label mb-0">
-                            Received Date
-                        </span>
-
-                        <strong>
-                            @Model.date_delivered.ToString("MMM d, yyyy")
-                        </strong>
-                    </div>
-                </div>
             </div>
-        </div>
+
+
+            <div class="delivery-summary-list">
+
+
+                <!-- Products -->
+                <div class="delivery-summary-row">
+
+                    <span>
+                        Products
+                    </span>
+
+                    <strong>
+                        @Model.DeliveryDetails.Count
+                    </strong>
+
+                </div>
+
+
+                <!-- Total Units -->
+                <div class="delivery-summary-row">
+
+                    <span>
+                        Total Units
+                    </span>
+
+                    <strong>
+                        @totalUnits
+                    </strong>
+
+                </div>
+
+
+                <!-- Status -->
+                <div class="delivery-summary-row">
+
+                    <span>
+                        Status
+                    </span>
+
+                    <span class="status-badge status-completed">Completed</span>
+
+                </div>
+
+
+                <!-- Received Date -->
+                <div class="delivery-summary-row">
+
+                    <span>
+                        Received Date
+                    </span>
+
+                    <strong>
+                        @Model.date_delivered.ToString("MMM d, yyyy")
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </aside>
+
     </div>
 
-    <div class="app-card card">
-        <div class="card-header">
-            <h2 class="card-title-sm">
-                Received Products
-            </h2>
 
-            <p class="card-subtitle-sm">
-                Inventory quantities before and after this delivery.
-            </p>
+    <!-- =====================================================
+         RECEIVED PRODUCTS
+         ===================================================== -->
+    <section class="app-card delivery-details-section delivery-products-section"
+             aria-labelledby="receivedProductsTitle">
+
+        <div class="delivery-section-heading">
+
+            <div class="delivery-section-title">
+
+                <span class="delivery-section-icon">
+                    <i class="bi bi-box-seam"></i>
+                </span>
+
+                <h2 id="receivedProductsTitle">
+                    Received Products
+                </h2>
+
+            </div>
+
+            
+
         </div>
 
-        <div class="table-responsive">
-            <table class="table app-table">
+
+        <div class="table-responsive delivery-products-table-wrap">
+
+            <table class="table app-table delivery-products-table" data-no-selection="true">
+
                 <thead>
+
                     <tr>
-                        <th>Product</th>
-                        <th>Product Code</th>
-                        <th class="text-end">Previous Qty</th>
-                        <th class="text-end">Received</th>
-                        <th class="text-end">New Qty</th>
+                        <th>
+                            Product
+                        </th>
+
+                        <th>
+                            Product Code
+                        </th>
+
+                        <th class="text-end">
+                            Previous Qty
+                        </th>
+
+                        <th class="text-end">
+                            Received
+                        </th>
+
+                        <th class="text-end">
+                            New Qty
+                        </th>
                     </tr>
+
                 </thead>
 
+
                 <tbody>
+
                     @foreach (var detail in Model.DeliveryDetails)
                     {
                         <tr>
+
+                            <!-- Product -->
                             <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div>
-                                        <div class="product-name fw-bold">
+
+                                <div class="delivery-product">
+
+                                    <span class="delivery-product-icon">
+                                        <i class="bi bi-box-seam"></i>
+                                    </span>
+
+                                    <div class="delivery-product-copy">
+
+                                        <strong class="product-name">
                                             @detail.Product?.product_name
-                                        </div>
+                                        </strong>
 
-                                        <div class="product-meta fw-semibold">
+                                        <span class="product-meta">
                                             @detail.Product?.product_brand
-                                        </div>
+                                        </span>
+
                                     </div>
+
                                 </div>
+
                             </td>
 
-                            <td class="fw-semibold">
+
+                            <!-- Product Code -->
+                            <td class="fw-semibold delivery-product-code">
+
                                 @Capstone_RJTech.Controllers.ProductController.GetFormattedCodeForProduct(detail.Product)
+
                             </td>
-                             
+
+
+                            <!-- Previous Quantity -->
                             <td class="text-end fw-semibold">
+
                                 @detail.previous_quantity
+
                             </td>
 
-                            <td class="text-end fw-semibold text-success">
-                                +@detail.product_quantity
+
+                            <!-- Received Quantity -->
+                            <td class="text-end">
+
+                                <span class="delivery-received-quantity">
+                                    +@detail.product_quantity
+                                </span>
+
                             </td>
 
-                            <td class="text-end fw-bold">
-                                @detail.new_quantity
+
+                            <!-- New Quantity -->
+                            <td class="text-end">
+
+                                <strong class="delivery-new-quantity">
+                                    @detail.new_quantity
+                                </strong>
+
                             </td>
+
                         </tr>
                     }
+
                 </tbody>
+
             </table>
+
         </div>
-    </div>
+
+    </section>
+
 </div>
 
+
 @section Styles {
-    <link rel="stylesheet" href="~/css/selected-delivery.css" asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/selected-delivery.css"
+          asp-append-version="true" />
+
 }

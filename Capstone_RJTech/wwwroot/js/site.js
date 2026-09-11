@@ -130,7 +130,9 @@ window.fetch = async function fetchWithToast(resource, options = {}) {
         }
         return response;
     } catch (error) {
-        window.showToast('Unable to connect. Please try again.', 'error');
+        if (error?.name !== 'AbortError') {
+            window.showToast('Unable to connect. Please try again.', 'error');
+        }
         throw error;
     }
 };

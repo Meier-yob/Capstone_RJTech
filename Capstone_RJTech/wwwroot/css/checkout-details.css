@@ -1,0 +1,556 @@
+/* =========================================================
+   Checkout Details & Printable Receipt
+   Aligned with RJTech Checkout Design
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   Page
+   --------------------------------------------------------- */
+
+.checkout-details-page {
+    background: var(--theme-surface-soft, #f8fafc);
+}
+
+
+/* ---------------------------------------------------------
+   Printable Receipt Header
+   Hidden on normal screen
+   --------------------------------------------------------- */
+
+.receipt-print-header {
+    align-items: center;
+    display: none;
+    justify-content: space-between;
+}
+
+
+/* =========================================================
+   TOP DETAILS LAYOUT
+   Checkout Information + Customer Details
+   ========================================================= */
+
+.details-grid {
+    align-items: stretch;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+
+/* =========================================================
+   DETAIL CARDS
+   Match .checkout-section style
+   ========================================================= */
+
+.detail-card {
+    min-width: 0;
+    padding: 1rem;
+}
+
+
+/* =========================================================
+   CARD HEADING
+   No Card Header
+   No Border Bottom
+   ========================================================= */
+
+.detail-card-heading {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+    /* Remove old card-header appearance */
+    border: 0;
+    padding: 0;
+}
+
+
+    /*
+   Give the existing icon the same visual style
+   used throughout the redesigned pages.
+*/
+
+    .detail-card-heading > i {
+        align-items: center;
+        background: var(--theme-blue-soft, #e7f2ff);
+        border-radius: 0.5rem;
+        color: var(--theme-blue, #0d6efd);
+        display: inline-flex;
+        flex: 0 0 30px;
+        font-size: 0.9rem;
+        height: 30px;
+        justify-content: center;
+        width: 30px;
+    }
+
+
+    .detail-card-heading h2 {
+        color: var(--theme-strong, #111827);
+        font-size: 1rem;
+        font-weight: 650;
+        margin: 0;
+    }
+
+
+/* =========================================================
+   DETAIL LIST
+   ========================================================= */
+
+.detail-list {
+    margin: 0;
+}
+
+
+    /*
+   Each row is clean and compact.
+   Divider is between information rows,
+   NOT underneath the section heading.
+*/
+
+    .detail-list > div {
+        align-items: center;
+        border-bottom: 1px solid var(--theme-border, #eef1f5);
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        padding: 0.7rem 0;
+    }
+
+
+        .detail-list > div:first-child {
+            padding-top: 0;
+        }
+
+
+        .detail-list > div:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+
+    /* ---------------------------------------------------------
+   Detail Labels
+   --------------------------------------------------------- */
+
+    .detail-list dt {
+        color: var(--theme-muted, #667085);
+        flex: 0 0 auto;
+        font-size: 0.78rem;
+        font-weight: 500;
+    }
+
+
+    /* ---------------------------------------------------------
+   Detail Values
+   --------------------------------------------------------- */
+
+    .detail-list dd {
+        color: var(--theme-strong, #111827);
+        font-size: 0.82rem;
+        font-weight: 650;
+        margin: 0;
+        max-width: 68%;
+        overflow-wrap: anywhere;
+        text-align: right;
+    }
+
+
+/* =========================================================
+   TOTAL AMOUNT
+   ========================================================= */
+
+.detail-total {
+    color: var(--theme-blue, #0d6efd) !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+}
+
+
+/*
+   Highlight the Total Amount row in Checkout Information.
+
+   This selects the final row of the detail list.
+*/
+
+.detail-card:first-child .detail-list > div:last-child {
+    background: var(--theme-blue-soft, #eff6ff);
+    border: 1px solid var(--theme-border, #bfdbfe);
+    border-radius: 0.65rem;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+}
+
+
+    .detail-card:first-child .detail-list > div:last-child dt {
+        color: var(--theme-text, #475467);
+        font-weight: 600;
+    }
+
+
+    .detail-card:first-child .detail-list > div:last-child dd {
+        color: var(--theme-blue, #0d6efd);
+        font-size: 1.15rem;
+    }
+
+
+/* =========================================================
+   INSTALLMENT BUTTON
+   ========================================================= */
+
+.detail-card .btn-outline-primary.w-100 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-height: 38px;
+}
+
+
+/* =========================================================
+   PURCHASED ITEMS CARD
+   ========================================================= */
+
+.purchased-items-card {
+    margin-top: 0.75rem;
+}
+
+
+    /*
+   Keep table contained cleanly inside the card.
+*/
+
+    .purchased-items-card .table-responsive {
+        border: 1px solid var(--theme-border, #eef1f5);
+        border-radius: 0.65rem;
+        overflow: hidden;
+    }
+
+
+    /* ---------------------------------------------------------
+   Purchased Items Table
+   --------------------------------------------------------- */
+
+    .purchased-items-card .app-table {
+        margin-bottom: 0;
+        min-width: 850px;
+    }
+
+
+        /* Table Header */
+
+        .purchased-items-card .app-table thead th {
+            background: var(--theme-surface-soft, #f8fafc);
+            color: var(--theme-text, #475467);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.7rem 0.75rem;
+            white-space: nowrap;
+        }
+
+
+        /* Table Rows */
+
+        .purchased-items-card .app-table tbody td {
+            border-color: var(--theme-border, #eef1f5);
+            color: var(--theme-text, #344054);
+            font-size: 0.76rem;
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
+
+
+    /* Product Name */
+
+    .purchased-items-card .product-meta {
+        color: var(--theme-muted, #667085);
+        font-size: 0.7rem;
+        margin-top: 0.1rem;
+    }
+
+
+    /* Product Code */
+
+    .purchased-items-card tbody td:first-child {
+        color: var(--theme-text, #475467);
+        font-size: 0.75rem;
+    }
+
+
+    /* Subtotal */
+
+    .purchased-items-card tbody td:last-child {
+        color: var(--theme-blue, #0d6efd);
+        font-weight: 700;
+    }
+
+
+    /* =========================================================
+   TABLE TOTAL
+   ========================================================= */
+
+    .purchased-items-card .app-table tfoot td {
+        background: var(--theme-surface-soft, #f8fafc);
+        border-top: 1px solid var(--theme-border, #e5e7eb);
+        padding: 0.85rem 0.75rem;
+    }
+
+
+    .purchased-items-card .app-table tfoot .detail-total {
+        color: var(--theme-blue, #0d6efd) !important;
+        font-size: 1rem !important;
+    }
+
+
+    /* =========================================================
+   PAGINATION
+   ========================================================= */
+
+    .purchased-items-card .list-footer {
+        border-top: 1px solid var(--theme-border, #eef1f5);
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+    }
+
+
+/* =========================================================
+   STATUS BADGES
+   Keep Checkout Status Consistent
+   ========================================================= */
+
+.checkout-details-page .sales-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.75rem;
+    font-weight: 650;
+    padding: 0.32rem 0.62rem;
+}
+
+
+/* Paid */
+
+.checkout-details-page .status-paid {
+    background: var(--theme-green-soft, #dcfce7);
+    color: var(--theme-green, #15803d);
+}
+
+
+/* Ongoing Installment */
+
+.checkout-details-page .status-ongoing {
+    background: var(--theme-blue-soft, #dbeafe);
+    color: var(--theme-blue, #1d4ed8);
+}
+
+
+/* Cancelled */
+
+.checkout-details-page .status-cancelled {
+    background: var(--theme-surface-soft, #f3f4f6);
+    color: var(--theme-text, #4b5563);
+}
+
+
+/* Refunded */
+
+.checkout-details-page .status-refunded {
+    background: var(--theme-red-soft, #fee2e2);
+    color: var(--theme-red, #b91c1c);
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+   ========================================================= */
+
+@media (max-width: 991.98px) {
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+   ========================================================= */
+
+@media (max-width: 767.98px) {
+
+    .detail-card-heading {
+        align-items: flex-start;
+    }
+
+
+    .detail-list > div {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+
+    .detail-list dd {
+        max-width: 100%;
+        text-align: left;
+    }
+
+
+    .detail-card:first-child .detail-list > div:last-child {
+        align-items: center;
+        flex-direction: row;
+    }
+
+
+        .detail-card:first-child .detail-list > div:last-child dd {
+            text-align: right;
+        }
+}
+
+
+/* =========================================================
+   PRINT MODE
+   ========================================================= */
+
+@media print {
+
+    body {
+        background: var(--theme-surface, #fff) !important;
+    }
+
+
+    /* Hide Application UI */
+
+    #appLayout > .sidebar,
+    .sidebar-overlay,
+    .top-header,
+    .top-navbar,
+    .print-hidden,
+    #appToastContainer,
+    .list-footer {
+        display: none !important;
+    }
+
+
+    /* Remove Application Layout */
+
+    #appLayout,
+    .main-wrapper,
+    .main-content,
+    .app-page {
+        display: block !important;
+        margin: 0 !important;
+        max-width: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+
+    /* ---------------------------------------------
+       Print Receipt Header
+       --------------------------------------------- */
+
+    .receipt-print-header {
+        border-bottom: 2px solid #111827;
+        display: flex;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+    }
+
+
+        .receipt-print-header h2,
+        .receipt-print-header p {
+            margin: 0;
+        }
+
+
+    /* ---------------------------------------------
+       Keep top cards side-by-side on print
+       --------------------------------------------- */
+
+    .details-grid {
+        gap: 0.75rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+
+    /* ---------------------------------------------
+       Cards
+       --------------------------------------------- */
+
+    .app-card {
+        border-color: var(--theme-border, #d1d5db) !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+
+    .detail-card {
+        padding: 0.8rem;
+    }
+
+
+    /*
+       Remove decorative blue icon backgrounds
+       during printing.
+    */
+
+    .detail-card-heading > i {
+        background: transparent;
+        border: 1px solid var(--theme-border, #d1d5db);
+        color: var(--theme-strong, #111827);
+    }
+
+
+    /* ---------------------------------------------
+       Total Amount
+       --------------------------------------------- */
+
+    .detail-card:first-child .detail-list > div:last-child {
+        background: var(--theme-surface, #fff);
+        border-color: var(--theme-border, #d1d5db);
+    }
+
+
+        .detail-total,
+        .detail-card:first-child .detail-list > div:last-child dd {
+            color: var(--theme-strong, #111827) !important;
+        }
+
+
+    /* ---------------------------------------------
+       Purchased Items
+       --------------------------------------------- */
+
+    .purchased-items-card {
+        margin-top: 0.75rem;
+    }
+
+
+        .purchased-items-card .table-responsive {
+            overflow: visible;
+        }
+
+
+        .purchased-items-card .app-table {
+            min-width: 0;
+            width: 100%;
+        }
+
+
+            .purchased-items-card .app-table thead th,
+            .purchased-items-card .app-table tbody td,
+            .purchased-items-card .app-table tfoot td {
+                padding: 0.45rem 0.5rem;
+            }
+
+
+            .purchased-items-card tbody td:last-child,
+            .purchased-items-card .app-table tfoot .detail-total {
+                color: var(--theme-strong, #111827) !important;
+            }
+
+
+    /* Show all rows when printing */
+
+    .purchased-item-row.d-none {
+        display: table-row !important;
+    }
+}

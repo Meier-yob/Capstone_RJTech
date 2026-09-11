@@ -2,10 +2,11 @@
 @{
     ViewData["Title"] = "Receive Products";
     ViewData["Description"] = "Select products and record incoming inventory.";
+    string nextBatchId = ViewData["NextBatchID"]?.ToString() ?? "BATCH-001";
     string StatusClass(string status) => status.ToLowerInvariant().Replace(" ", "-");
 }
 
-<div class="app-page">
+<div class="app-page receive-page">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
@@ -14,46 +15,55 @@
         </ol>
     </nav>
 
-    <div class="page-heading">
+    <div class="page-heading receive-page-heading">
         <div>
             <h1>Receive Products</h1>
             <p>Select products and record incoming inventory.</p>
         </div>
     </div>
 
-    <!-- Delivery Information Card -->
-    <div class="app-card card mb-4">
-        <div class="card-header">
-            <h2 class="card-title-sm">Delivery Information</h2>
-            <p class="card-subtitle-sm">Required information for this inventory receipt.</p>
+    <section class="app-card receive-section receive-info-card" aria-labelledby="deliveryInformationTitle">
+        <div class="receive-section-heading">
+            <div class="receive-section-title"><span class="receive-step">1</span><h2 id="deliveryInformationTitle">Delivery Information</h2></div>
+            <p>Review the generated receipt information before selecting products.</p>
         </div>
-        <div class="card-body">
+        <div class="receive-section-body">
             <div class="row g-3">
                 <div class="col-lg-4">
                     <label class="form-label" for="batchId">Batch ID</label>
-                    <input id="batchId" class="form-control bg-light" value="@ViewBag.NextBatchId" readonly required />
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                        <input id="batchId" class="form-control" value="@nextBatchId" readonly />
+                    </div>
+                    <div class="form-text">The final Batch ID is confirmed when the delivery is saved.</div>
                 </div>
                 <div class="col-lg-4">
                     <label class="form-label" for="deliveryDate">Delivery Date</label>
-                    <input id="deliveryDate" class="form-control bg-light" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" readonly required />
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                        <input id="deliveryDate" class="form-control" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" readonly required />
+                    </div>
                 </div>
                 <div class="col-lg-4">
                     <label class="form-label" for="receivedBy">Received By</label>
-                    <input id="receivedBy" class="form-control bg-light" value="RJTech Admin" readonly required />
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input id="receivedBy" class="form-control" value="RJTech Admin" readonly required />
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="row g-4">
+    <div class="receive-workspace">
         <!-- Available Products Selection Column -->
-        <div class="col-lg-5 receive-product-column">
-            <div class="app-card card available-products-card">
-                <div class="card-header">
-                    <h2 class="card-title-sm">Available Products</h2>
-                    <p class="card-subtitle-sm">Select products included in this delivery.</p>
+        <div class="receive-available-column">
+            <section class="app-card receive-section available-products-card" aria-labelledby="availableProductsTitle">
+                <div class="receive-section-heading">
+                    <div class="receive-section-title"><span class="receive-step">2</span><h2 id="availableProductsTitle">Available Products</h2></div>
+                    <p>Click a product to include or remove it from this delivery.</p>
                 </div>
-                <div class="card-body border-bottom">
+                <div class="receive-filter-bar">
                     <div class="row g-2">
                         <div class="col-sm-7">
                             <div class="input-group">
@@ -92,20 +102,25 @@
                              data-quantity="@product.product_quantity"
                              data-reorder="@product.reorder_level"
                              data-price="@product.Product_price"
+                             data-image="@Url.Action("Image", "Product", new { id = product.product_ID })"
                              data-status="@product.product_status.ToLowerInvariant()"
                              data-search="@($"{product.formatted_code} {product.product_name} {product.product_brand} {category} {product.product_description}".ToLowerInvariant())">
 
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="receive-product-row">
+                                <span class="receive-product-thumb">
+                                    <i class="bi bi-box-seam"></i>
+                                    <img src="@Url.Action("Image", "Product", new { id = product.product_ID })" alt="" loading="lazy" />
+                                </span>
                                 <div class="flex-grow-1 min-width-0">
                                     <div class="product-name fw-bold">@product.product_name</div>
-                                    <div class="product-meta class=" fw-semibold"">@category · @product.product_brand</div>
+                                    <div class="product-meta fw-semibold">@product.formatted_code · @category · @product.product_brand</div>
                                 </div>
                                 <div class="text-end">
                                     <div class="small fw-bold">@product.product_quantity quantity</div>
                                     <span class="status-badge status-@StatusClass(product.product_status)">@product.product_status</span>
                                 </div>
                             </div>
-                            <div class="selected-overlay">
+                            <div class="selected-overlay" aria-hidden="true">
                                 <i class="bi bi-check-circle-fill me-2"></i>Selected
                             </div>
                         </div>
@@ -127,18 +142,18 @@
                         <ul id="availablePagination" class="pagination pagination-sm mb-0"></ul>
                     </nav>
                 </div>
-            </div>
+            </section>
         </div>
 
         <!-- Selected Products Receiving Column -->
-        <div class="col-lg-7">
-            <div class="app-card card h-100">
-                <div class="card-header">
-                    <h2 class="card-title-sm">Products to Receive</h2>
-                    <p class="card-subtitle-sm">Enter a receive quantity for each selected product.</p>
+        <div class="receive-selected-column">
+            <section class="app-card receive-section products-to-receive-card" aria-labelledby="productsToReceiveTitle">
+                <div class="receive-section-heading">
+                    <div class="receive-section-title"><span class="receive-step">3</span><h2 id="productsToReceiveTitle">Products to Receive</h2></div>
+                    <p>Enter the received quantity for every selected product.</p>
                 </div>
 
-                <div class="card-body" id="selectedProducts">
+                <div class="receive-selected-list" id="selectedProducts">
                     <div id="selectedEmpty" class="empty-state">
                         <i class="bi bi-box-arrow-in-down"></i>
                         <strong class="d-block text-dark mb-1">No products selected</strong>
@@ -158,7 +173,7 @@
                     </nav>
                 </div>
 
-                <div class="card-footer bg-white border-top p-3">
+                <div class="receive-summary-footer">
                     <div class="row align-items-center g-3">
                         <div class="col-sm">
                             <div class="d-flex gap-4">
@@ -183,48 +198,7 @@
                     </div>
                     <div id="receiveError" class="alert alert-danger d-none py-2 small mt-3 mb-0"></div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Product Details Modal -->
-<div class="modal fade" id="receiveDetailsModal" tabindex="-1" aria-labelledby="receiveDetailsTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div>
-                    <h2 class="modal-title fs-5" id="receiveDetailsTitle">Product Details</h2>
-                    <p id="receiveDetailsMeta" class="small text-muted mb-0"></p>
-                </div>
-                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body detail-list">
-                <div class="detail-row d-flex justify-content-between">
-                    <span class="detail-label mb-0">Brand</span>
-                    <strong id="detailBrand"></strong>
-                </div>
-                <div class="detail-row d-flex justify-content-between">
-                    <span class="detail-label mb-0">Category</span>
-                    <strong id="detailCategory"></strong>
-                </div>
-                <div class="detail-row d-flex justify-content-between">
-                    <span class="detail-label mb-0">Current Quantity</span>
-                    <strong id="detailQuantity"></strong>
-                </div>
-                <div class="detail-row d-flex justify-content-between">
-                    <span class="detail-label mb-0">Reorder Level</span>
-                    <strong id="detailReorder"></strong>
-                </div>
-                <div class="detail-row d-flex justify-content-between">
-                    <span class="detail-label mb-0">Selling Price</span>
-                    <strong id="detailPrice"></strong>
-                </div>
-                <p id="detailDescription" class="small text-muted mt-3 mb-0"></p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-dark" type="button" data-bs-dismiss="modal">Close</button>
-            </div>
+            </section>
         </div>
     </div>
 </div>
@@ -356,6 +330,7 @@
                     selected.delete(productId);
                     row.classList.remove('is-selected');
                     row.setAttribute('aria-pressed', 'false');
+                    window.showToast(`${row.dataset.name || 'Product'} removed from this delivery.`, 'info');
                 } else {
                     selected.set(productId, {
                         row,
@@ -364,6 +339,7 @@
                     row.classList.add('is-selected');
                     row.setAttribute('aria-pressed', 'true');
                     selectedPage = Math.ceil(selected.size / Number(document.getElementById('selectedPageSize').value));
+                    window.showToast(`${row.dataset.name || 'Product'} selected and added to this delivery.`, 'success');
                 }
 
                 dirty = true;
@@ -397,28 +373,35 @@
                     card.className = 'receive-item receive-item-compact mb-2';
                     card.dataset.id = id;
                     card.innerHTML = `
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="receive-item-content">
+                            <span class="receive-item-thumb">
+                                <i class="bi bi-box-seam"></i>
+                                <img src="${escape(p.image)}" alt="" loading="lazy" />
+                            </span>
                             <div class="flex-grow-1 min-width-0">
                                 <div class="product-name fw-bold">${escape(p.name)}</div>
                                 <div class="product-meta fw-semibold">${escape(p.category)} · ${escape(p.brand)} · ${escape(p.code)}</div>
                             </div>
                             <div class="receive-stock text-center">
-                                <div class="detail-label">Quantity</div>
+                                <div class="detail-label">Current Qty</div>
                                 <strong>${escape(p.quantity)}</strong>
                             </div>
                             <div class="receive-qty">
                                 <label class="detail-label" for="qty-${id}">Receive Qty</label>
                                 <input id="qty-${id}" class="form-control form-control-sm receive-quantity" type="number" min="1" step="1" value="${item.quantity}" required>
                             </div>
-                            <button class="btn btn-sm btn-link view-receive-details" type="button" title="View details">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger remove-item" type="button" title="Remove">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
+                            <div class="receive-item-actions">
+                                <button class="btn btn-sm btn-outline-danger remove-item" type="button" title="Remove product" aria-label="Remove ${escape(p.name)}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
                     selectedContainer.appendChild(card);
+                });
+
+                selectedContainer.querySelectorAll('.receive-item-thumb img').forEach(image => {
+                    image.addEventListener('error', () => image.classList.add('d-none'));
                 });
 
                 // Event Listeners for Selected Product Items
@@ -438,13 +421,6 @@
                     });
                 });
 
-                selectedContainer.querySelectorAll('.view-receive-details').forEach(button => {
-                    button.addEventListener('click', event => {
-                        const id = event.currentTarget.closest('.receive-item').dataset.id;
-                        showDetails(selected.get(id).row.dataset);
-                    });
-                });
-
                 // Pagination for Selected List
                 document.getElementById('selectedPaging').classList.toggle('d-none', !selected.size);
                 const start = entries.length ? (selectedPage - 1) * size + 1 : 0;
@@ -457,20 +433,6 @@
                 });
 
                 updateSummary();
-            }
-
-            // Modal Details Display
-            function showDetails(p) {
-                document.getElementById('receiveDetailsTitle').textContent = p.name;
-                document.getElementById('receiveDetailsMeta').textContent = `${p.category} · ${p.code}`;
-                document.getElementById('detailBrand').textContent = p.brand;
-                document.getElementById('detailCategory').textContent = p.category;
-                document.getElementById('detailQuantity').textContent = p.quantity;
-                document.getElementById('detailReorder').textContent = p.reorder;
-                document.getElementById('detailPrice').textContent = `₱${Number(p.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-                document.getElementById('detailDescription').textContent = p.description || 'No description provided.';
-
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('receiveDetailsModal')).show();
             }
 
             // Summary & Validation Updates
@@ -490,7 +452,6 @@
                 document.getElementById('totalQuantity').textContent = total;
 
                 complete.disabled = !valid ||
-                    !document.getElementById('batchId').value ||
                     !document.getElementById('deliveryDate').value ||
                     !document.getElementById('receivedBy').value;
             }
@@ -540,7 +501,6 @@
                 error.classList.add('d-none');
 
                 const payload = {
-                    batch_ID: document.getElementById('batchId').value,
                     delivery_date: document.getElementById('deliveryDate').value,
                     received_by: document.getElementById('receivedBy').value,
                     items: [...selected].map(([id, item]) => ({
@@ -579,6 +539,9 @@
             });
 
             // Initializations
+            document.querySelectorAll('.receive-product-thumb img').forEach(image => {
+                image.addEventListener('error', () => image.classList.add('d-none'));
+            });
             renderAvailable();
             renderSelected();
         })();

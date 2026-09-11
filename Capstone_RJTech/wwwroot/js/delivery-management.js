@@ -1,201 +1,90 @@
 (() => {
     const page = document.getElementById('deliveryManagementPage');
-    const searchInput = document.getElementById('deliverySearch');
-    const tabs = [...document.querySelectorAll('[data-delivery-tab]')];
+    let rows = [...document.querySelectorAll('.delivery-row')];
+    const table = document.getElementById('deliveryTable');
+    const search = document.getElementById('deliverySearch');
+    const pageSize = document.getElementById('deliveryPageSize');
+    const pagination = document.getElementById('deliveryPagination');
+    const emptyRow = document.getElementById('deliveryEmpty');
+    let currentPage = 1;
 
-    let activeList = 'active';
-
-    function createList(prefix) {
-        return {
-            prefix,
-            panel: document.getElementById(`${prefix}DeliveryPanel`),
-            rows: [...document.querySelectorAll(`.${prefix}-delivery-row`)],
-            emptyRow: document.getElementById(`${prefix}DeliveryEmpty`),
-            pageSize: document.getElementById(`${prefix}DeliveryPageSize`),
-            pagination: document.getElementById(`${prefix}DeliveryPagination`),
-            rangeText: document.getElementById(`${prefix}DeliveryRangeText`),
-            rangeBar: document.getElementById(`${prefix}DeliveryRangeBar`),
-            currentPage: 1
-        };
+    function filteredRows() {
+        const term = search.value.trim().toLowerCase();
+        return rows.filter(row => !term || row.dataset.search.includes(term));
     }
 
-    const lists = {
-        active: createList('active'),
-        archive: createList('archive')
-    };
-
-    function filteredRows(list) {
-        const searchTerm = searchInput.value.trim().toLowerCase();
-        return list.rows.filter(row => !searchTerm || row.dataset.search.includes(searchTerm));
-    }
-
-    function addPageButton(list, label, targetPage, options = {}) {
+    function pageButton(label, target, options = {}) {
         const item = document.createElement('li');
         const button = document.createElement('button');
-
         item.className = `page-item${options.disabled ? ' disabled' : ''}${options.active ? ' active' : ''}`;
         button.className = 'page-link';
         button.type = 'button';
         button.innerHTML = label;
         button.disabled = options.disabled ?? false;
-        button.addEventListener('click', () => {
-            list.currentPage = targetPage;
-            renderList(list);
-        });
-
+        button.addEventListener('click', () => { currentPage = target; render(); });
         item.appendChild(button);
-        list.pagination.appendChild(item);
+        pagination.appendChild(item);
     }
 
-    function renderPagination(list, pageCount) {
-        list.pagination.innerHTML = '';
-        addPageButton(list, '<i class="bi bi-chevron-left"></i>', list.currentPage - 1, {
-            disabled: list.currentPage === 1
-        });
-
-        for (let pageNumber = 1; pageNumber <= pageCount; pageNumber += 1) {
-            addPageButton(list, String(pageNumber), pageNumber, {
-                active: pageNumber === list.currentPage
-            });
-        }
-
-        addPageButton(list, '<i class="bi bi-chevron-right"></i>', list.currentPage + 1, {
-            disabled: list.currentPage === pageCount
-        });
-    }
-
-    function renderList(list) {
-        const matchingRows = filteredRows(list);
-        const pageSize = Number(list.pageSize.value);
-        const pageCount = Math.max(1, Math.ceil(matchingRows.length / pageSize));
-
-        list.currentPage = Math.min(list.currentPage, pageCount);
-        list.rows.forEach(row => row.classList.add('d-none'));
-
-        const firstIndex = (list.currentPage - 1) * pageSize;
-        matchingRows
-            .slice(firstIndex, firstIndex + pageSize)
-            .forEach(row => row.classList.remove('d-none'));
-
-        list.emptyRow.classList.toggle('d-none', matchingRows.length > 0);
-
-        const firstItem = matchingRows.length ? firstIndex + 1 : 0;
-        const lastItem = Math.min(firstIndex + pageSize, matchingRows.length);
-        const progress = matchingRows.length ? (lastItem / matchingRows.length) * 100 : 0;
-
-        list.rangeText.textContent = `Showing ${firstItem}–${lastItem} of ${matchingRows.length} items`;
-        list.rangeBar.style.width = `${progress}%`;
-        renderPagination(list, pageCount);
-    }
-
-    function selectList(listName) {
-        activeList = listName;
-
-        tabs.forEach(tab => {
-            const selected = tab.dataset.deliveryTab === listName;
-            tab.classList.toggle('active', selected);
-            tab.setAttribute('aria-selected', String(selected));
-        });
-
-        Object.entries(lists).forEach(([name, list]) => {
-            list.panel.classList.toggle('d-none', name !== listName);
-        });
-
-        lists[listName].currentPage = 1;
-        renderList(lists[listName]);
-    }
-
-    async function postDeliveryAction(url, deliveryId) {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ delivery_ID: deliveryId })
-        });
-
-        return response.json();
-    }
-
-    async function archiveDelivery(button) {
-        if (!confirm(`Archive ${button.dataset.code}?`)) {
-            return;
-        }
-
-        const result = await postDeliveryAction(page.dataset.archiveUrl, button.dataset.id);
-        if (result.success) {
-            window.reloadWithToast(result.message || 'Delivery archived.');
-        }
+    function render() {
+        const filtered = filteredRows();
+        const size = Number(pageSize.value);
+        const pages = Math.max(1, Math.ceil(filtered.length / size));
+        currentPage = Math.min(currentPage, pages);
+        rows.forEach(row => row.classList.add('d-none'));
+        const start = (currentPage - 1) * size;
+        filtered.slice(start, start + size).forEach(row => row.classList.remove('d-none'));
+        emptyRow.classList.toggle('d-none', filtered.length > 0);
+        const end = Math.min(start + size, filtered.length);
+        document.getElementById('deliveryRangeText').textContent = `Showing ${filtered.length ? start + 1 : 0}–${end} of ${filtered.length} items`;
+        document.getElementById('deliveryRangeBar').style.width = `${filtered.length ? end / filtered.length * 100 : 0}%`;
+        pagination.innerHTML = '';
+        pageButton('<i class="bi bi-chevron-left"></i>', currentPage - 1, { disabled: currentPage === 1 });
+        for (let number = 1; number <= pages; number += 1) pageButton(String(number), number, { active: number === currentPage });
+        pageButton('<i class="bi bi-chevron-right"></i>', currentPage + 1, { disabled: currentPage === pages });
     }
 
     async function deleteDelivery(button) {
-        const confirmed = confirm(
-            `Delete ${button.dataset.code}? Inventory quantities from this receipt will be rolled back.`
-        );
-        if (!confirmed) {
-            return;
-        }
-
-        const result = await postDeliveryAction(page.dataset.deleteUrl, button.dataset.id);
-        if (result.success) {
-            window.reloadWithToast(result.message || 'Delivery receipt deleted.');
-        }
+        if (!confirm(`Delete the details for ${button.dataset.code}? Received product quantities will remain unchanged.`)) return;
+        const response = await fetch(page.dataset.deleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ delivery_ID: button.dataset.id })
+        });
+        const result = await response.json();
+        if (result.success) window.reloadWithToast(result.message || 'Delivery details deleted.');
+        else window.showToast(result.message || 'Unable to delete delivery details.', 'error');
     }
 
-    function downloadCsv() {
-        const list = lists[activeList];
-        const csvRows = [['Delivery ID', 'Batch ID', 'Received By', 'Date', 'Products', 'Units', 'Status']];
+    async function deleteSelectedDeliveries(event) {
+        event.preventDefault();
+        const ids = event.detail?.ids ?? [];
+        if (!ids.length || !confirm(`Delete ${ids.length} selected delivery details? Received product quantities will remain unchanged.`)) return;
 
-        filteredRows(list).forEach(row => {
-            const values = [...row.querySelectorAll('td')]
-                .slice(0, 7)
-                .map(cell => cell.innerText.trim());
-            csvRows.push(values);
+        const response = await fetch(page.dataset.bulkDeleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ids)
         });
-
-        const csv = csvRows
-            .map(row => row.map(value => `"${value.replaceAll('"', '""')}"`).join(','))
-            .join('\n');
-        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-        const link = Object.assign(document.createElement('a'), {
-            href: url,
-            download: activeList === 'archive' ? 'rjtech-delivery-archive.csv' : 'rjtech-deliveries.csv'
-        });
-
-        link.click();
-        URL.revokeObjectURL(url);
+        const result = await response.json();
+        if (result.success) window.reloadWithToast(result.message || 'Selected delivery details deleted.');
+        else window.showToast(result.message || 'Unable to delete the selected delivery details.', 'error');
     }
 
-    searchInput.addEventListener('input', () => {
-        lists[activeList].currentPage = 1;
-        renderList(lists[activeList]);
+    search.addEventListener('input', () => { currentPage = 1; render(); });
+    pageSize.addEventListener('change', () => { currentPage = 1; render(); });
+    rows.forEach(row => row.addEventListener('click', event => {
+        if (!event.target.closest('a, button, input, label, .dropdown-menu')) window.location.href = row.dataset.href;
+    }));
+    document.querySelectorAll('.delete-delivery').forEach(button => button.addEventListener('click', () => deleteDelivery(button)));
+    table?.addEventListener('table:bulk-delete', deleteSelectedDeliveries);
+    table?.addEventListener('table:sorted', () => {
+        rows = [...document.querySelectorAll('.delivery-row')];
+        currentPage = 1;
+        render();
     });
-
-    Object.values(lists).forEach(list => {
-        list.pageSize.addEventListener('change', () => {
-            list.currentPage = 1;
-            renderList(list);
-        });
+    document.getElementById('exportDeliveries')?.addEventListener('click', event => {
+        window.rjtechExcelExport.download(event.currentTarget, filteredRows(), Boolean(search.value.trim()));
     });
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => selectList(tab.dataset.deliveryTab));
-    });
-
-    document.querySelectorAll('.delivery-row').forEach(row => {
-        row.addEventListener('click', event => {
-            if (!event.target.closest('a, button, .dropdown-menu')) {
-                location.href = row.dataset.href;
-            }
-        });
-    });
-
-    document.querySelectorAll('.archive-delivery').forEach(button => {
-        button.addEventListener('click', () => archiveDelivery(button));
-    });
-    document.querySelectorAll('.delete-delivery').forEach(button => {
-        button.addEventListener('click', () => deleteDelivery(button));
-    });
-    document.getElementById('exportDeliveries').addEventListener('click', downloadCsv);
-
-    renderList(lists.active);
-    renderList(lists.archive);
+    render();
 })();

@@ -12,23 +12,25 @@ namespace Capstone_RJTech.Controllers
     public class SalesController : Controller
     {
         private static readonly HashSet<string> PaymentMethods =
-            new(StringComparer.OrdinalIgnoreCase) { "Cash", "GCash", "Maya", "Bank Transfer" };
+            new(StringComparer.OrdinalIgnoreCase) { "Cash", "E-Wallet", "Bank Transfer" };
+        private static readonly HashSet<string> PaymentTypes =
+            new(StringComparer.OrdinalIgnoreCase) { "Full Payment", "Installment" };
 
         private readonly ApplicationDbContext _db;
         private readonly ILogger<SalesController> _logger;
         private readonly StockNotificationService _stockNotifications;
-        private readonly DocumentSequenceService _documentSequences;
+        private readonly InstallmentService _installments;
 
         public SalesController(
             ApplicationDbContext db,
             ILogger<SalesController> logger,
             StockNotificationService stockNotifications,
-            DocumentSequenceService documentSequences)
+            InstallmentService installments)
         {
             _db = db;
             _logger = logger;
             _stockNotifications = stockNotifications;
-            _documentSequences = documentSequences;
+            _installments = installments;
         }
 
         public IActionResult Index() => RedirectToAction(nameof(SalesOrders));
@@ -43,10 +45,46 @@ namespace Capstone_RJTech.Controllers
             return View(customers);
         }
 
+        [HttpPost]
+        public IActionResult DeleteCustomers([FromBody] int[]? ids)
+        {
+            int[] selectedIds = ids?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToArray() ?? Array.Empty<int>();
+
+            if (selectedIds.Length == 0)
+                return Json(new { success = false, message = "Select at least one customer to delete." });
+
+            try
+            {
+                if (_db.Checkouts.Any(checkout => selectedIds.Contains(checkout.CustomerID)))
+                    return Json(new { success = false, message = "One or more selected customers have sales history and cannot be deleted." });
+
+                var customers = _db.Customers
+                    .Where(customer => selectedIds.Contains(customer.customer_ID))
+                    .ToList();
+                if (customers.Count != selectedIds.Length)
+                    return Json(new { success = false, message = "One or more selected customers could not be found." });
+
+                _db.Customers.RemoveRange(customers);
+                _db.SaveChanges();
+                return Json(new { success = true, message = $"{customers.Count} customers deleted successfully." });
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Unable to delete selected customers.");
+                return Json(new { success = false, message = "Unable to delete the selected customers." });
+            }
+        }
+
         public IActionResult SalesOrders()
         {
+            _installments.SynchronizeOverdueStatuses();
             var checkouts = _db.Checkouts
                 .Include(checkout => checkout.Customer)
+                .Include(checkout => checkout.Installment)
+                .Where(checkout => checkout.Status != "Cancelled")
                 .AsNoTracking()
                 .OrderByDescending(checkout => checkout.DatePurchased)
                 .ThenByDescending(checkout => checkout.CheckoutID)
@@ -55,8 +93,47 @@ namespace Capstone_RJTech.Controllers
             return View(checkouts);
         }
 
+        public async Task<IActionResult> SalesHistory(CancellationToken cancellationToken)
+        {
+            var history = await _db.CustomerPurchaseHistories
+                .Include(payment => payment.Customer)
+                .Include(payment => payment.Checkout)
+                .AsNoTracking()
+                .OrderByDescending(payment => payment.PurchaseDate)
+                .ThenByDescending(payment => payment.HistoryID)
+                .ToListAsync(cancellationToken);
+
+            return View(history);
+        }
+
         public IActionResult Checkout()
-            => View(new CheckoutFormViewModel { DatePurchased = DateTime.Now });
+        {
+            var products = _db.Products
+                .Include(product => product.Category)
+                .AsNoTracking()
+                .Where(product => product.product_quantity > 0 && product.product_status != "Unavailable")
+                .OrderBy(product => product.product_name)
+                .Take(6)
+                .ToList();
+
+            var model = new CheckoutFormViewModel
+            {
+                DatePurchased = DateTime.Now,
+                AvailableProducts = products.Select(product => new CheckoutProductOptionViewModel
+                {
+                    ProductId = product.product_ID,
+                    Code = product.formatted_code,
+                    Name = product.product_name,
+                    Brand = product.product_brand,
+                    Category = product.Category?.category_name ?? "Uncategorized",
+                    Stock = product.product_quantity,
+                    Price = product.Product_price,
+                    ImageUrl = Url.Action("Image", "Product", new { id = product.product_ID }) ?? string.Empty
+                }).ToList()
+            };
+
+            return View(model);
+        }
 
         public IActionResult SelectedCheckoutDetails(int id)
         {
@@ -64,11 +141,26 @@ namespace Capstone_RJTech.Controllers
                 .Include(item => item.Customer)
                 .Include(item => item.CheckoutItems)
                     .ThenInclude(item => item.Product)
+                        .ThenInclude(product => product!.Category)
+                .Include(item => item.Installment)
                 .AsNoTracking()
                 .FirstOrDefault(item => item.CheckoutID == id);
 
             if (checkout == null) return NotFound();
             return View(new CheckoutDetailsViewModel { Checkout = checkout });
+        }
+
+        public IActionResult InstallmentDetails(int id)
+        {
+            int? installmentId = _db.Installments
+                .AsNoTracking()
+                .Where(item => item.CheckoutID == id)
+                .Select(item => (int?)item.InstallmentID)
+                .FirstOrDefault();
+
+            return installmentId.HasValue
+                ? RedirectToAction("Details", "Installment", new { id = installmentId.Value })
+                : NotFound();
         }
 
         [HttpGet]
@@ -128,7 +220,7 @@ namespace Capstone_RJTech.Controllers
 
             var result = products
                 .OrderBy(item => item.Product.product_name)
-                .Take(8)
+                .Take(6)
                 .Select(item => new
                 {
                     productId = item.Product.product_ID,
@@ -137,7 +229,8 @@ namespace Capstone_RJTech.Controllers
                     brand = item.Product.product_brand,
                     category = item.Product.Category?.category_name ?? "Uncategorized",
                     stock = item.AvailableStock,
-                    price = item.Product.Product_price
+                    price = item.Product.Product_price,
+                    imageUrl = Url.Action("Image", "Product", new { id = item.Product.product_ID })
                 });
 
             return Json(new { success = true, products = result });
@@ -158,46 +251,112 @@ namespace Capstone_RJTech.Controllers
 
             bool duplicate = _db.CheckoutItems
                 .AsNoTracking()
-                .Any(item => item.SerialNo == normalizedSerial);
+                .Any(item => item.SerialNo == normalizedSerial &&
+                    item.Checkout != null &&
+                    (item.Checkout.Status == "Paid" || item.Checkout.Status == "Ongoing"));
 
             return Json(new { success = true, duplicate });
         }
 
         [HttpPost]
+        public IActionResult RefundCheckout(int id)
+            => TransitionCheckout(id, "Refunded");
+
+        [HttpPost]
         public IActionResult DeleteCheckout(int id)
         {
             using var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable);
-
             try
             {
-                var checkout = _db.Checkouts
-                    .Include(item => item.CheckoutItems)
-                        .ThenInclude(item => item.Product)
-                    .FirstOrDefault(item => item.CheckoutID == id);
-
+                var checkout = _db.Checkouts.Find(id);
                 if (checkout == null)
-                    return Json(new { success = false, message = "Sales transaction not found." });
+                    return Json(new { success = false, message = "Sales details not found." });
 
-                foreach (var item in checkout.CheckoutItems)
-                {
-                    if (item.Product == null) continue;
-                    item.Product.product_quantity += item.ItemQuantity;
-                    item.Product.product_status = ProductController.EvaluateProductStatus(item.Product);
-                }
+                if (_db.CustomerPurchaseHistories.Any(payment => payment.CheckoutID == id))
+                    return Json(new { success = false, message = "This checkout has payment history and cannot be deleted." });
 
                 _db.Checkouts.Remove(checkout);
                 _db.SaveChanges();
                 transaction.Commit();
-                SynchronizeStockNotifications();
-
-                return Json(new { success = true, message = "Sales transaction deleted and inventory restored." });
+                return Json(new { success = true, message = "Sales details deleted. Product inventory was not changed." });
             }
             catch (Exception exception)
             {
                 transaction.Rollback();
-                _logger.LogError(exception, "Error deleting checkout {CheckoutId}.", id);
-                return Json(new { success = false, message = "Unable to delete the sales transaction." });
+                _logger.LogError(exception, "Unable to delete sales details for checkout {CheckoutId}.", id);
+                return Json(new { success = false, message = "Unable to delete the sales details." });
             }
+        }
+
+        [HttpPost]
+        public IActionResult DeleteCheckouts([FromBody] int[]? ids)
+        {
+            int[] selectedIds = ids?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToArray() ?? Array.Empty<int>();
+
+            if (selectedIds.Length == 0)
+                return Json(new { success = false, message = "Select at least one sales record to delete." });
+
+            using var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable);
+            try
+            {
+                var checkouts = _db.Checkouts
+                    .Where(checkout => selectedIds.Contains(checkout.CheckoutID))
+                    .ToList();
+                if (checkouts.Count != selectedIds.Length)
+                    return Json(new { success = false, message = "One or more selected sales records could not be found." });
+
+                if (_db.CustomerPurchaseHistories.Any(payment => selectedIds.Contains(payment.CheckoutID)))
+                    return Json(new { success = false, message = "One or more selected checkouts have payment history and cannot be deleted." });
+
+                _db.Checkouts.RemoveRange(checkouts);
+                _db.SaveChanges();
+                transaction.Commit();
+                return Json(new
+                {
+                    success = true,
+                    message = $"{checkouts.Count} sales details deleted. Product inventory was not changed."
+                });
+            }
+            catch (Exception exception)
+            {
+                transaction.Rollback();
+                _logger.LogError(exception, "Unable to delete selected sales details.");
+                return Json(new { success = false, message = "Unable to delete the selected sales details." });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RecordInstallmentPayment(
+            [FromBody] RecordInstallmentPaymentRequest? request)
+        {
+            if (request == null)
+                return Json(new { success = false, message = "Payment information is required." });
+
+            int? installmentId = await _db.Installments
+                .AsNoTracking()
+                .Where(item => item.CheckoutID == request.CheckoutID)
+                .Select(item => (int?)item.InstallmentID)
+                .FirstOrDefaultAsync();
+            if (!installmentId.HasValue)
+                return Json(new { success = false, message = "Installment record not found." });
+
+            var result = await _installments.RecordPaymentAsync(
+                installmentId.Value,
+                request.PaymentAmount,
+                request.PaymentMethod);
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message,
+                balance = result.Balance,
+                redirectUrl = result.Success
+                    ? Url.Action("Details", "Installment", new { id = result.InstallmentID })
+                    : null
+            });
         }
 
         public IActionResult Refund() => View();
@@ -247,7 +406,9 @@ namespace Capstone_RJTech.Controllers
                     .ToArray();
 
                 bool serialExists = _db.CheckoutItems.Any(item =>
-                    item.SerialNo != null && serialNumbers.Contains(item.SerialNo));
+                    item.SerialNo != null && serialNumbers.Contains(item.SerialNo) &&
+                    item.Checkout != null &&
+                    (item.Checkout.Status == "Paid" || item.Checkout.Status == "Ongoing"));
 
                 if (serialExists)
                     return Json(new { success = false, message = "One or more serial numbers have already been sold." });
@@ -262,17 +423,63 @@ namespace Capstone_RJTech.Controllers
 
                 decimal totalAmount = request.Items.Sum(item =>
                     products[item.ProductID].Product_price * item.Quantity);
+                string paymentType = NormalizePaymentType(request.PaymentType);
+                InstallmentCalculation? installmentCalculation = null;
+                if (paymentType == "Installment")
+                {
+                    try
+                    {
+                        installmentCalculation = _installments.Calculate(
+                            totalAmount,
+                            request.InstallmentMonths!.Value);
+                    }
+                    catch (ArgumentException exception)
+                    {
+                        return Json(new { success = false, message = exception.Message });
+                    }
+                }
 
                 var checkout = new Checkout
                 {
-                    CheckoutNumber = _documentSequences.AllocateNextCheckoutNumber(),
                     DatePurchased = DateTime.Now,
                     Customer = customer,
                     TotalAmount = totalAmount,
+                    PaymentType = paymentType,
                     PaymentMethod = NormalizePaymentMethod(request.PaymentMethod),
-                    Status = "Completed"
+                    Status = paymentType == "Installment" ? "Ongoing" : "Paid"
                 };
                 _db.Checkouts.Add(checkout);
+
+                if (installmentCalculation != null)
+                {
+                    checkout.Installment = new Installment
+                    {
+                        Months = installmentCalculation.Months,
+                        DownPayment = installmentCalculation.DownPayment,
+                        InterestRate = installmentCalculation.InterestRate,
+                        TotalAmount = installmentCalculation.InstallmentTotal,
+                        Balance = installmentCalculation.InstallmentTotal,
+                        MonthlyPayment = installmentCalculation.MonthlyPayment,
+                        MonthsPaid = 0,
+                        MonthsRemaining = installmentCalculation.Months,
+                        StartDate = DateTime.Now,
+                        Status = "Active"
+                    };
+                }
+
+                // Save the initial receipt in the same transaction as the checkout.
+                decimal receivedAmount = installmentCalculation?.DownPayment ?? totalAmount;
+                if (receivedAmount > 0)
+                {
+                    _db.CustomerPurchaseHistories.Add(new CustomerPurchaseHistory
+                    {
+                        Checkout = checkout,
+                        Customer = customer,
+                        PurchaseDate = checkout.DatePurchased,
+                        TotalAmount = receivedAmount,
+                        PaymentMethod = checkout.PaymentMethod
+                    });
+                }
 
                 checkout.CheckoutItems = request.Items
                     .SelectMany(item => item.SerialNumbers.Select(serial => new CheckoutItem
@@ -292,8 +499,12 @@ namespace Capstone_RJTech.Controllers
                 return Json(new
                 {
                     success = true,
-                    message = "Sale completed successfully.",
-                    redirectUrl = Url.Action(nameof(SelectedCheckoutDetails), new { id = checkout.CheckoutID })
+                    message = paymentType == "Installment"
+                        ? "Installment created successfully."
+                        : "Full payment completed successfully.",
+                    redirectUrl = paymentType == "Installment"
+                        ? Url.Action("Details", "Installment", new { id = checkout.Installment!.InstallmentID })
+                        : Url.Action(nameof(SelectedCheckoutDetails), new { id = checkout.CheckoutID })
                 });
             }
             catch (Exception exception)
@@ -337,12 +548,19 @@ namespace Capstone_RJTech.Controllers
                 return "Phone number must contain exactly 11 numeric digits.";
             if (string.IsNullOrWhiteSpace(Normalize(request.CustomerAddress)))
                 return "Customer address is required.";
+            if (!PaymentTypes.Contains(request.PaymentType ?? string.Empty))
+                return "Select a valid payment type.";
             if (!PaymentMethods.Contains(request.PaymentMethod ?? string.Empty))
                 return "Select a valid payment method.";
+            if (string.Equals(request.PaymentType, "Installment", StringComparison.OrdinalIgnoreCase) &&
+                !request.InstallmentMonths.HasValue)
+                return "Select an installment term.";
             if (request.Items == null || request.Items.Count == 0)
                 return "Add at least one product to the order.";
             if (request.Items.Any(item => item.Quantity <= 0))
                 return "Every item quantity must be at least one.";
+            if (request.Items.Select(item => item.ProductID).Distinct().Count() != request.Items.Count)
+                return "The same product cannot be added more than once.";
 
             if (request.Items.Any(item =>
                 item.SerialNumbers == null ||
@@ -374,6 +592,57 @@ namespace Capstone_RJTech.Controllers
 
         private static string NormalizePaymentMethod(string value)
             => PaymentMethods.First(method => method.Equals(value, StringComparison.OrdinalIgnoreCase));
+
+        private static string NormalizePaymentType(string value)
+            => PaymentTypes.First(type => type.Equals(value, StringComparison.OrdinalIgnoreCase));
+
+        private IActionResult TransitionCheckout(int id, string newStatus)
+        {
+            using var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable);
+
+            try
+            {
+                var checkout = _db.Checkouts
+                    .Include(item => item.CheckoutItems)
+                        .ThenInclude(item => item.Product)
+                    .Include(item => item.Installment)
+                    .FirstOrDefault(item => item.CheckoutID == id);
+
+                if (checkout == null)
+                    return Json(new { success = false, message = "Sales transaction not found." });
+                if (checkout.Status is not ("Paid" or "Ongoing"))
+                    return Json(new { success = false, message = $"A {checkout.Status.ToLowerInvariant()} transaction cannot be changed." });
+
+                foreach (var item in checkout.CheckoutItems)
+                {
+                    if (item.Product == null) continue;
+                    item.Product.product_quantity += item.ItemQuantity;
+                    item.Product.product_status = ProductController.EvaluateProductStatus(item.Product);
+                }
+
+                checkout.Status = newStatus;
+                if (checkout.Installment != null)
+                    checkout.Installment.Status = "Cancelled";
+
+                _db.SaveChanges();
+                transaction.Commit();
+                SynchronizeStockNotifications();
+
+                return Json(new
+                {
+                    success = true,
+                    message = newStatus == "Refunded"
+                        ? "Sale marked as refunded and inventory restored."
+                        : "Sale cancelled and inventory restored."
+                });
+            }
+            catch (Exception exception)
+            {
+                transaction.Rollback();
+                _logger.LogError(exception, "Unable to mark checkout {CheckoutId} as {Status}.", id, newStatus);
+                return Json(new { success = false, message = "Unable to update the sales transaction." });
+            }
+        }
 
         private void SynchronizeStockNotifications()
         {

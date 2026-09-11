@@ -14,7 +14,9 @@
 
 <div class="app-page"
      id="productManagementPage"
-     data-delete-url="@Url.Action("DeleteProduct")">
+     data-delete-url="@Url.Action("DeleteProduct")"
+     data-bulk-delete-url="@Url.Action("DeleteProducts")">
+    @Html.AntiForgeryToken()
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -58,7 +60,7 @@
         </div>
     }
 
-    <div class="filter-tabs product-status-tabs"
+    <div class="filter-tabs compact-filter-tabs product-status-tabs"
          role="group"
          aria-label="Product status filters">
 
@@ -67,10 +69,6 @@
                 data-status="all">
 
             All
-
-            <span class="ms-1 text-muted">
-                @Model.Count()
-            </span>
         </button>
 
         <button class="btn"
@@ -82,13 +80,13 @@
         <button class="btn"
                 type="button"
                 data-status="low stock">
-            Low Stock
+            Low stock
         </button>
 
         <button class="btn"
                 type="button"
                 data-status="out of stock">
-            Out of Stock
+            Out of stock
         </button>
 
         <button class="btn"
@@ -174,10 +172,11 @@
 
         <button id="exportProducts"
                 type="button"
-                class="btn btn-outline-secondary">
+                class="btn btn-success text-nowrap"
+                data-export-url="@Url.Action("Inventory", "ExcelExport")">
 
-            <i class="bi bi-download me-1"></i>
-            Export
+            <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>
+            Export Excel
         </button>
     </div>
 
@@ -375,6 +374,7 @@
 }
 
 @section Scripts {
+    <script src="~/js/excel-export.js" asp-append-version="true"></script>
     <script src="~/js/product-management.js"
             asp-append-version="true">
     </script>

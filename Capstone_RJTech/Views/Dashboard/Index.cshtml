@@ -1,0 +1,432 @@
+@model Capstone_RJTech.ViewModels.DashboardViewModel
+@using System.Globalization
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var culture = CultureInfo.GetCultureInfo("en-PH");
+    string Money(decimal value) => "₱" + value.ToString("N2", culture);
+
+    var inventory = new[]
+        {
+        (Label: "Available", Count: Model.InventoryHealth.Available, Class: "available"),
+        (Label: "Unavailable", Count: Model.InventoryHealth.Unavailable, Class: "unavailable"),
+        (Label: "Low Stock", Count: Model.InventoryHealth.LowStock, Class: "low-stock"),
+        (Label: "Out of Stock", Count: Model.InventoryHealth.OutOfStock, Class: "out-of-stock")
+    };
+
+    string StatusClass(string status) => status switch
+    {
+        "Paid" => "paid",
+        "Ongoing" => "ongoing",
+        "Refunded" => "refunded",
+        "Cancelled" => "cancelled",
+        _ => "other"
+    };
+}
+
+<div class="app-page dashboard-page" id="dashboardPage" data-category-url="@Url.Action("CategorySales")">
+    <div class="dashboard-heading">
+        <div>
+            <h1>Dashboard</h1>
+            <p>Welcome back, RJTech Admin! Here's what's happening with your store.</p>
+        </div>
+        <form asp-controller="Dashboard" asp-action="Index" method="get" id="dashboardFilters" class="dashboard-filters">
+            <div class="dashboard-month">
+                <i class="bi bi-calendar3" aria-hidden="true"></i>
+                <label for="dashboardMonth" class="visually-hidden">Month</label>
+                <select id="dashboardMonth" name="month" class="form-select form-select-sm">
+                    @for (var month = 1; month <= 12; month++)
+                    {
+                        <option value="@month" selected="@(month == Model.Month)">
+                            @culture.DateTimeFormat.GetMonthName(month)
+                        </option>
+                    }
+                </select>
+            </div>
+            <label for="dashboardYear" class="visually-hidden">Year</label>
+            <select id="dashboardYear" name="year" class="form-select form-select-sm dashboard-year">
+                @foreach (var year in Model.Years)
+                {
+                    <option value="@year" selected="@(year == Model.Year)">@year</option>
+                }
+            </select>
+            <noscript>
+                <button class="btn btn-sm btn-primary" type="submit">Apply filters</button>
+            </noscript>
+        </form>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="row g-3 dashboard-summary">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="dashboard-panel metric-card metric-sales">
+                <div class="metric-top">
+                    <span class="metric-icon"><i class="bi bi-currency-dollar" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Total Sales</h2>
+                        <div class="metric-value" data-dashboard-count="@Model.TotalSales.ToString(CultureInfo.InvariantCulture)" data-dashboard-format="currency">
+                            @Money(Model.TotalSales)
+                        </div>
+                    </div>
+                </div>
+                <p class="metric-caption">All-time paid checkouts</p>
+                <div class="metric-bottom">
+                    <span class="metric-dot"></span> @Money(Model.PeriodSales) in @culture.DateTimeFormat.GetAbbreviatedMonthName(Model.Month)
+                </div>
+            </article>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="dashboard-panel metric-card metric-products">
+                <div class="metric-top">
+                    <span class="metric-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Total Products</h2>
+                        <div class="metric-value" data-dashboard-count="@Model.TotalProducts" data-dashboard-format="integer">
+                            @Model.TotalProducts.ToString("N0")
+                        </div>
+                    </div>
+                </div>
+                <p class="metric-caption">Products registered in your catalog</p>
+                <a asp-controller="Product" asp-action="ProductManagement" class="metric-bottom">
+                    <span class="metric-dot"></span> View inventory <i class="bi bi-arrow-up-right ms-auto" aria-hidden="true"></i>
+                </a>
+            </article>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="dashboard-panel metric-card metric-outstanding">
+                <div class="metric-top">
+                    <span class="metric-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Outstanding Amount</h2>
+                        <div class="metric-value" data-dashboard-count="@Model.OutstandingAmount.ToString(CultureInfo.InvariantCulture)" data-dashboard-format="currency">
+                            @Money(Model.OutstandingAmount)
+                        </div>
+                    </div>
+                </div>
+                <p class="metric-caption">Unpaid installment balances, including interest</p>
+                <a asp-controller="Installment" asp-action="Index" class="metric-bottom">
+                    <span class="metric-dot"></span> @Model.OutstandingPlans open @(Model.OutstandingPlans == 1 ? "plan" : "plans")
+                    <i class="bi bi-arrow-up-right ms-auto" aria-hidden="true"></i>
+                </a>
+            </article>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <article class="dashboard-panel metric-card metric-customers">
+                <div class="metric-top">
+                    <span class="metric-icon"><i class="bi bi-people" aria-hidden="true"></i></span>
+                    <div>
+                        <h2>Total Customers</h2>
+                        <div class="metric-value" data-dashboard-count="@Model.TotalCustomers" data-dashboard-format="integer">
+                            @Model.TotalCustomers.ToString("N0")
+                        </div>
+                    </div>
+                </div>
+                <p class="metric-caption">Customers registered in your records</p>
+                <a asp-controller="Sales" asp-action="Customer" class="metric-bottom">
+                    <span class="metric-dot"></span> View customers <i class="bi bi-arrow-up-right ms-auto" aria-hidden="true"></i>
+                </a>
+            </article>
+        </div>
+    </div>
+
+    <!-- Sales Overview & Inventory Health -->
+    <div class="row g-3 dashboard-section">
+        <div class="col-12 col-xl-8">
+            <section class="dashboard-panel h-100" aria-labelledby="salesOverviewHeading">
+                <div class="dashboard-panel-header">
+                    <div>
+                        <h2 id="salesOverviewHeading">Sales Overview</h2>
+                        <p>Paid sales performance for @Model.PeriodLabel</p>
+                    </div>
+                    <div class="dashboard-chart-toggle" role="group" aria-label="Sales chart interval">
+                        <button type="button" class="active" data-sales-interval="daily" aria-pressed="true">Daily</button>
+                        <button type="button" data-sales-interval="weekly" aria-pressed="false">Weekly</button>
+                    </div>
+                </div>
+                <div class="sales-period-summary">
+                    <strong data-dashboard-count="@Model.PeriodSales.ToString(CultureInfo.InvariantCulture)" data-dashboard-format="currency">
+                        @Money(Model.PeriodSales)
+                    </strong>
+                    @if (Model.SalesChangePercent.HasValue)
+                    {
+                        <span class="sales-change @(Model.SalesChangePercent < 0 ? "decrease" : "")">
+                            <i class="bi @(Model.SalesChangePercent < 0 ? "bi-arrow-down-right" : "bi-arrow-up-right")" aria-hidden="true"></i>
+                            @Math.Abs(Model.SalesChangePercent.Value).ToString("0.#")% <span>vs previous month</span>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="sales-comparison-note">Selected month</span>
+                    }
+                </div>
+                <div class="sales-chart-frame">
+                    @if (Model.PeriodSales > 0)
+                    {
+                        <canvas id="salesOverviewChart" role="img" aria-label="Daily paid sales for @Model.PeriodLabel. Total @Money(Model.PeriodSales)."></canvas>
+                    }
+                    else
+                    {
+                        <div class="dashboard-empty">
+                            <i class="bi bi-graph-up" aria-hidden="true"></i>
+                            <p>No sales data available for this period.</p>
+                            <small>Try another month or year.</small>
+                        </div>
+                    }
+                </div>
+                <details class="dashboard-chart-data">
+                    <summary>View sales data</summary>
+                    <div class="table-responsive">
+                        <table class="table dashboard-table" data-table-enhanced="true">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th class="text-end">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var day in Model.SalesOverview)
+                                {
+                                    <tr>
+                                        <td>@(new DateTime(Model.Year, Model.Month, day.Day).ToString("MMM d, yyyy", culture))</td>
+                                        <td class="text-end">@Money(day.Revenue)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <section class="dashboard-panel h-100" aria-labelledby="inventoryHeading">
+                <div class="dashboard-panel-header">
+                    <div>
+                        <h2 id="inventoryHeading">Inventory Health</h2>
+                        <p>Current product availability</p>
+                    </div>
+                    <span class="dashboard-live"><span></span> Live</span>
+                </div>
+                <div class="inventory-body">
+                    <div class="inventory-ring">
+                        <canvas id="inventoryHealthChart" role="img" aria-label="Inventory status breakdown for @Model.TotalProducts products. Counts shown in the legend."></canvas>
+                        <div class="inventory-total">
+                            <strong data-dashboard-count="@Model.TotalProducts" data-dashboard-format="integer">
+                                @Model.TotalProducts.ToString("N0")
+                            </strong>
+                            <span>Products</span>
+                        </div>
+                    </div>
+                    <ul class="inventory-legend">
+                        @foreach (var status in inventory)
+                        {
+                            <li>
+                                <a asp-controller="Product" asp-action="ProductManagement" asp-route-status="@status.Label">
+                                    <span class="inventory-dot @status.Class"></span>
+                                    <span>@status.Label</span>
+                                    <strong>@status.Count.ToString("N0")</strong>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+                <div class="inventory-note">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    @(Model.TotalProducts == 0 ? "No products registered yet." : "Stock levels follow your product reorder settings.")
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Top Products & Sales by Category -->
+    <div class="row g-3 dashboard-section">
+        <div class="col-12 col-xl-8">
+            <section class="dashboard-panel h-100" aria-labelledby="topProductsHeading">
+                <div class="dashboard-panel-header">
+                    <div>
+                        <h2 id="topProductsHeading">Top Selling Products</h2>
+                        <p>Highest quantity sold in @Model.PeriodLabel · paid checkouts</p>
+                    </div>
+                    <a asp-controller="Sales" asp-action="SalesOrders" class="dashboard-view-all">
+                        View sales <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table dashboard-table top-products-table" data-table-enhanced="true">
+                        <caption class="visually-hidden">Top five products ranked by quantity sold in @Model.PeriodLabel</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Product code</th>
+                                <th scope="col">Product</th>
+                                <th scope="col">Category</th>
+                                <th scope="col" class="text-end">Quantity sold</th>
+                                <th scope="col" class="text-end">Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model.TopSellingProducts)
+                            {
+                                <tr>
+                                    <td class="product-code">@product.ProductCode</td>
+                                    <td>
+                                        <a asp-controller="Product" asp-action="Details" asp-route-id="@product.ProductId" class="product-name">
+                                            @product.Product
+                                        </a>
+                                    </td>
+                                    <td class="dashboard-muted">@product.Category</td>
+                                    <td class="text-end">@product.QuantitySold.ToString("N0")</td>
+                                    <td class="text-end dashboard-revenue">@Money(product.Revenue)</td>
+                                </tr>
+                            }
+                            @if (Model.TopSellingProducts.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="dashboard-empty">
+                                            <i class="bi bi-box-seam" aria-hidden="true"></i>
+                                            <p>No products sold in this period.</p>
+                                            <small>Products from paid checkouts will appear here.</small>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <section class="dashboard-panel h-100" aria-labelledby="categoryHeading" id="categoryPanel">
+                <div class="dashboard-panel-header category-header">
+                    <div>
+                        <h2 id="categoryHeading">Sales by Category</h2>
+                        <p>Paid revenue · @Model.PeriodLabel</p>
+                    </div>
+                    <label for="dashboardCategory" class="visually-hidden">Product category</label>
+                    <select id="dashboardCategory" name="categoryId" form="dashboardFilters" class="form-select form-select-sm">
+                        <option value="">All Categories</option>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@category.Id" selected="@(category.Id == Model.CategoryId)">@category.Name</option>
+                        }
+                    </select>
+                </div>
+                <p class="dashboard-chart-error" id="categoryError" role="alert" hidden></p>
+                <div class="category-chart-scroll">
+                    <div class="category-chart-frame" id="categoryChartFrame" hidden="@(Model.SalesByCategory.Count == 0)">
+                        <canvas id="categorySalesChart" role="img" aria-label="Paid sales revenue by product category"></canvas>
+                    </div>
+                </div>
+                <div class="dashboard-empty category-empty" id="categoryEmpty" hidden="@(Model.SalesByCategory.Count > 0)">
+                    <i class="bi bi-bar-chart" aria-hidden="true"></i>
+                    <p>No sales data available for this category.</p>
+                    <small>Choose another category or period.</small>
+                </div>
+                <details class="dashboard-chart-data">
+                    <summary>View category data</summary>
+                    <div class="table-responsive">
+                        <table class="table dashboard-table" data-table-enhanced="true">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="text-end">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoryDataBody">
+                                @foreach (var category in Model.SalesByCategory)
+                                {
+                                    <tr>
+                                        <td>@category.Category</td>
+                                        <td class="text-end">@Money(category.Revenue)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </section>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <section class="dashboard-panel dashboard-section" aria-labelledby="recentHeading">
+        <div class="dashboard-panel-header">
+            <div>
+                <h2 id="recentHeading">Recent Transactions</h2>
+                <p>Latest sales activity across all dates</p>
+            </div>
+            <a asp-controller="Sales" asp-action="SalesOrders" class="dashboard-view-all">
+                View all <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table dashboard-table recent-transactions-table" data-table-enhanced="true">
+                <caption class="visually-hidden">The five latest sales transactions</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Checkout id</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Items</th>
+                        <th scope="col">Payment method</th>
+                        <th scope="col" class="text-end">Total amount</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Date purchased</th>
+                        <th scope="col" class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in Model.RecentTransactions)
+                    {
+                        <tr>
+                            <td class="checkout-code">@transaction.CheckoutCode</td>
+                            <td>@transaction.Customer</td>
+                            <td class="dashboard-muted">@transaction.Items @(transaction.Items == 1 ? "item" : "items")</td>
+                            <td>@transaction.PaymentMethod</td>
+                            <td class="text-end dashboard-revenue">@Money(transaction.TotalAmount)</td>
+                            <td><span class="dashboard-status @StatusClass(transaction.Status)">@transaction.Status</span></td>
+                            <td class="dashboard-muted">@transaction.DatePurchased.ToString("MMM d, yyyy hh:mm tt", culture)</td>
+                            <td class="text-end">
+                                <a asp-controller="Sales" asp-action="SelectedCheckoutDetails" asp-route-id="@transaction.CheckoutId" class="dashboard-view-transaction" aria-label="View items in @transaction.CheckoutCode" title="View transaction">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.RecentTransactions.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="8">
+                                <div class="dashboard-empty">
+                                    <i class="bi bi-receipt" aria-hidden="true"></i>
+                                    <p>No transactions yet.</p>
+                                    <small>Your latest sales will appear here.</small>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <noscript>
+        <p class="alert alert-info">Enable JavaScript for interactive charts. Sales and category values are available under “View data”.</p>
+    </noscript>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script type="application/json" id="dashboardData">
+        @Html.Raw(JsonSerializer.Serialize(Model, new JsonSerializerOptions(JsonSerializerDefaults.Web)))
+    </script>
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+}

@@ -5,22 +5,43 @@
     string StatusClass(string status) => status.ToLowerInvariant();
 }
 
-<div class="app-page sales-page" id="salesOrdersPage" data-delete-url="@Url.Action("DeleteCheckout")">
+<div class="app-page sales-page" id="salesOrdersPage"
+     data-delete-url="@Url.Action("DeleteCheckout")"
+     data-bulk-delete-url="@Url.Action("DeleteCheckouts")"
+     data-refund-url="@Url.Action("RefundCheckout")">
+    @Html.AntiForgeryToken()
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item active">Sales Orders</li>
+            <li class="breadcrumb-item active">Sales</li>
         </ol>
     </nav>
 
     <div class="page-heading">
         <div>
-            <h1>Sales Orders</h1>
+            <h1>Sales Summary</h1>
             <p>Manage and track all customer sales transactions.</p>
         </div>
         <a asp-action="Checkout" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i>Checkout
+            <i class="bi bi-plus-lg me-1"></i> New Checkout
         </a>
+    </div>
+
+    <div class="filter-tabs compact-filter-tabs sales-status-tabs"
+         role="group"
+         aria-label="Checkout status filters">
+        <button class="btn active" type="button" data-status="all" aria-pressed="true">
+            All
+        </button>
+        <button class="btn" type="button" data-status="paid" aria-pressed="false">
+            Paid
+        </button>
+        <button class="btn" type="button" data-status="ongoing" aria-pressed="false">
+            Ongoing
+        </button>
+        <button class="btn" type="button" data-status="refunded" aria-pressed="false">
+            Refunded
+        </button>
     </div>
 
     <div class="toolbar sales-toolbar">
@@ -29,8 +50,9 @@
             <input id="salesOrderSearch" class="form-control" type="search"
                    placeholder="Search sales orders..." autocomplete="off" />
         </div>
-        <button id="exportSalesOrders" class="btn btn-outline-secondary" type="button">
-            <i class="bi bi-download me-1"></i>Export
+        <button id="exportSalesOrders" class="btn btn-success text-nowrap" type="button"
+                data-export-url="@Url.Action("SalesSummary", "ExcelExport")">
+            <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Export Excel
         </button>
     </div>
 
@@ -39,12 +61,13 @@
             <table class="table app-table" id="salesOrdersTable">
                 <thead>
                     <tr>
-                        <th>Checkout ID</th>
+                        <th>Checkout code</th>
                         <th>Customer</th>
-                        <th>Payment Method</th>
-                        <th>Date Purchased</th>
+                        <th>Payment type</th>
+                        <th>Payment method</th>
+                        <th>Date purchased</th>
                         <th>Status</th>
-                        <th class="text-end">Total Amount</th>
+                        <th class="text-end">Total amount</th>
                         <th class="text-end">Action</th>
                     </tr>
                 </thead>
@@ -56,11 +79,12 @@
                             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                             .Take(2)
                             .Select(part => char.ToUpperInvariant(part[0])));
-                        var search = $"{checkout.FormattedCheckoutID} {customer?.customer_FullName} {customer?.customer_Email} {checkout.PaymentMethod} {checkout.Status}".ToLowerInvariant();
+                        var search = $"{checkout.FormattedCheckoutID} {customer?.customer_FullName} {customer?.customer_Email} {checkout.PaymentType} {checkout.PaymentMethod} {checkout.Status}".ToLowerInvariant();
 
                         <tr class="sales-order-row clickable-row"
                             data-id="@checkout.CheckoutID"
                             data-href="@Url.Action("SelectedCheckoutDetails", new { id = checkout.CheckoutID })"
+                            data-status="@checkout.Status.ToLowerInvariant()"
                             data-search="@search">
                             <td class="fw-bold">@checkout.FormattedCheckoutID</td>
                             <td>
@@ -72,33 +96,39 @@
                                     </div>
                                 </div>
                             </td>
+                            <td class="fw-semibold">@checkout.PaymentType</td>
                             <td class="fw-semibold">@checkout.PaymentMethod</td>
                             <td class="fw-semibold">@checkout.DatePurchased.ToString("MMM d, yyyy h:mm tt")</td>
                             <td><span class="sales-status status-@StatusClass(checkout.Status)">@checkout.Status</span></td>
                             <td class="text-end fw-bold">₱@checkout.TotalAmount.ToString("N2")</td>
                             <td class="text-end action-cell">
-                                <div class="dropdown">
+                                    <div class="dropdown table-action-dropdown">
                                     <button class="btn btn-sm btn-light no-caret dropdown-toggle" type="button"
                                             data-bs-toggle="dropdown" data-bs-boundary="viewport"
                                             aria-label="Actions for @checkout.FormattedCheckoutID">
                                         <i class="bi bi-three-dots"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" asp-action="SelectedCheckoutDetails" asp-route-id="@checkout.CheckoutID"><i class="bi bi-eye me-2"></i>View</a></li>
+                                        <li><a class="dropdown-item" asp-action="SelectedCheckoutDetails" asp-route-id="@checkout.CheckoutID"><i class="bi bi-eye me-2"></i>View Order</a></li>
+                                        @if (checkout.PaymentType == "Installment" && checkout.Installment != null)
+                                        {
+                                            <li><a class="dropdown-item" asp-controller="Installment" asp-action="Details" asp-route-id="@checkout.Installment!.InstallmentID"><i class="bi bi-calendar-check me-2"></i>View Installment</a></li>
+                                        }
+                                        <li><a class="dropdown-item" asp-action="SelectedCheckoutDetails" asp-route-id="@checkout.CheckoutID" asp-route-print="true"><i class="bi bi-printer me-2"></i>Print Receipt</a></li>
+                                        @if (checkout.Status is "Paid" or "Ongoing")
+                                        {
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li><button class="dropdown-item refund-checkout" type="button" data-id="@checkout.CheckoutID" data-code="@checkout.FormattedCheckoutID"><i class="bi bi-arrow-counterclockwise me-2"></i>Refund</button></li>
+                                        }
                                         <li><hr class="dropdown-divider" /></li>
-                                        <li>
-                                            <button class="dropdown-item text-danger delete-checkout" type="button"
-                                                    data-id="@checkout.CheckoutID" data-code="@checkout.FormattedCheckoutID">
-                                                <i class="bi bi-trash me-2"></i>Delete
-                                            </button>
-                                        </li>
+                                        <li><button class="dropdown-item text-danger delete-checkout" type="button" data-id="@checkout.CheckoutID" data-code="@checkout.FormattedCheckoutID"><i class="bi bi-trash me-2"></i>Delete details</button></li>
                                     </ul>
                                 </div>
                             </td>
                         </tr>
                     }
                     <tr id="emptySalesOrders" class="d-none">
-                        <td colspan="7"><div class="empty-state"><i class="bi bi-receipt"></i><span>No sales orders found.</span></div></td>
+                        <td colspan="8"><div class="empty-state"><i class="bi bi-receipt"></i><span>No sales orders found.</span></div></td>
                     </tr>
                 </tbody>
             </table>
@@ -122,5 +152,6 @@
 }
 
 @section Scripts {
+    <script src="~/js/excel-export.js" asp-append-version="true"></script>
     <script src="~/js/sales-orders.js" asp-append-version="true"></script>
 }

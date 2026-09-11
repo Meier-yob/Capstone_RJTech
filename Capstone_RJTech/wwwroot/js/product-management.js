@@ -1,6 +1,7 @@
 (() => {
     const pageElement = document.getElementById('productManagementPage');
-    const productRows = [...document.querySelectorAll('.product-row')];
+    let productRows = [...document.querySelectorAll('.product-row')];
+    const table = document.getElementById('productTable');
     const searchInput = document.getElementById('productSearch');
     const emptyRow = document.getElementById('emptyProducts');
     const pageSizeSelect = document.getElementById('productPageSize');
@@ -134,37 +135,22 @@
         window.showToast(result.message || 'Unable to delete product.', 'error');
     }
 
-    function downloadProductsCsv() {
-        const csvRows = [[
-            'Product Code', 'Product', 'Brand', 'Category',
-            'Status', 'Stock', 'Reorder Level', 'Selling Price'
-        ]];
+    async function deleteSelectedProducts(event) {
+        event.preventDefault();
+        const ids = event.detail?.ids ?? [];
+        if (!ids.length || !confirm(`Delete ${ids.length} selected products? This cannot be undone.`)) return;
 
-        getFilteredRows().forEach(row => {
-            const cells = row.querySelectorAll('td');
-            csvRows.push([
-                cells[0].innerText,
-                cells[1].querySelector('.product-name').innerText,
-                cells[1].querySelector('.product-meta').innerText,
-                cells[2].innerText,
-                cells[3].innerText,
-                cells[4].innerText,
-                cells[5].innerText,
-                cells[6].innerText
-            ]);
+        const response = await fetch(pageElement.dataset.bulkDeleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ids)
         });
-
-        const csv = csvRows
-            .map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(','))
-            .join('\n');
-        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-        const link = Object.assign(document.createElement('a'), {
-            href: url,
-            download: 'rjtech-products.csv'
-        });
-
-        link.click();
-        URL.revokeObjectURL(url);
+        const result = await response.json();
+        if (result.success) {
+            window.reloadWithToast(result.message || 'Selected products deleted successfully.');
+            return;
+        }
+        window.showToast(result.message || 'Unable to delete the selected products.', 'error');
     }
 
     searchInput.addEventListener('input', () => {
@@ -216,7 +202,16 @@
     document.querySelectorAll('.delete-product').forEach(button => {
         button.addEventListener('click', event => deleteProduct(button, event));
     });
-    // document.getElementById('exportProducts').addEventListener('click', downloadProductsCsv);
+    table?.addEventListener('table:bulk-delete', deleteSelectedProducts);
+    table?.addEventListener('table:sorted', () => {
+        productRows = [...document.querySelectorAll('.product-row')];
+        currentPage = 1;
+        renderProducts();
+    });
+    document.getElementById('exportProducts')?.addEventListener('click', event => {
+        const hasFilters = Boolean(searchInput.value.trim()) || selectedStatus !== 'all' || getSelectedCategories().size > 0;
+        window.rjtechExcelExport.download(event.currentTarget, getFilteredRows(), hasFilters);
+    });
 
     renderProducts();
 })();

@@ -1,25 +1,80 @@
 using Capstone_RJTech.Models;
+using Capstone_RJTech.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capstone_RJTech.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        private readonly ReportUpdateTracker? _reportUpdates;
+
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            ReportUpdateTracker? reportUpdates = null)
             : base(options)
         {
+            _reportUpdates = reportUpdates;
         }
+
+        public override int SaveChanges()
+            => SaveChanges(acceptAllChangesOnSuccess: true);
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            bool reportsChanged = HasReportSourceChanges();
+            int savedCount = base.SaveChanges(acceptAllChangesOnSuccess);
+            if (reportsChanged && savedCount > 0)
+                _reportUpdates?.MarkSourceChanged();
+            return savedCount;
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+            => SaveChangesAsync(acceptAllChangesOnSuccess: true, cancellationToken);
+
+        public override async Task<int> SaveChangesAsync(
+            bool acceptAllChangesOnSuccess,
+            CancellationToken cancellationToken = default)
+        {
+            bool reportsChanged = HasReportSourceChanges();
+            int savedCount = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            if (reportsChanged && savedCount > 0)
+                _reportUpdates?.MarkSourceChanged();
+            return savedCount;
+        }
+
+        private bool HasReportSourceChanges()
+            => ChangeTracker.Entries().Any(entry =>
+                (entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted) &&
+                entry.Entity is Product or ProductCategory or Delivery or Capstone_RJTech.Models.DeliveryDetails or
+                    Customer or Checkout or CheckoutItem);
 
         public DbSet<Product> Products => Set<Product>();
         public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
         public DbSet<Delivery> Deliveries => Set<Delivery>();
         public DbSet<DeliveryDetails> DeliveryDetails => Set<DeliveryDetails>();
         public DbSet<AppNotification> Notifications => Set<AppNotification>();
-        public DbSet<ScheduleEvent> ScheduleEvents => Set<ScheduleEvent>();
         public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<Checkout> Checkouts => Set<Checkout>();
         public DbSet<CheckoutItem> CheckoutItems => Set<CheckoutItem>();
-        public DbSet<DocumentSequence> DocumentSequences => Set<DocumentSequence>();
+        public DbSet<Installment> Installments => Set<Installment>();
+        public DbSet<InstallmentPayment> InstallmentPayments => Set<InstallmentPayment>();
+        public DbSet<CustomerPurchaseHistory> CustomerPurchaseHistories => Set<CustomerPurchaseHistory>();
+        public DbSet<SalesOverviewReport> SalesOverviews => Set<SalesOverviewReport>();
+        public DbSet<WeeklySalesReport> WeeklySales => Set<WeeklySalesReport>();
+        public DbSet<MonthlySalesReport> MonthlySales => Set<MonthlySalesReport>();
+        public DbSet<YearlySalesReport> YearlySales => Set<YearlySalesReport>();
+        public DbSet<BestSellingProductReport> BestSellingProducts => Set<BestSellingProductReport>();
+        public DbSet<LeastSellingProductReport> LeastSellingProducts => Set<LeastSellingProductReport>();
+        public DbSet<SalesByCategoryReport> SalesByCategories => Set<SalesByCategoryReport>();
+        public DbSet<TransactionReport> ReportTransactions => Set<TransactionReport>();
+        public DbSet<InventoryOverviewReport> InventoryOverviews => Set<InventoryOverviewReport>();
+        public DbSet<ProductStockSummaryReport> ProductStockSummaries => Set<ProductStockSummaryReport>();
+        public DbSet<ProductCategoryOverviewReport> ProductCategoryOverviews => Set<ProductCategoryOverviewReport>();
+        public DbSet<MostStockedProductReport> MostStockedProducts => Set<MostStockedProductReport>();
+        public DbSet<LeastStockedProductReport> LeastStockedProducts => Set<LeastStockedProductReport>();
+        public DbSet<DeliveryOverviewReport> DeliveryOverviews => Set<DeliveryOverviewReport>();
+        public DbSet<DeliverySummaryReport> DeliverySummaries => Set<DeliverySummaryReport>();
+        public DbSet<ProductDeliverySummaryReport> ProductDeliverySummaries => Set<ProductDeliverySummaryReport>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -66,10 +121,6 @@ namespace Capstone_RJTech.Data
                 .IsUnique();
 
             modelBuilder.Entity<Checkout>()
-                .HasIndex(checkout => checkout.CheckoutNumber)
-                .IsUnique();
-
-            modelBuilder.Entity<Checkout>()
                 .HasOne(checkout => checkout.Customer)
                 .WithMany(customer => customer.Checkouts)
                 .HasForeignKey(checkout => checkout.CustomerID)
@@ -89,8 +140,132 @@ namespace Capstone_RJTech.Data
 
             modelBuilder.Entity<CheckoutItem>()
                 .HasIndex(item => item.SerialNo)
-                .HasFilter("[SerialNo] IS NOT NULL")
+                .HasFilter("[SerialNo] IS NOT NULL");
+
+            modelBuilder.Entity<Checkout>()
+                .HasOne(checkout => checkout.Installment)
+                .WithOne(installment => installment.Checkout)
+                .HasForeignKey<Installment>(installment => installment.CheckoutID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Installment>()
+                .HasIndex(installment => installment.CheckoutID)
                 .IsUnique();
+
+            modelBuilder.Entity<InstallmentPayment>()
+                .HasOne(payment => payment.Installment)
+                .WithMany(installment => installment.InstallmentPayments)
+                .HasForeignKey(payment => payment.InstallmentID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CustomerPurchaseHistory>()
+                .HasOne(history => history.Customer)
+                .WithMany()
+                .HasForeignKey(history => history.CustomerID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CustomerPurchaseHistory>()
+                .HasOne(history => history.Checkout)
+                .WithMany()
+                .HasForeignKey(history => history.CheckoutID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<CustomerPurchaseHistory>()
+                .HasIndex(history => new { history.PurchaseDate, history.HistoryID });
+
+            modelBuilder.Entity<WeeklySalesReport>()
+                .HasIndex(report => report.WeekStartDate)
+                .IsUnique();
+
+            modelBuilder.Entity<MonthlySalesReport>()
+                .HasIndex(report => new { report.Year, report.Month })
+                .IsUnique();
+
+            modelBuilder.Entity<YearlySalesReport>()
+                .HasIndex(report => report.Year)
+                .IsUnique();
+
+            modelBuilder.Entity<BestSellingProductReport>()
+                .HasIndex(report => report.Period)
+                .IsUnique();
+
+            modelBuilder.Entity<LeastSellingProductReport>()
+                .HasIndex(report => report.Period)
+                .IsUnique();
+
+            modelBuilder.Entity<SalesByCategoryReport>()
+                .HasIndex(report => new { report.Period, report.CategoryID })
+                .IsUnique();
+
+            modelBuilder.Entity<TransactionReport>()
+                .HasIndex(report => report.CheckoutID)
+                .IsUnique();
+
+            modelBuilder.Entity<BestSellingProductReport>()
+                .HasOne(report => report.Product)
+                .WithMany()
+                .HasForeignKey(report => report.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LeastSellingProductReport>()
+                .HasOne(report => report.Product)
+                .WithMany()
+                .HasForeignKey(report => report.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SalesByCategoryReport>()
+                .HasOne(report => report.Category)
+                .WithMany()
+                .HasForeignKey(report => report.CategoryID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TransactionReport>()
+                .HasOne(report => report.Checkout)
+                .WithMany()
+                .HasForeignKey(report => report.CheckoutID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TransactionReport>()
+                .HasOne(report => report.Customer)
+                .WithMany()
+                .HasForeignKey(report => report.CustomerID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ProductStockSummaryReport>()
+                .HasOne(report => report.Product)
+                .WithMany()
+                .HasForeignKey(report => report.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductCategoryOverviewReport>()
+                .HasOne(report => report.Category)
+                .WithMany()
+                .HasForeignKey(report => report.CategoryID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MostStockedProductReport>()
+                .HasOne(report => report.Product)
+                .WithMany()
+                .HasForeignKey(report => report.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<LeastStockedProductReport>()
+                .HasOne(report => report.Product)
+                .WithMany()
+                .HasForeignKey(report => report.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DeliverySummaryReport>()
+                .HasOne(report => report.Delivery)
+                .WithMany()
+                .HasForeignKey(report => report.DeliveryID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ProductDeliverySummaryReport>()
+                .HasOne(report => report.Product)
+                .WithMany()
+                .HasForeignKey(report => report.ProductID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ProductCategory>().HasData(
                 new ProductCategory { category_ID = 1, category_name = "Monitors" },

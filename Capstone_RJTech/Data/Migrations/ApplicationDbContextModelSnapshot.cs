@@ -66,6 +66,41 @@ namespace Capstone_RJTech.Data.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("Capstone_RJTech.Models.BestSellingProductReport", b =>
+                {
+                    b.Property<int>("BestSellingID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BestSellingID"));
+
+                    b.Property<DateTime>("DateGenerated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantitySold")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSalesAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("BestSellingID");
+
+                    b.HasIndex("Period")
+                        .IsUnique();
+
+                    b.HasIndex("ProductID");
+
+                    b.ToTable("tblBestSellingProduct");
+                });
+
             modelBuilder.Entity("Capstone_RJTech.Models.Checkout", b =>
                 {
                     b.Property<int>("CheckoutID")
@@ -73,9 +108,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CheckoutID"));
-
-                    b.Property<int>("CheckoutNumber")
-                        .HasColumnType("int");
 
                     b.Property<int>("CustomerID")
                         .HasColumnType("int");
@@ -88,6 +120,11 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -97,9 +134,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("CheckoutID");
-
-                    b.HasIndex("CheckoutNumber")
-                        .IsUnique();
 
                     b.HasIndex("CustomerID");
 
@@ -140,7 +174,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("ProductID");
 
                     b.HasIndex("SerialNo")
-                        .IsUnique()
                         .HasFilter("[SerialNo] IS NOT NULL");
 
                     b.ToTable("tblCheckoutItem");
@@ -180,6 +213,42 @@ namespace Capstone_RJTech.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("tblCustomer");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.CustomerPurchaseHistory", b =>
+                {
+                    b.Property<int>("HistoryID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("HistoryID"));
+
+                    b.Property<int>("CheckoutID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CustomerID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("PurchaseDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("HistoryID");
+
+                    b.HasIndex("CheckoutID");
+
+                    b.HasIndex("CustomerID");
+
+                    b.HasIndex("PurchaseDate", "HistoryID");
+
+                    b.ToTable("tblCustomerPurchaseHistory");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Delivery", b =>
@@ -246,18 +315,256 @@ namespace Capstone_RJTech.Data.Migrations
                     b.ToTable("DeliveryDetails");
                 });
 
-            modelBuilder.Entity("Capstone_RJTech.Models.DocumentSequence", b =>
+            modelBuilder.Entity("Capstone_RJTech.Models.DeliveryOverviewReport", b =>
                 {
-                    b.Property<string>("sequence_name")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
 
-                    b.Property<int>("last_value")
+                    b.Property<DateTime?>("LastDeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalDeliveries")
                         .HasColumnType("int");
 
-                    b.HasKey("sequence_name");
+                    b.Property<int>("TotalItemsDelivered")
+                        .HasColumnType("int");
 
-                    b.ToTable("DocumentSequences");
+                    b.Property<int>("TotalProductsDelivered")
+                        .HasColumnType("int");
+
+                    b.HasKey("LastUpdated");
+
+                    b.ToTable("tblDeliveryOverview");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.DeliverySummaryReport", b =>
+                {
+                    b.Property<int>("DeliveryID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalItems")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalProducts")
+                        .HasColumnType("int");
+
+                    b.HasKey("DeliveryID");
+
+                    b.ToTable("tblDeliverySummary");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.Installment", b =>
+                {
+                    b.Property<int>("InstallmentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InstallmentID"));
+
+                    b.Property<decimal>("Balance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CheckoutID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DownPayment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("InterestRate")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("MonthlyPayment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Months")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonthsPaid")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonthsRemaining")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("InstallmentID");
+
+                    b.HasIndex("CheckoutID")
+                        .IsUnique();
+
+                    b.ToTable("tblInstallment");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.InstallmentPayment", b =>
+                {
+                    b.Property<int>("PaymentID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentID"));
+
+                    b.Property<int>("InstallmentID")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PaymentAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("PaymentID");
+
+                    b.HasIndex("InstallmentID");
+
+                    b.ToTable("tblInstallmentPayment");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.InventoryOverviewReport", b =>
+                {
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("AvailableProducts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LowStockProducts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OutOfStockProducts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalProducts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnavailableProducts")
+                        .HasColumnType("int");
+
+                    b.HasKey("LastUpdated");
+
+                    b.ToTable("tblInventoryOverview");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.LeastSellingProductReport", b =>
+                {
+                    b.Property<int>("LeastSellingID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeastSellingID"));
+
+                    b.Property<DateTime>("DateGenerated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantitySold")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSalesAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("LeastSellingID");
+
+                    b.HasIndex("Period")
+                        .IsUnique();
+
+                    b.HasIndex("ProductID");
+
+                    b.ToTable("tblLeastSellingProduct");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.LeastStockedProductReport", b =>
+                {
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ProductID");
+
+                    b.ToTable("tblLeastStockedProduct");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.MonthlySalesReport", b =>
+                {
+                    b.Property<int>("MonthlySalesID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MonthlySalesID"));
+
+                    b.Property<int>("Month")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalItemsSold")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalTransactions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("MonthlySalesID");
+
+                    b.HasIndex("Year", "Month")
+                        .IsUnique();
+
+                    b.ToTable("tblMonthlySales");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.MostStockedProductReport", b =>
+                {
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ProductID");
+
+                    b.ToTable("tblMostStockedProduct");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Product", b =>
@@ -383,41 +690,251 @@ namespace Capstone_RJTech.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Capstone_RJTech.Models.ScheduleEvent", b =>
+            modelBuilder.Entity("Capstone_RJTech.Models.ProductCategoryOverviewReport", b =>
                 {
-                    b.Property<int>("event_ID")
+                    b.Property<int>("CategoryID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("AvailableQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalProducts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnavailableQuantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("CategoryID");
+
+                    b.ToTable("tblProductCategoryOverview");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.ProductDeliverySummaryReport", b =>
+                {
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastDeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalDeliveries")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalQuantityDelivered")
+                        .HasColumnType("int");
+
+                    b.HasKey("ProductID");
+
+                    b.ToTable("tblProductDeliverySummary");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.ProductStockSummaryReport", b =>
+                {
+                    b.Property<int>("ProductID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CurrentQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ReorderLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StockStatus")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("ProductID");
+
+                    b.ToTable("tblProductStockSummary");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.SalesByCategoryReport", b =>
+                {
+                    b.Property<int>("SalesCategoryID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("event_ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SalesCategoryID"));
 
-                    b.Property<string>("color")
+                    b.Property<int>("CategoryID")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateGenerated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Period")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<TimeSpan>("end_time")
-                        .HasColumnType("time");
+                    b.Property<int>("TotalQuantitySold")
+                        .HasColumnType("int");
 
-                    b.Property<DateTime>("event_date")
+                    b.Property<decimal>("TotalSalesAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("SalesCategoryID");
+
+                    b.HasIndex("CategoryID");
+
+                    b.HasIndex("Period", "CategoryID")
+                        .IsUnique();
+
+                    b.ToTable("tblSalesByCategory");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.SalesOverviewReport", b =>
+                {
+                    b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("notes")
+                    b.Property<DateTime?>("LastSaleDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("MonthlySales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TodaySales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalCustomers")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalItemsSold")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalTransactions")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("WeeklySales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("YearlySales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("LastUpdated");
+
+                    b.ToTable("tblSalesOverview");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.TransactionReport", b =>
+                {
+                    b.Property<int>("TransactionID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionID"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CheckoutID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CustomerID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PaymentMethod")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.Property<TimeSpan>("start_time")
-                        .HasColumnType("time");
-
-                    b.Property<string>("title")
+                    b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
-                    b.HasKey("event_ID");
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
 
-                    b.ToTable("ScheduleEvents");
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("TransactionID");
+
+                    b.HasIndex("CheckoutID")
+                        .IsUnique();
+
+                    b.HasIndex("CustomerID");
+
+                    b.ToTable("tblTransaction");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.WeeklySalesReport", b =>
+                {
+                    b.Property<int>("WeeklySalesID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WeeklySalesID"));
+
+                    b.Property<int>("TotalItemsSold")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalTransactions")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("WeekEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("WeekStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("WeeklySalesID");
+
+                    b.HasIndex("WeekStartDate")
+                        .IsUnique();
+
+                    b.ToTable("tblWeeklySales");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.YearlySalesReport", b =>
+                {
+                    b.Property<int>("YearlySalesID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("YearlySalesID"));
+
+                    b.Property<int>("TotalItemsSold")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalSales")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("TotalTransactions")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("int");
+
+                    b.HasKey("YearlySalesID");
+
+                    b.HasIndex("Year")
+                        .IsUnique();
+
+                    b.ToTable("tblYearlySales");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.AppNotification", b =>
@@ -426,6 +943,17 @@ namespace Capstone_RJTech.Data.Migrations
                         .WithMany()
                         .HasForeignKey("product_ID")
                         .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.BestSellingProductReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Checkout", b =>
@@ -458,6 +986,25 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Capstone_RJTech.Models.CustomerPurchaseHistory", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Checkout", "Checkout")
+                        .WithMany()
+                        .HasForeignKey("CheckoutID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Capstone_RJTech.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Checkout");
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("Capstone_RJTech.Models.DeliveryDetails", b =>
                 {
                     b.HasOne("Capstone_RJTech.Models.Delivery", "Delivery")
@@ -477,6 +1024,72 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Capstone_RJTech.Models.DeliverySummaryReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Delivery", "Delivery")
+                        .WithMany()
+                        .HasForeignKey("DeliveryID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Delivery");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.Installment", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Checkout", "Checkout")
+                        .WithOne("Installment")
+                        .HasForeignKey("Capstone_RJTech.Models.Installment", "CheckoutID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Checkout");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.InstallmentPayment", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Installment", "Installment")
+                        .WithMany("InstallmentPayments")
+                        .HasForeignKey("InstallmentID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Installment");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.LeastSellingProductReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.LeastStockedProductReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.MostStockedProductReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Capstone_RJTech.Models.Product", b =>
                 {
                     b.HasOne("Capstone_RJTech.Models.ProductCategory", "Category")
@@ -488,9 +1101,74 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Navigation("Category");
                 });
 
+            modelBuilder.Entity("Capstone_RJTech.Models.ProductCategoryOverviewReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.ProductCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.ProductDeliverySummaryReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.ProductStockSummaryReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.SalesByCategoryReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.ProductCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.TransactionReport", b =>
+                {
+                    b.HasOne("Capstone_RJTech.Models.Checkout", "Checkout")
+                        .WithMany()
+                        .HasForeignKey("CheckoutID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Capstone_RJTech.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Checkout");
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("Capstone_RJTech.Models.Checkout", b =>
                 {
                     b.Navigation("CheckoutItems");
+
+                    b.Navigation("Installment");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Customer", b =>
@@ -501,6 +1179,11 @@ namespace Capstone_RJTech.Data.Migrations
             modelBuilder.Entity("Capstone_RJTech.Models.Delivery", b =>
                 {
                     b.Navigation("DeliveryDetails");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.Installment", b =>
+                {
+                    b.Navigation("InstallmentPayments");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Product", b =>

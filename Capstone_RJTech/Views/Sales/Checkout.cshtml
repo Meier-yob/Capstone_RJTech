@@ -2,9 +2,12 @@
 @using System.Text.Json
 
 @{
-    ViewData["Title"] = "New Sales Order";
+    ViewData["Title"] = "New Checkout";
     var initialItemsJson = JsonSerializer.Serialize(
         Model.Items,
+        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+    var initialProductsJson = JsonSerializer.Serialize(
+        Model.AvailableProducts,
         new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 }
 
@@ -19,124 +22,107 @@
     <nav aria-label="breadcrumb" class="print-hidden">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
-            <li class="breadcrumb-item"><a asp-action="SalesOrders">Sales Orders</a></li>
-            <li class="breadcrumb-item active">Checkout</li>
+            <li class="breadcrumb-item"><a asp-action="SalesOrders">Sales</a></li>
+            <li class="breadcrumb-item active">New Checkout</li>
         </ol>
     </nav>
 
     <div class="page-heading checkout-heading print-hidden">
         <div>
-            <h1>New Sales Order</h1>
-            <p>Create a customer sale and update inventory in one transaction.</p>
+            <h1>New Checkout</h1>
+            <p>Create a customer sale in a few simple steps.</p>
         </div>
     </div>
 
     <div class="checkout-layout">
         <div class="checkout-main">
-            <section class="app-card checkout-section">
+            <section class="app-card checkout-section checkout-customer-card">
                 <div class="section-heading">
-                    <div><span class="section-step">1</span><h2>Customer Details</h2></div>
+                    <div><span class="section-step">1</span><h2>Customer Information</h2></div>
                     <small>Search an existing customer or enter a new one.</small>
                 </div>
 
                 <input id="customerId" type="hidden" value="@Model.CustomerID" />
                 <div class="row g-3">
                     <div class="col-12 customer-search-shell">
-                        <label class="form-label" for="customerFullName">Customer Full Name</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-search"></i></span>
-                            <input id="customerFullName" class="form-control" type="text"
-                                   value="@Model.CustomerFullName" placeholder="Start typing a customer name..."
-                                   autocomplete="off" maxlength="150" required />
+                            <input id="customerSearch" class="form-control" type="search"
+                                   placeholder="Search existing customer by name, phone, or email..."
+                                   autocomplete="off" />
                         </div>
                         <div id="customerSearchResults" class="live-search-results app-card d-none"></div>
                     </div>
-                    <div class="col-md-7">
-                        <label class="form-label" for="customerEmail">Email</label>
-                        <input id="customerEmail" class="form-control" type="email" value="@Model.CustomerEmail"
-                               placeholder="customer@gmail.com" maxlength="200"
-                               pattern="^[^@@\s]+@@[Gg][Mm][Aa][Ii][Ll]\.[Cc][Oo][Mm]$"
-                               title="Enter a valid Gmail address, such as customer@gmail.com" required />
+                    <div class="col-lg-4">
+                        <label class="form-label" for="customerFullName">Full Name</label>
+                        <input id="customerFullName" class="form-control" type="text"
+                               value="@Model.CustomerFullName" placeholder="Enter full name"
+                               autocomplete="off" maxlength="150" required />
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-lg-4">
                         <label class="form-label" for="customerPhone">Phone</label>
                         <input id="customerPhone" class="form-control" type="tel" value="@Model.CustomerPhone"
-                               placeholder="09XXXXXXXXX" inputmode="numeric" pattern="[0-9]{11}"
+                               placeholder="Enter 11-digit phone number" inputmode="numeric" pattern="[0-9]{11}"
                                minlength="11" maxlength="11" title="Enter exactly 11 numeric digits" required />
+                    </div>
+                    <div class="col-lg-4">
+                        <label class="form-label" for="customerEmail">Email</label>
+                        <input id="customerEmail" class="form-control" type="email" value="@Model.CustomerEmail"
+                               placeholder="Enter Gmail address" maxlength="200"
+                               pattern="^[^@@\s]+@@[Gg][Mm][Aa][Ii][Ll]\.[Cc][Oo][Mm]$"
+                               title="Enter a valid Gmail address, such as customer@gmail.com" required />
                     </div>
                     <div class="col-12">
                         <label class="form-label" for="customerAddress">Address</label>
                         <textarea id="customerAddress" class="form-control" rows="2" maxlength="300"
-                                  placeholder="Complete customer address" required>@Model.CustomerAddress</textarea>
+                                  placeholder="Enter complete address" required>@Model.CustomerAddress</textarea>
                     </div>
                 </div>
             </section>
 
-            <section class="app-card checkout-section">
+            <section class="app-card checkout-section checkout-products-card">
                 <div class="section-heading">
-                    <div><span class="section-step">2</span><h2>Add Product</h2></div>
-                    <small>Items remain temporary until checkout is completed.</small>
+                    <div><span class="section-step">2</span><h2>Add Products</h2></div>
+                    <small>Search and add products to this order.</small>
                 </div>
 
                 <div class="product-search-shell mb-3">
-                    <label class="form-label" for="productSearch">Search Product</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
                         <input id="productSearch" class="form-control" type="search"
-                               placeholder="Search by name, code, brand, or category..." autocomplete="off" />
+                               placeholder="Search product by name, code, brand, or category..." autocomplete="off" />
                     </div>
-                    <div id="productSearchResults" class="live-search-results app-card d-none"></div>
-                </div>
-
-                <div id="selectedProductPanel" class="selected-product-panel d-none">
-                    <div class="selected-product-summary">
-                        <div>
-                            <strong id="selectedProductName"></strong>
-                            <span id="selectedProductMeta"></span>
-                        </div>
-                        <div class="stock-pill">Available: <strong id="selectedProductStock">0</strong></div>
-                    </div>
-                    <div class="row g-3 align-items-end">
-                        <div class="col-lg-3 col-md-4">
-                            <label class="form-label" for="itemQuantity">Quantity</label>
-                            <input id="itemQuantity" class="form-control" type="number" min="1" step="1" value="1" />
-                        </div>
-                        <div class="col-lg-3 col-md-4">
-                            <label class="form-label" for="itemPrice">Price</label>
-                            <input id="itemPrice" class="form-control" type="text" readonly />
-                        </div>
-                        <div class="col-lg-3 col-md-4">
-                            <label class="form-label" for="itemSubtotal">Subtotal</label>
-                            <input id="itemSubtotal" class="form-control" type="text" readonly />
-                        </div>
-                        <div class="col-lg-3 d-grid">
-                            <button id="addCheckoutItem" class="btn btn-primary" type="button"><i class="bi bi-plus-lg me-1"></i><span>Add Item</span></button>
-                        </div>
-                    </div>
-                    <div class="serial-entry-section">
-                        <div class="serial-entry-heading">
-                            <label class="form-label mb-0">Serial Numbers</label>
-                            <small>One unique serial number is required for each unit.</small>
-                        </div>
-                        <div id="serialInputsContainer" class="serial-inputs-grid"></div>
-                    </div>
+                    <div id="productSearchResults" class="checkout-product-results d-none"></div>
                 </div>
             </section>
 
-            <section class="app-card checkout-section">
+            <section class="app-card checkout-section checkout-selected-card">
                 <div class="section-heading">
                     <div><span class="section-step">3</span><h2>Selected Items</h2></div>
-                    <span id="selectedItemsCount" class="badge text-bg-primary">0 items</span>
+                    <small>Set quantity and enter one unique serial number for every unit.</small>
                 </div>
 
                 <div class="table-responsive checkout-items-table-wrap">
-                    <table class="table app-table checkout-items-table">
-                        <thead><tr><th>Product</th><th>Serial Number</th><th class="text-end">Quantity</th><th class="text-end">Price</th><th class="text-end">Subtotal</th><th class="text-end">Remove</th></tr></thead>
+                    <table class="table app-table checkout-items-table" data-no-selection="true">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Serial Number</th>
+                                <th>Qty</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Subtotal</th>
+                                <th class="text-end">Remove</th>
+                            </tr>
+                        </thead>
                         <tbody id="checkoutItemsBody"></tbody>
                     </table>
                     <div id="emptyCheckoutItems" class="checkout-empty-items">
                         <i class="bi bi-cart3"></i><strong>No items added</strong><span>Search for a product and add it to this order.</span>
                     </div>
+                </div>
+                <div id="checkoutItemsTotalBar" class="checkout-items-total-bar d-none">
+                    <span>Items Total (<strong id="selectedItemsCount">0 items</strong>)</span>
+                    <strong id="selectedItemsTotal">₱0.00</strong>
                 </div>
                 <div id="checkoutItemsFooter" class="list-footer d-none">
                     <div id="checkoutItemsRange" class="small text-muted">Showing 0 items</div>
@@ -147,33 +133,116 @@
 
         <aside class="checkout-sidebar">
             <section class="app-card checkout-section checkout-summary-card">
-                <h2>Order Summary</h2>
-                <div class="mb-3">
+                <div class="checkout-summary-heading">
+                    <span class="summary-heading-icon"><i class="bi bi-receipt"></i></span>
+                    <h2>Order Summary</h2>
+                </div>
+
+                <div class="summary-field">
+                    <label class="form-label d-block">Payment Type</label>
+                    <div class="btn-group payment-type-switch w-100" role="group" aria-label="Payment type">
+                        <input class="btn-check" type="radio" name="paymentType" id="paymentTypeFull"
+                               value="Full Payment" checked />
+                        <label class="btn btn-outline-primary" for="paymentTypeFull">Full Payment</label>
+                        <input class="btn-check" type="radio" name="paymentType" id="paymentTypeInstallment"
+                               value="Installment" />
+                        <label class="btn btn-outline-primary" for="paymentTypeInstallment">Installment</label>
+                    </div>
+                </div>
+
+                <div class="summary-field">
                     <label class="form-label" for="paymentMethod">Payment Method</label>
-                    <select id="paymentMethod" class="form-select">
-                        @foreach (var payment in new[] { "Cash", "GCash", "Maya", "Bank Transfer" })
-                        {
-                            <option value="@payment" selected="@(Model.PaymentMethod == payment)">@payment</option>
-                        }
-                    </select>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-wallet2"></i></span>
+                        <select id="paymentMethod" class="form-select">
+                            @foreach (var payment in new[] { "Cash", "E-Wallet", "Bank Transfer" })
+                            {
+                                <option value="@payment" selected="@(Model.PaymentMethod == payment)">@payment</option>
+                            }
+                        </select>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label" for="datePurchased">Date Purchased</label>
-                    <input id="datePurchased" class="form-control" type="text"
-                           value="@Model.DatePurchased.ToString("MMM d, yyyy h:mm tt")" readonly />
+
+                <div class="summary-meta-grid">
+                    <div>
+                        <label class="form-label" for="datePurchased">Date Purchased</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                            <input id="datePurchased" class="form-control" type="text"
+                                   value="@Model.DatePurchased.ToString("MMM d, yyyy")" readonly />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label">Status</label>
+                        <div><span id="checkoutStatus" class="sales-status status-paid">Paid</span></div>
+                    </div>
                 </div>
-                <div class="mb-4">
-                    <label class="form-label" for="checkoutStatus">Status</label>
-                    <input id="checkoutStatus" class="form-control" type="text" value="Completed" readonly />
+
+                <div class="checkout-summary-totals">
+                    <div>
+                        <span>Items</span>
+                        <strong id="summaryItemCount">0</strong>
+                    </div>
+                    <div class="text-end">
+                        <span>Total Amount</span>
+                        <strong id="checkoutTotal">₱0.00</strong>
+                    </div>
                 </div>
-                <div class="summary-line"><span>Items</span><strong id="summaryItemCount">0</strong></div>
-                <div class="summary-total"><span>Total Amount</span><strong id="checkoutTotal">₱0.00</strong></div>
+
+                <div id="installmentFields" class="installment-fields d-none">
+                    <h3>Installment Options</h3>
+                    <div class="installment-options-grid">
+                        <div>
+                            <label class="form-label" for="installmentMonths">Installment Term</label>
+                            <select id="installmentMonths" class="form-select">
+                                <option value="6">6 Months</option>
+                                <option value="12" selected>12 Months</option>
+                                <option value="18">18 Months</option>
+                                <option value="24">24 Months</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" for="downPayment">Down Payment</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input id="downPayment" class="form-control" type="number" min="0" step="0.01"
+                                       value="0.00" readonly aria-readonly="true" />
+                            </div>
+                        </div>
+                        <div class="installment-rate-field">
+                            <label class="form-label" for="interestRate">Interest Rate / Month</label>
+                            <div class="input-group">
+                                <input id="interestRate" class="form-control" type="number" value="5.00" readonly aria-readonly="true" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="installmentSummary" class="installment-summary d-none">
+                    <h3>Installment Summary</h3>
+                    <div class="summary-line"><span>Original Amount</span><strong id="installmentOriginal">₱0.00</strong></div>
+                    <div class="summary-line"><span>Down Payment</span><strong id="installmentDownPayment">-₱0.00</strong></div>
+                    <div class="summary-line"><span>Remaining Principal</span><strong id="installmentPrincipal">₱0.00</strong></div>
+                    <div class="summary-line"><span>Interest</span><strong id="installmentInterest">₱0.00</strong></div>
+                    <div class="summary-line installment-total-line"><span>Installment Total</span><strong id="installmentTotal">₱0.00</strong></div>
+                    <div class="monthly-payment-callout">
+                        <span>Monthly Payment</span>
+                        <strong id="monthlyPayment">₱0.00</strong>
+                        <small>/ month</small>
+                    </div>
+                    <div class="installment-period-grid">
+                        <div><span>Months</span><strong id="summaryMonths">12</strong></div>
+                        <div><span>Months Paid</span><strong>0</strong></div>
+                        <div><span>Months Remaining</span><strong id="summaryMonthsRemaining">12</strong></div>
+                    </div>
+                </div>
                 <div class="checkout-summary-actions">
                     <a asp-action="SalesOrders" class="btn btn-outline-secondary" id="cancelCheckout">Cancel</a>
                     <button class="btn btn-primary" type="button" id="completeCheckout" disabled>
                         <span class="spinner-border spinner-border-sm d-none me-1" aria-hidden="true"></span>
                         <i class="bi bi-check2-circle me-1"></i>
-                        Complete Checkout
+                        <span id="checkoutSubmitLabel">Complete Checkout</span>
                     </button>
                 </div>
             </section>
@@ -192,9 +261,11 @@
 </div>
 
 <script id="initialCheckoutItems" type="application/json">@Html.Raw(initialItemsJson)</script>
+<script id="initialCheckoutProducts" type="application/json">@Html.Raw(initialProductsJson)</script>
 
 @section Styles {
     <link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
 }
 
 @section Scripts {

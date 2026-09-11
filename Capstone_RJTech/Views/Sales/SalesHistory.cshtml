@@ -1,0 +1,120 @@
+@model IEnumerable<CustomerPurchaseHistory>
+@{
+    ViewData["Title"] = "Sales History";
+}
+
+<div class="app-page sales-page" id="salesHistoryPage">
+    @Html.AntiForgeryToken()
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Sales History</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading">
+        <div>
+            <h1>Sales History</h1>
+            <p>View all customer payments, including full payments and instalments.</p>
+        </div>
+    </div>
+
+    <div class="toolbar sales-history-toolbar">
+        <div class="input-group search-control">
+            <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+            <input id="historySearch" class="form-control" type="search" autocomplete="off"
+                   aria-label="Search sales history" placeholder="Search history ID, customer or checkout..." />
+        </div>
+        <select id="historyDateFilter" class="form-select history-filter" aria-label="Filter by purchase date">
+            <option value="all">All dates</option>
+            <option value="today">Today</option>
+            <option value="week">Last 7 days</option>
+            <option value="month">This month</option>
+            <option value="custom">Custom dates</option>
+        </select>
+        <select id="historyMethodFilter" class="form-select history-filter" aria-label="Filter by payment method">
+            <option value="all">All methods</option>
+            @foreach (var method in Model.Select(payment => payment.PaymentMethod).Distinct().OrderBy(method => method))
+            {
+                <option value="@method">@method</option>
+            }
+        </select>
+        <button id="exportSalesHistory" class="btn btn-success text-nowrap" type="button"
+                data-export-url="@Url.Action("SalesHistory", "ExcelExport")">
+            <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Export Excel
+        </button>
+    </div>
+
+    <div id="historyCustomDates" class="history-date-range d-none">
+        <div><label for="historyDateFrom" class="form-label">From</label><input id="historyDateFrom" type="date" class="form-control" /></div>
+        <div><label for="historyDateTo" class="form-label">To</label><input id="historyDateTo" type="date" class="form-control" /></div>
+        <span id="historyDateError" class="text-danger small" role="alert"></span>
+    </div>
+
+    <div class="app-card management-card">
+        <div class="table-responsive management-table-responsive">
+            <table class="table app-table" id="salesHistoryTable">
+                <thead>
+                    <tr>
+                        <th scope="col">History code</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Checkout code</th>
+                        <th scope="col">Payment type</th>
+                        <th scope="col">Payment method</th>
+                        <th scope="col">Purchase date</th>
+                        <th scope="col" class="text-end">Total amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var payment in Model)
+                    {
+                        var customerName = payment.Customer?.customer_FullName ?? "Unknown customer";
+                        var initials = string.Concat(customerName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                            .Take(2).Select(part => char.ToUpperInvariant(part[0])));
+                        var checkoutCode = $"CHK-{payment.CheckoutID:D3}";
+                        var paymentType = payment.Checkout?.PaymentType ?? "Unknown";
+                        var search = $"{payment.FormattedHistoryID} {customerName} CUS-{payment.CustomerID:D3} {checkoutCode} {paymentType}".ToLowerInvariant();
+                        <tr class="sales-history-row" data-id="@payment.HistoryID" data-search="@search"
+                            data-date="@payment.PurchaseDate.ToString("yyyy-MM-dd")" data-method="@payment.PaymentMethod">
+                            <td class="fw-bold" data-sort-value="@payment.HistoryID">@payment.FormattedHistoryID</td>
+                            <td data-sort-value="@customerName">
+                                <div class="customer-identity">
+                                    <span class="customer-avatar" aria-hidden="true">@initials</span>
+                                    <span class="customer-name">@customerName</span>
+                                </div>
+                            </td>
+                            <td><a style="text-decoration:none; color: var(--theme-text, #475467);" class="fw-bold" asp-action="SelectedCheckoutDetails" asp-route-id="@payment.CheckoutID">@checkoutCode</a></td>
+                            <td class="fw-semibold">@paymentType</td>
+                            <td>@payment.PaymentMethod</td>
+                            <td data-sort-value="@payment.PurchaseDate.ToString("yyyy-MM-dd")">@payment.PurchaseDate.ToString("MMM d, yyyy")</td>
+                            <td class="text-end fw-bold">₱@payment.TotalAmount.ToString("N2")</td>
+                            
+                        </tr>
+                    }
+                    <tr id="emptySalesHistory" class="@(Model.Any() ? "d-none" : "")">
+                        <td colspan="7"><div class="empty-state"><i class="bi bi-clock-history" aria-hidden="true"></i><span>No payments recorded yet.</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="list-footer">
+            <div id="historyRangeText" class="small text-muted" role="status" aria-live="polite"></div>
+            <div class="d-flex align-items-center gap-2">
+                <label for="historyPageSize" class="small text-muted text-nowrap">Items per page</label>
+                <select id="historyPageSize" class="form-select form-select-sm page-size-select">
+                    <option value="5">5</option><option value="10" selected>10</option><option value="25">25</option>
+                </select>
+            </div>
+            <nav aria-label="Sales history pages"><ul id="historyPagination" class="pagination pagination-sm mb-0"></ul></nav>
+        </div>
+    </div>
+    <p class="small text-muted mt-3">Each row records the amount received in one payment, including instalment down payments and subsequent payments.</p>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/sales.css" asp-append-version="true" />
+}
+@section Scripts {
+    <script src="~/js/excel-export.js" asp-append-version="true"></script>
+    <script src="~/js/sales-history.js" asp-append-version="true"></script>
+}

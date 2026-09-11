@@ -1,0 +1,535 @@
+/* Installment management and details */
+
+.installment-page {
+    background: var(--theme-surface-soft, #f8fafc);
+}
+
+.installment-card-heading > span {
+    align-items: center;
+    background: var(--theme-blue-soft, #e7f2ff);
+    border-radius: 0.5rem;
+    color: var(--theme-blue, #0d6efd);
+    display: inline-flex;
+    flex: 0 0 30px;
+    height: 30px;
+    justify-content: center;
+    width: 30px;
+}
+
+.installment-card-heading {
+    align-items: center;
+    display: flex;
+    gap: 0.65rem;
+}
+
+.installment-card-heading h2 {
+    color: var(--theme-strong, #101828);
+    font-size: 1rem;
+    font-weight: 650;
+    margin: 0;
+}
+
+.installment-card-heading p {
+    color: var(--theme-muted, #667085);
+    font-size: 0.75rem;
+    margin: 0.18rem 0 0;
+}
+
+.installment-toolbar .installment-search {
+    max-width: 480px;
+}
+
+.installment-progress-filter {
+    max-width: 180px;
+}
+
+.installment-payment-modal .form-control,
+.installment-payment-modal .form-select {
+    min-height: 38px;
+}
+
+.installment-search .input-group-text {
+    background: var(--theme-surface, #fff);
+    border-right: 0;
+    color: var(--theme-muted, #98a2b3);
+}
+
+.installment-search .form-control {
+    border-left: 0;
+    gap:5px;
+}
+
+.installment-table-wrap {
+    border: 1px solid var(--theme-border, #eaecf0);
+    border-radius: 0.65rem;
+}
+
+.installment-table {
+    margin: 0;
+    min-width: 1050px;
+}
+
+.installment-table thead th {
+    background: var(--theme-surface-soft, #f8fafc);
+    color: var(--theme-text, #475467);
+    font-size: 0.71rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 0.55rem 0.65rem;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.installment-table tbody td {
+    color: var(--theme-text, #344054);
+    font-size: 0.78rem;
+    padding: 0.5rem 0.65rem;
+    vertical-align: middle;
+}
+
+.installment-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.installment-code,
+.checkout-code {
+    color: var(--theme-blue, #0d6efd);
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.installment-code {
+    color: var(--theme-text, #475467);
+    font-weight: 650;
+}
+.checkout-code {
+    color: var(--theme-text, #475467);
+    font-weight: 650;
+}
+
+.installment-code:hover,
+.checkout-code:hover {
+    text-decoration: none;
+}
+
+.installment-customer-name {
+    color: var(--theme-strong, #101828);
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.installment-customer-contact {
+    color: var(--theme-muted, #667085);
+    font-size: 0.73rem;
+    margin-top: 0.1rem;
+}
+
+.amount-cell {
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.balance-overdue {
+    color: var(--theme-amber, #b45309) !important;
+}
+
+.balance-completed {
+    color: var(--theme-green, #15803d) !important;
+}
+
+.progress-copy {
+    margin-bottom: 0.28rem;
+    white-space: nowrap;
+}
+
+.progress-copy span {
+    color: var(--theme-muted, #667085);
+}
+
+.installment-progress,
+.summary-progress {
+    background: var(--theme-surface-soft, #e9eef5);
+    height: 4px;
+    min-width: 85px;
+}
+
+.installment-progress .progress-bar,
+.summary-progress .progress-bar {
+    background: #0d6efd;
+}
+
+.installment-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.72rem;
+    font-weight: 650;
+    padding: 0.3rem 0.58rem;
+}
+
+.installment-status.status-active {
+    background: var(--theme-blue-soft, #dbeafe);
+    color: var(--theme-blue, #1d4ed8);
+}
+
+.installment-status.status-overdue {
+    background: var(--theme-amber-soft, #fef3c7);
+    color: var(--theme-amber, #a16207);
+}
+
+.installment-status.status-completed {
+    background: var(--theme-green-soft, #dcfce7);
+    color: var(--theme-green, #15803d);
+}
+
+.installment-list-footer {
+    border-top: 0;
+    padding: 0.9rem 0 0;
+}
+
+.installment-list-footer .form-select {
+    min-height: 32px;
+}
+
+.installment-heading-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.installment-details-heading {
+    align-items: center;
+}
+
+.installment-details-grid {
+    align-items: start;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 380px);
+}
+
+.installment-details-main {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.installment-detail-card {
+    min-width: 0;
+    padding: 1rem;
+}
+
+.installment-payment-table-wrap {
+    border: 1px solid var(--theme-border, #eaecf0);
+    border-radius: 0.65rem;
+}
+
+.installment-payment-history-table {
+    margin: 0;
+    min-width: 520px;
+}
+
+.installment-payment-history-table thead th {
+    background: var(--theme-surface-soft, #f8fafc);
+    color: var(--theme-text, #475467);
+    font-size: 0.71rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 0.65rem 0.75rem;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.installment-payment-history-table tbody td {
+    color: var(--theme-text, #344054);
+    font-size: 0.78rem;
+    padding: 0.65rem 0.75rem;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.installment-payment-history-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.installment-payment-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 0.72rem;
+    font-weight: 650;
+    padding: 0.3rem 0.58rem;
+}
+
+.installment-payment-status.status-paid {
+    background: var(--theme-green-soft, #dcfce7);
+    color: var(--theme-green, #15803d);
+}
+
+.installment-payment-status.status-cancelled {
+    background: var(--theme-surface-soft, #f3f4f6);
+    color: var(--theme-text, #4b5563);
+}
+
+.installment-payment-status.status-pending {
+    background: var(--theme-amber-soft, #fef3c7);
+    color: var(--theme-amber, #a16207);
+}
+
+.installment-payment-empty {
+    min-height: 110px;
+}
+
+.installment-card-heading {
+    margin-bottom: 1rem;
+}
+
+.installment-section-heading {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.installment-section-heading .installment-card-heading {
+    margin-bottom: 0;
+}
+
+.installment-details-page .installment-card-heading > span {
+    font-size: 0.9rem;
+}
+
+.installment-information-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.installment-information-grid > div {
+    background: var(--theme-surface-soft, #f8fafc);
+    border: 1px solid var(--theme-border, #eef1f5);
+    border-radius: 0.65rem;
+    min-width: 0;
+    padding: 0.85rem;
+}
+
+.installment-information-grid dt {
+    color: var(--theme-muted, #667085);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+
+.installment-information-grid dd {
+    color: var(--theme-strong, #111827);
+    font-size: 0.84rem;
+    font-weight: 650;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.installment-detail-list {
+    margin: 0;
+}
+
+.installment-detail-list > div {
+    align-items: center;
+    border-bottom: 1px solid var(--theme-border, #eef1f5);
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 0.7rem 0;
+}
+
+.installment-detail-list > div:first-child {
+    padding-top: 0;
+}
+
+.installment-detail-list > div:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.installment-detail-list dt {
+    color: var(--theme-muted, #667085);
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.installment-detail-list dd {
+    color: var(--theme-strong, #111827);
+    font-size: 0.82rem;
+    font-weight: 650;
+    margin: 0;
+    max-width: 68%;
+    overflow-wrap: anywhere;
+    text-align: right;
+}
+
+.installment-information-grid dd a {
+    color: var(--theme-blue, #0d6efd);
+    text-decoration: none;
+}
+
+.installment-information-grid dd a:hover {
+    text-decoration: underline;
+}
+
+.remaining-balance-block {
+    background: var(--theme-blue-soft, #eff6ff);
+    border: 1px solid var(--theme-border, #bfdbfe);
+    border-radius: 0.65rem;
+    margin: 1rem 0;
+    padding: 0.9rem;
+}
+
+.remaining-balance-block span {
+    color: var(--theme-text, #475467);
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+}
+
+.remaining-balance-block strong {
+    color: var(--theme-blue, #0d6efd);
+    display: block;
+    font-size: 1.55rem;
+    line-height: 1.25;
+}
+
+.remaining-balance-block.balance-overdue {
+    background: var(--theme-amber-soft, #fffbeb);
+    border-color: #fde68a;
+}
+
+.remaining-balance-block.balance-overdue strong {
+    color: var(--theme-amber, #b45309);
+}
+
+.remaining-balance-block.balance-completed {
+    background: var(--theme-surface-soft, #f0fdf4);
+    border-color: var(--theme-border, #bbf7d0);
+}
+
+.remaining-balance-block.balance-completed strong {
+    color: var(--theme-green, #15803d);
+}
+
+.summary-progress-copy {
+    color: var(--theme-muted, #667085);
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+}
+
+.summary-progress-copy strong {
+    color: var(--theme-text, #344054);
+}
+
+.summary-progress {
+    height: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.installment-progress-caption {
+    color: var(--theme-muted, #667085);
+    font-size: 0.73rem;
+    margin: 0;
+}
+
+.summary-final-rows {
+    border-top: 1px solid var(--theme-border, #eef1f5);
+    margin-top: 1rem;
+    padding-top: 1rem;
+}
+
+.installment-details-page .installment-status.status-cancelled {
+    background: var(--theme-surface-soft, #f3f4f6);
+    color: var(--theme-text, #4b5563);
+}
+
+.payment-readonly-grid {
+    background: var(--theme-surface-soft, #f8fafc);
+    border: 1px solid var(--theme-border, #eaecf0);
+    border-radius: 0.65rem;
+    display: grid;
+    gap: 0.7rem 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0.8rem;
+}
+
+.payment-readonly-grid > div:first-child,
+.payment-readonly-grid > div:nth-child(2) {
+    grid-column: span 1;
+}
+
+.payment-readonly-grid span {
+    color: var(--theme-muted, #667085);
+    display: block;
+    font-size: 0.71rem;
+    margin-bottom: 0.08rem;
+}
+
+.payment-readonly-grid strong {
+    color: var(--theme-strong, #101828);
+    display: block;
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+}
+
+.installment-payment-modal .modal-header,
+.installment-payment-modal .modal-footer {
+    border-color: var(--theme-border, #eaecf0);
+}
+
+@media (max-width: 991.98px) {
+    .installment-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .installment-details-heading {
+        align-items: stretch;
+    }
+
+    .installment-heading-actions {
+        flex-direction: column;
+    }
+
+    .installment-progress-filter,
+    .installment-toolbar .installment-search {
+        max-width: none;
+        width: 100%;
+    }
+
+    .installment-list-footer {
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .payment-readonly-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .installment-detail-list > div {
+        align-items: start;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .installment-detail-list dd {
+        max-width: 100%;
+        text-align: left;
+    }
+
+    .installment-information-grid {
+        grid-template-columns: 1fr;
+    }
+}

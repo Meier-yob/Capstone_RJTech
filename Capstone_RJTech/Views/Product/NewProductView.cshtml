@@ -9,15 +9,17 @@
         ?? Enumerable.Empty<ProductCategory>();
 }
 
-<div class="app-page"
+<div class="app-page new-product-page"
      id="newProductPage"
      data-products-url="@Url.Action("ProductManagement")"
      data-bulk-create-url="@Url.Action("BulkCreate")">
 
+    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a asp-controller="Home" asp-action="Dashboard">
+                <a asp-controller="Home"
+                   asp-action="Dashboard">
                     Dashboard
                 </a>
             </li>
@@ -34,15 +36,18 @@
         </ol>
     </nav>
 
-    <div class="page-heading">
+
+    <!-- Page Heading -->
+    <div class="page-heading new-product-heading">
         <div>
             <h1>New Product</h1>
+
             <p>
                 Add a catalog item. Stock is updated only when products are received.
             </p>
         </div>
 
-        <button class="btn btn-primary"
+        <button class="btn btn-primary new-product-bulk-button"
                 type="button"
                 data-bs-toggle="modal"
                 data-bs-target="#bulkAddModal">
@@ -52,27 +57,53 @@
         </button>
     </div>
 
+
+    <!-- Create Product Form -->
     <form id="createProductForm"
           method="post"
           asp-action="Create"
           novalidate>
 
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="app-card card">
-                    <div class="card-header">
-                        <h2 class="card-title-sm">
-                            Product Information
-                        </h2>
+        <div class="new-product-layout">
 
-                        <p class="card-subtitle-sm">
-                            Enter the basic details of the product
-                        </p>
+            <!-- =====================================================
+                 LEFT SIDE
+                 ===================================================== -->
+            <div class="new-product-main">
+
+
+                <!-- =================================================
+                     SECTION 1 - PRODUCT DETAILS
+                     ================================================= -->
+                <section class="app-card new-product-card"
+                         aria-labelledby="productDetailsTitle">
+
+                    <div class="new-product-section-heading">
+
+                        <div class="new-product-section-title">
+                            <span class="new-product-step">
+                                1
+                            </span>
+
+                            <h2 id="productDetailsTitle">
+                                Product Details
+                            </h2>
+                        </div>
+
+                        <small>
+                            Enter the product name, brand, and description.
+                        </small>
+
                     </div>
 
-                    <div class="card-body">
+
+                    <div class="new-product-card-body">
+
                         <div class="row g-3">
-                            <div class="col-12">
+
+                            <!-- Product Name -->
+                            <div class="col-md-7">
+
                                 <label asp-for="product_name"
                                        class="form-label">
                                     Product Name
@@ -86,9 +117,13 @@
                                 <span asp-validation-for="product_name"
                                       class="text-danger small">
                                 </span>
+
                             </div>
 
-                            <div class="col-md-6">
+
+                            <!-- Brand -->
+                            <div class="col-md-5">
+
                                 <label asp-for="product_brand"
                                        class="form-label">
                                     Brand
@@ -102,9 +137,67 @@
                                 <span asp-validation-for="product_brand"
                                       class="text-danger small">
                                 </span>
+
                             </div>
 
-                            <div class="col-md-6">
+
+                            <!-- Description -->
+                            <div class="col-12">
+
+                                <label asp-for="product_description"
+                                       class="form-label">
+                                    Description
+                                </label>
+
+                                <textarea asp-for="product_description"
+                                          class="form-control"
+                                          rows="4"
+                                          placeholder="Describe the model, features, or compatibility."></textarea>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+
+                <!-- =================================================
+                     SECTION 2 - INVENTORY & PRICING
+                     ================================================= -->
+                <section class="app-card new-product-card"
+                         aria-labelledby="inventoryPricingTitle">
+
+                    <div class="new-product-section-heading">
+
+                        <div class="new-product-section-title">
+
+                            <span class="new-product-step">
+                                2
+                            </span>
+
+                            <h2 id="inventoryPricingTitle">
+                                Inventory &amp; Pricing
+                            </h2>
+
+                        </div>
+
+                        <small>
+                            Set the selling price and low-stock alert level.
+                        </small>
+
+                    </div>
+
+
+                    <div class="new-product-card-body">
+
+                        <div class="row g-3">
+
+
+                            <!-- Quantity -->
+                            <div class="col-md-4">
+
                                 <label asp-for="product_quantity"
                                        class="form-label">
                                     Quantity
@@ -117,29 +210,22 @@
                                        disabled />
 
                                 <div class="form-hint mt-1">
-                                    New products start at zero. Update stock through Delivery.
+                                    Stock is updated through Delivery.
                                 </div>
+
                             </div>
 
-                            <div class="col-12">
-                                <label asp-for="product_description"
-                                       class="form-label">
-                                    Description
-                                </label>
 
-                                <textarea asp-for="product_description"
-                                          class="form-control"
-                                          rows="5"
-                                          placeholder="Describe the model, features, or compatibility."></textarea>
-                            </div>
+                            <!-- Selling Price -->
+                            <div class="col-md-4">
 
-                            <div class="col-md-6">
                                 <label asp-for="Product_price"
                                        class="form-label">
                                     Selling Price
                                 </label>
 
                                 <div class="input-group">
+
                                     <span class="input-group-text">
                                         ₱
                                     </span>
@@ -150,10 +236,19 @@
                                            min="0.01"
                                            step="0.01"
                                            required />
+
                                 </div>
+
+                                <span asp-validation-for="Product_price"
+                                      class="text-danger small">
+                                </span>
+
                             </div>
 
-                            <div class="col-md-6">
+
+                            <!-- Reorder Level -->
+                            <div class="col-md-4">
+
                                 <label asp-for="reorder_level"
                                        class="form-label">
                                     Reorder Level
@@ -169,23 +264,61 @@
                                 <div class="form-hint mt-1">
                                     A low-stock warning appears at or below this quantity.
                                 </div>
+
+                                <span asp-validation-for="reorder_level"
+                                      class="text-danger small">
+                                </span>
+
                             </div>
+
                         </div>
+
                     </div>
-                </div>
+
+                </section>
+
             </div>
 
-    <div class="col-lg-4">
-        <div class="app-card card sticky-lg-top new-product-sidebar">
 
-                    <div class="card-header">
-                        <h2 class="card-title-sm">
-                            Organization
-                        </h2>
+
+            <!-- =====================================================
+                 RIGHT SIDE
+                 ===================================================== -->
+            <aside class="new-product-sidebar">
+
+                <!-- =================================================
+                     SECTION 3 - ORGANIZATION & STATUS
+                     ================================================= -->
+                <section class="app-card new-product-card new-product-sidebar-card"
+                         aria-labelledby="organizationStatusTitle">
+
+                    <div class="new-product-section-heading">
+
+                        <div class="new-product-section-title">
+
+                            <span class="new-product-step">
+                                3
+                            </span>
+
+                            <h2 id="organizationStatusTitle">
+                                Organization &amp; Status
+                            </h2>
+
+                        </div>
+
+                        <small>
+                            Assign a category and review the initial status.
+                        </small>
+
                     </div>
 
-                    <div class="card-body">
+
+                    <div class="new-product-card-body">
+
+
+                        <!-- Category -->
                         <div class="mb-3">
+
                             <label asp-for="category_ID"
                                    class="form-label">
                                 Category
@@ -205,49 +338,84 @@
                                         @category.category_name
                                     </option>
                                 }
+
                             </select>
+
+                            <span asp-validation-for="category_ID"
+                                  class="text-danger small">
+                            </span>
+
                         </div>
 
-                        <div class="mb-4">
+
+                        <!-- Initial Status -->
+                        <div class="new-product-status-panel mb-4">
+
                             <label class="form-label">
                                 Initial Status
                             </label>
 
-                            <div>
+                            <div class="mt-1">
+
                                 <span class="status-badge status-unavailable">
                                     Unavailable
                                 </span>
+
                             </div>
 
                             <div class="form-hint mt-2">
                                 The status changes only after stock is received through Delivery.
                             </div>
+
                         </div>
 
+
+                        <!-- Hidden Product Status -->
                         <input asp-for="product_status"
                                type="hidden"
                                value="Unavailable" />
 
-                        <button id="submitProduct"
-                                type="submit"
-                                class="btn btn-primary w-100 mb-2">
 
-                            <span class="spinner-border spinner-border-sm d-none me-1"></span>
-                            Create Product
-                        </button>
+                        <!-- Actions -->
+                        <div class="new-product-actions">
 
-                        <a asp-action="ProductManagement"
-                           class="btn btn-outline-secondary w-100">
+                            <a asp-action="ProductManagement"
+                               class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
 
-                            Cancel
-                        </a>
+                            <button id="submitProduct"
+                                    type="submit"
+                                    class="btn btn-primary">
+
+                                <span class="spinner-border spinner-border-sm d-none me-1">
+                                </span>
+
+                                <i class="bi bi-plus-circle me-1"></i>
+
+                                Create Product
+
+                            </button>
+
+                        </div>
+
                     </div>
-                </div>
-            </div>
+
+                </section>
+
+            </aside>
+
         </div>
+
     </form>
+
 </div>
 
+
+
+<!-- =============================================================
+     BULK ADD PRODUCTS MODAL
+     ============================================================= -->
 <div class="modal fade"
      id="bulkAddModal"
      tabindex="-1"
@@ -255,34 +423,51 @@
      aria-hidden="true">
 
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
         <div class="modal-content">
+
+
+            <!-- Modal Header -->
             <div class="modal-header">
+
                 <div>
+
                     <h2 class="modal-title fs-5"
                         id="bulkAddTitle">
-
                         Bulk Add Products
                     </h2>
 
                     <p class="small text-muted mb-0">
                         Create multiple unavailable catalog items. Stock starts at zero.
                     </p>
+
                 </div>
+
 
                 <button class="btn-close"
                         type="button"
                         data-bs-dismiss="modal"
                         aria-label="Close">
                 </button>
+
             </div>
 
+
+            <!-- Modal Body -->
             <div class="modal-body">
+
+
+                <!-- Bulk Error -->
                 <div id="bulkErrors"
                      class="alert alert-danger d-none small">
                 </div>
 
+
+                <!-- Products Table -->
                 <div class="table-responsive">
-                    <table class="table table-sm align-middle bulk-product-table">
+
+                    <table class="table table-sm align-middle bulk-product-table" data-no-selection="true">
+
                         <thead>
                             <tr>
                                 <th>Category</th>
@@ -297,41 +482,69 @@
 
                         <tbody id="bulkRows">
                         </tbody>
+
                     </table>
+
                 </div>
 
+
+                <!-- Add Row -->
                 <button id="addBulkRow"
                         class="btn btn-sm btn-outline-dark"
                         type="button">
 
                     <i class="bi bi-plus-lg me-1"></i>
                     Add Row
+
                 </button>
+
             </div>
 
+
+            <!-- Modal Footer -->
             <div class="modal-footer">
+
                 <button class="btn btn-outline-secondary"
                         type="button"
                         data-bs-dismiss="modal">
 
                     Cancel
+
                 </button>
+
 
                 <button id="saveBulkProducts"
                         class="btn btn-primary"
                         type="button">
 
-                    <span class="spinner-border spinner-border-sm d-none me-1"></span>
+                    <span class="spinner-border spinner-border-sm d-none me-1">
+                    </span>
+
                     Add Products
+
                 </button>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
+
+
+<!-- =============================================================
+     BULK PRODUCT ROW TEMPLATE
+     ============================================================= -->
 <template id="bulkRowTemplate">
+
     <tr class="bulk-row">
+
+
+        <!-- Category -->
         <td>
+
             <select class="form-select form-select-sm bulk-category"
                     required>
 
@@ -345,54 +558,88 @@
                         @category.category_name
                     </option>
                 }
+
             </select>
+
         </td>
 
+
+        <!-- Product Name -->
         <td>
+
             <input class="form-control form-control-sm bulk-name"
                    required />
+
         </td>
 
+
+        <!-- Brand -->
         <td>
+
             <input class="form-control form-control-sm bulk-brand"
                    required />
+
         </td>
 
+
+        <!-- Price -->
         <td>
+
             <input class="form-control form-control-sm bulk-price"
                    type="number"
                    min="0.01"
                    step="0.01"
                    required />
+
         </td>
 
+
+        <!-- Stock -->
         <td>
+
             <input class="form-control form-control-sm bulk-qty"
                    type="number"
                    value="0"
                    disabled />
+
         </td>
 
+
+        <!-- Reorder Level -->
         <td>
+
             <input class="form-control form-control-sm bulk-reorder"
                    type="number"
                    min="0"
                    step="1"
                    value="0"
                    required />
+
         </td>
 
+
+        <!-- Remove -->
         <td>
+
             <button class="btn btn-sm btn-outline-danger remove-bulk-row"
                     type="button"
                     aria-label="Remove row">
 
                 <i class="bi bi-x-lg"></i>
+
             </button>
+
         </td>
+
     </tr>
+
 </template>
 
+
+
+<!-- =============================================================
+     CONFIRM EXIT MODAL
+     ============================================================= -->
 <div class="modal fade"
      id="confirmExitModal"
      tabindex="-1"
@@ -400,51 +647,81 @@
      aria-hidden="true">
 
     <div class="modal-dialog modal-dialog-centered">
+
         <div class="modal-content">
+
+
+            <!-- Header -->
             <div class="modal-header">
+
                 <h2 class="modal-title fs-5"
                     id="confirmExitTitle">
-
                     Unsaved changes
                 </h2>
+
 
                 <button class="btn-close"
                         type="button"
                         data-bs-dismiss="modal"
                         aria-label="Close">
                 </button>
+
             </div>
 
+
+            <!-- Body -->
             <div class="modal-body">
+
                 You have unsaved changes. Are you sure you want to leave?
+
             </div>
 
+
+            <!-- Footer -->
             <div class="modal-footer">
+
                 <button class="btn btn-outline-secondary"
                         type="button"
                         data-bs-dismiss="modal">
 
                     Cancel
+
                 </button>
+
 
                 <button id="discardAndLeave"
                         class="btn btn-danger"
                         type="button">
 
                     Discard &amp; Leave
+
                 </button>
+
             </div>
+
         </div>
+
     </div>
+
 </div>
 
+
+
 @section Styles {
-    <link rel="stylesheet" href="~/css/new-product.css" asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/new-product.css"
+          asp-append-version="true" />
+
 }
 
+
 @section Scripts {
+
     <partial name="_ValidationScriptsPartial" />
+
     <script src="~/js/product-create.js"
             asp-append-version="true">
     </script>
+
 }

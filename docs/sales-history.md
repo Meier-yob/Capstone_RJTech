@@ -1,0 +1,9 @@
+Sales History is available at `/Sales/SalesHistory` and in the Sales sidebar.
+
+`tblCustomerPurchaseHistory` stores exactly six fields: `HistoryID`, `CustomerID`, `CheckoutID`, `PurchaseDate`, `TotalAmount`, and `PaymentMethod`. The numeric primary key is displayed as `PAY-001`; identity gaps after a failed transaction are expected and IDs are never reused. The page and Excel export show names without emails and dates without times. Payment Type is displayed from the linked checkout, so it does not duplicate data in the history table. Customer and checkout labels resolve the foreign keys through their existing records.
+
+Each history row represents money received. Full checkouts record their total; instalment checkouts record their down payment; later payments record the actual amount and method received, including the final payment. The payment, receipt, and balance changes share the existing database transaction. Reading history does not create records or change plan balances.
+
+The additive `AddCustomerPurchaseHistory` migration runs through the application's existing startup migration mechanism. It imports existing full payments, plan down payments, and paid instalment receipts once, preserving receipts associated with refunded or cancelled orders. Previously deleted source records cannot be reconstructed. Receipt totals represent historical receipts, not net sales after refunds; the linked checkout retains its refund status. Checkouts and instalment plans with receipts cannot be deleted, and the history foreign keys restrict cascading loss.
+
+Search, payment-method filters, Philippine-calendar date presets/custom ranges, sorting, and pagination operate on the page. Excel exports all matching records across pages, with the six stored history fields plus the linked Payment Type and date-only values.

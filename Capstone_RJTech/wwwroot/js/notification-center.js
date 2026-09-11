@@ -11,8 +11,7 @@
     function iconFor(type) {
         return {
             'low-stock': 'bi-exclamation-triangle',
-            'out-of-stock': 'bi-x-circle',
-            calendar: 'bi-calendar-event'
+            'out-of-stock': 'bi-x-circle'
         }[type] || 'bi-info-circle';
     }
 

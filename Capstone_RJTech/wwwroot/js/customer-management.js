@@ -1,5 +1,9 @@
 (() => {
-    const rows = [...document.querySelectorAll('.customer-row')];
+    const page = document.getElementById('customerPage');
+    if (!page) return;
+
+    let rows = [...document.querySelectorAll('.customer-row')];
+    const table = document.getElementById('customerTable');
     const search = document.getElementById('customerSearch');
     const pageSize = document.getElementById('customerPageSize');
     const pagination = document.getElementById('customerPagination');
@@ -45,7 +49,38 @@
         addPageButton('Next', currentPage + 1, currentPage === pageCount);
     }
 
+    async function deleteSelectedCustomers(event) {
+        event.preventDefault();
+        const ids = event.detail?.ids ?? [];
+        if (!ids.length || !confirm(`Delete ${ids.length} selected customers? Customers with sales history cannot be deleted.`)) return;
+
+        try {
+            const response = await fetch(page.dataset.bulkDeleteUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ids)
+            });
+            const result = await response.json();
+            if (result.success) {
+                window.reloadWithToast(result.message || 'Selected customers deleted successfully.');
+                return;
+            }
+            window.showToast(result.message || 'Unable to delete the selected customers.', 'error');
+        } catch {
+            window.showToast('Unable to delete the selected customers.', 'error');
+        }
+    }
+
     search.addEventListener('input', () => { currentPage = 1; render(); });
     pageSize.addEventListener('change', () => { currentPage = 1; render(); });
+    table?.addEventListener('table:bulk-delete', deleteSelectedCustomers);
+    table?.addEventListener('table:sorted', () => {
+        rows = [...document.querySelectorAll('.customer-row')];
+        currentPage = 1;
+        render();
+    });
+    document.getElementById('exportCustomers')?.addEventListener('click', event => {
+        window.rjtechExcelExport.download(event.currentTarget, matchingRows(), Boolean(search.value.trim()));
+    });
     render();
 })();

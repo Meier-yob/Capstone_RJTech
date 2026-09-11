@@ -1,0 +1,377 @@
+@model Capstone_RJTech.ViewModels.ReportsViewModel
+@using System.Globalization
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Reports";
+    var culture = CultureInfo.GetCultureInfo("en-PH");
+    string Money(decimal value) => "₱" + value.ToString("N2", culture);
+    string DateTimeText(DateTime? value) => value?.ToString("MMM d, yyyy h:mm tt", culture) ?? "No data";
+    string DateText(DateTime? value) => value?.ToString("MMM d, yyyy", culture) ?? "No data";
+    string StatusClass(string value) => value.ToLowerInvariant().Replace(" ", "-");
+    DateTime? lastUpdated = Model.ActiveTab switch
+    {
+        "inventory" => Model.Inventory.LastUpdated,
+        "delivery" => Model.Delivery.LastUpdated,
+        _ => Model.Sales.LastUpdated
+    };
+    var reportVersion = ViewData["ReportVersion"] ?? 0;
+}
+
+<div class="app-page reports-page" id="reportsPage"
+     data-live-version="@reportVersion"
+     data-live-watch-url="@Url.Action("Watch", "Reports")">
+    <nav class="reports-breadcrumb" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Reports</li>
+        </ol>
+    </nav>
+
+    <header class="reports-heading">
+        <div>
+            <h1>Reports</h1>
+            <p>Review generated summaries and export detailed records.</p>
+        </div>
+        <div class="reports-heading-actions">
+            <button class="btn reports-btn-secondary" type="button" data-report-print>
+                <i class="bi bi-printer" aria-hidden="true"></i> Print
+            </button>
+            <a class="btn btn-primary" asp-action="Export" asp-route-tab="@Model.ActiveTab"
+               asp-route-period="@Model.Period" asp-route-month="@Model.Month" asp-route-year="@Model.Year"
+               asp-route-search="@Model.Search" asp-route-status="@Model.Status" asp-route-sort="@Model.Sort">
+                <i class="bi bi-download" aria-hidden="true"></i> Export
+            </a>
+        </div>
+    </header>
+
+    <div class="reports-tabs" role="tablist" aria-label="Report sections">
+        <a role="tab" aria-selected="@(Model.ActiveTab == "sales" ? "true" : "false")"
+           class="reports-tab @(Model.ActiveTab == "sales" ? "active" : null)"
+           asp-action="Index" asp-route-tab="sales" asp-route-period="@Model.Period"
+           asp-route-month="@Model.Month" asp-route-year="@Model.Year">Sales Overview</a>
+        <a role="tab" aria-selected="@(Model.ActiveTab == "inventory" ? "true" : "false")"
+           class="reports-tab @(Model.ActiveTab == "inventory" ? "active" : null)"
+           asp-action="Index" asp-route-tab="inventory">Inventory Overview</a>
+        <a role="tab" aria-selected="@(Model.ActiveTab == "delivery" ? "true" : "false")"
+           class="reports-tab @(Model.ActiveTab == "delivery" ? "active" : null)"
+           asp-action="Index" asp-route-tab="delivery">Delivery Overview</a>
+    </div>
+
+    <form asp-action="Index" method="get" class="reports-filter-panel app-card" id="reportsFilterForm">
+        <input type="hidden" name="tab" value="@Model.ActiveTab" />
+        <div class="reports-filter-controls">
+            @if (Model.ActiveTab == "sales")
+            {
+                <div class="reports-segmented" role="group" aria-label="Sales history interval">
+                    @foreach (var option in new[] { (Value: "weekly", Label: "Weekly"), (Value: "monthly", Label: "Monthly"), (Value: "yearly", Label: "Yearly") })
+                    {
+                        <label class="@(Model.Period == option.Value ? "active" : null)">
+                            <input class="visually-hidden" type="radio" name="period" value="@option.Value" checked="@(Model.Period == option.Value)" />
+                            @option.Label
+                        </label>
+                    }
+                </div>
+                <label class="reports-control">
+                    <span>Year</span>
+                    <select class="form-select" name="year">
+                        @foreach (var year in Model.Years)
+                        {
+                            <option value="@year" selected="@(year == Model.Year)">@year</option>
+                        }
+                    </select>
+                </label>
+                <label class="reports-control reports-month-control">
+                    <span>Month</span>
+                    <select class="form-select" name="month">
+                        @for (var month = 1; month <= 12; month++)
+                        {
+                            <option value="@month" selected="@(month == Model.Month)">@culture.DateTimeFormat.GetMonthName(month)</option>
+                        }
+                    </select>
+                </label>
+                <label class="reports-search">
+                    <span class="visually-hidden">Search recent transactions</span>
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input class="form-control" type="search" name="search" value="@Model.Search" placeholder="Search checkout or customer" />
+                </label>
+                <label class="reports-control reports-status-control">
+                    <span>Status</span>
+                    <select class="form-select" name="status">
+                        <option value="">All statuses</option>
+                        @foreach (var value in new[] { "Paid", "Ongoing", "Refunded" })
+                        {
+                            <option value="@value" selected="@(value == Model.Status)">@value</option>
+                        }
+                    </select>
+                </label>
+                <input type="hidden" name="sort" value="@Model.Sort" />
+            }
+            else if (Model.ActiveTab == "inventory")
+            {
+                <input type="hidden" name="period" value="weekly" />
+                <input type="hidden" name="month" value="@Model.Month" />
+                <input type="hidden" name="year" value="@Model.Year" />
+                <label class="reports-control">
+                    <span>Stock status</span>
+                    <select class="form-select" name="status">
+                        <option value="">All statuses</option>
+                        @foreach (var value in new[] { "Available", "Unavailable", "Low Stock", "Out of Stock" })
+                        {
+                            <option value="@value" selected="@(value == Model.Status)">@value</option>
+                        }
+                    </select>
+                </label>
+                <label class="reports-search reports-search-wide">
+                    <span class="visually-hidden">Search product or category</span>
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input class="form-control" type="search" name="search" value="@Model.Search" placeholder="Search product or category name" />
+                </label>
+                <label class="reports-control">
+                    <span>Sort by</span>
+                    <select class="form-select" name="sort">
+                        <option value="">Product Code</option>
+                        <option value="name" selected="@(Model.Sort == "name")">Product name</option>
+                        <option value="quantity-desc" selected="@(Model.Sort == "quantity-desc")">Highest quantity</option>
+                        <option value="quantity-asc" selected="@(Model.Sort == "quantity-asc")">Lowest quantity</option>
+                    </select>
+                </label>
+            }
+            else
+            {
+                <input type="hidden" name="period" value="weekly" />
+                <input type="hidden" name="month" value="@Model.Month" />
+                <input type="hidden" name="year" value="@Model.Year" />
+                <input type="hidden" name="status" value="" />
+                <label class="reports-search reports-search-wide">
+                    <span class="visually-hidden">Search delivery or product</span>
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input class="form-control" type="search" name="search" value="@Model.Search" placeholder="Search delivery ID or product name" />
+                </label>
+                <label class="reports-control">
+                    <span>Sort by</span>
+                    <select class="form-select" name="sort">
+                        <option value="">Last delivery date</option>
+                        <option value="date-asc" selected="@(Model.Sort == "date-asc")">Oldest delivery date</option>
+                        <option value="quantity-desc" selected="@(Model.Sort == "quantity-desc")">Highest quantity</option>
+                        <option value="quantity-asc" selected="@(Model.Sort == "quantity-asc")">Lowest quantity</option>
+                        <option value="deliveries-desc" selected="@(Model.Sort == "deliveries-desc")">Most deliveries</option>
+                    </select>
+                </label>
+            }
+
+            <div class="reports-filter-actions">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i> Apply Filters</button>
+                <a asp-action="Index" asp-route-tab="@Model.ActiveTab" class="btn btn-link">Reset</a>
+            </div>
+        </div>
+        @* <p class="reports-freshness">
+            <i class="bi bi-database-check" aria-hidden="true"></i>
+            Live report data <span>·</span> Last updated @DateTimeText(lastUpdated)
+        </p> *@
+    </form>
+
+    @if (Model.ActiveTab == "sales")
+    {
+        <section aria-label="Sales overview" class="reports-tab-content">
+            <div class="reports-metrics reports-metrics-four">
+                <article class="report-metric metric-blue"><span class="report-metric-icon"><i class="bi bi-bag" aria-hidden="true"></i></span><div><p>Total Sales</p><strong>@Money(Model.Sales.TotalSales)</strong></div></article>
+                <article class="report-metric metric-green"><span class="report-metric-icon"><i class="bi bi-receipt" aria-hidden="true"></i></span><div><p>Total Checkouts</p><strong>@Model.Sales.TotalCheckouts.ToString("N0")</strong></div></article>
+                <article class="report-metric metric-purple"><span class="report-metric-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span><div><p>Total Sold Items</p><strong>@Model.Sales.TotalSoldItems.ToString("N0")</strong></div></article>
+                <article class="report-metric metric-orange"><span class="report-metric-icon"><i class="bi bi-people" aria-hidden="true"></i></span><div><p>Total Customers</p><strong>@Model.Sales.TotalCustomers.ToString("N0")</strong></div></article>
+            </div>
+
+            <div class="reports-secondary-metrics app-card">
+                <div><span>Today Sales</span><strong>@Money(Model.Sales.TodaySales)</strong></div>
+                <div><span>Weekly Sales</span><strong>@Money(Model.Sales.WeeklySales)</strong></div>
+                <div><span>Monthly Sales</span><strong>@Money(Model.Sales.MonthlySales)</strong></div>
+                <div><span>Yearly Sales</span><strong>@Money(Model.Sales.YearlySales)</strong></div>
+                <div><span>Last Sale Date</span><strong>@DateText(Model.Sales.LastSaleDate)</strong></div>
+            </div>
+
+            <div class="reports-grid reports-grid-2-3">
+                <section class="reports-panel" aria-labelledby="salesHistoryHeading">
+                    <div class="reports-panel-header"><div><h2 id="salesHistoryHeading">@CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Model.Period) Sales</h2><p>Stored sales performance for the selected period</p></div></div>
+                    <div class="report-chart report-chart-large">
+                        @if (Model.Sales.History.Count > 0)
+                        {
+                            <canvas id="salesHistoryChart" role="img" aria-label="Sales performance chart"></canvas>
+                        }
+                        else
+                        {
+                            <div class="reports-empty"><i class="bi bi-bar-chart" aria-hidden="true"></i><strong>No sales history</strong><span>Choose another month, year, or interval.</span></div>
+                        }
+                    </div>
+                    @if (Model.Sales.History.Count > 0)
+                    {
+                        <details class="reports-data-details"><summary>View chart data</summary><div class="table-responsive"><table class="table reports-table"><thead><tr><th>Period</th><th class="text-end">Sales</th><th class="text-end">Checkouts</th><th class="text-end">Items</th></tr></thead><tbody>@foreach (var row in Model.Sales.History){<tr><td>@row.Label</td><td class="text-end">@Money(row.Value)</td><td class="text-end">@row.TotalTransactions</td><td class="text-end">@row.TotalItems</td></tr>}</tbody></table></div></details>
+                    }
+                </section>
+                <section class="reports-panel" aria-labelledby="salesCategoryHeading">
+                    <div class="reports-panel-header"><div><h2 id="salesCategoryHeading">Sales by Category</h2><p>Revenue distribution by category name</p></div></div>
+                    <div class="report-chart report-chart-large">
+                        @if (Model.Sales.SalesByCategory.Count > 0)
+                        {
+                            <canvas id="salesCategoryChart" role="img" aria-label="Sales by category chart"></canvas>
+                        }
+                        else
+                        {
+                            <div class="reports-empty"><i class="bi bi-pie-chart" aria-hidden="true"></i><strong>No category sales</strong><span>Paid product sales will appear here.</span></div>
+                        }
+                    </div>
+                </section>
+            </div>
+
+            <div class="reports-grid reports-grid-halves">
+                <section class="reports-panel compact-panel" aria-labelledby="bestProductHeading">
+                    <div class="reports-panel-header"><div><h2 id="bestProductHeading">Best Selling Product</h2><p>Highest quantity sold in the selected month</p></div></div>
+                    <div class="table-responsive"><table class="table reports-table compact-product-table" data-sortable="false"><thead><tr><th>Product code</th><th>Product name</th><th class="text-end">Qty sold</th><th class="text-end">Sales amount</th></tr></thead><tbody>
+                        @if (Model.Sales.BestSellingProduct is { } best)
+                        {<tr><td class="report-code">@best.ProductCode</td><td>@best.ProductName</td><td class="text-end">@best.TotalQuantitySold.ToString("N0")</td><td class="text-end report-money">@Money(best.TotalSalesAmount)</td></tr>}
+                        else {<tr><td colspan="4"><div class="reports-empty reports-empty-table">No generated report data for this selection.</div></td></tr>}
+                    </tbody></table></div>
+                </section>
+                <section class="reports-panel compact-panel" aria-labelledby="leastProductHeading">
+                    <div class="reports-panel-header"><div><h2 id="leastProductHeading">Least Selling Product</h2><p>Lowest quantity sold in the selected month</p></div></div>
+                    <div class="table-responsive"><table class="table reports-table compact-product-table" data-sortable="false"><thead><tr><th>Product code</th><th>Product name</th><th class="text-end">Qty sold</th><th class="text-end">Sales amount</th></tr></thead><tbody>
+                        @if (Model.Sales.LeastSellingProduct is { } least)
+                        {<tr><td class="report-code">@least.ProductCode</td><td>@least.ProductName</td><td class="text-end">@least.TotalQuantitySold.ToString("N0")</td><td class="text-end report-money">@Money(least.TotalSalesAmount)</td></tr>}
+                        else {<tr><td colspan="4"><div class="reports-empty reports-empty-table">No generated report data for this selection.</div></td></tr>}
+                    </tbody></table></div>
+                </section>
+            </div>
+
+            <section class="reports-panel" aria-labelledby="recentTransactionsHeading">
+                <div class="reports-panel-header"><div><h2 id="recentTransactionsHeading">Recent Transactions</h2><p>Latest Paid, Ongoing, and Refunded checkouts</p></div><span class="reports-count">@Model.Sales.RecentTransactions.Count records</span></div>
+                <div class="table-responsive"><table class="table reports-table reports-table-wide" data-report-paginate="true"><thead><tr><th>Checkout code</th><th>Customer name</th><th>Payment type</th><th>Payment method</th><th class="text-end">Amount</th><th>Transaction date</th><th>Status</th></tr></thead><tbody>
+                    @foreach (var row in Model.Sales.RecentTransactions)
+                    {
+                        <tr><td class="report-code"><a asp-controller="Sales" asp-action="SelectedCheckoutDetails" asp-route-id="@row.CheckoutID">@row.CheckoutCode</a></td><td>@row.CustomerName</td><td>@row.PaymentType</td><td>@row.PaymentMethod</td><td class="text-end report-money">@Money(row.Amount)</td><td data-sort-value="@row.TransactionDate.ToString("O")">@DateTimeText(row.TransactionDate)</td><td><span class="report-status @StatusClass(row.Status)">@row.Status</span></td></tr>
+                    }
+                    @if (Model.Sales.RecentTransactions.Count == 0)
+                    {<tr><td colspan="7"><div class="reports-empty reports-empty-table">No generated report data for this selection.</div></td></tr>}
+                </tbody></table></div>
+            </section>
+        </section>
+    }
+    else if (Model.ActiveTab == "inventory")
+    {
+        <section aria-label="Inventory overview" class="reports-tab-content">
+            <div class="reports-metrics reports-metrics-four">
+                <article class="report-metric metric-blue"><span class="report-metric-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span><div><p>Total Products</p><strong>@Model.Inventory.TotalProducts.ToString("N0")</strong></div></article>
+                <article class="report-metric metric-green"><span class="report-metric-icon"><i class="bi bi-boxes" aria-hidden="true"></i></span><div><p>Total Quantity</p><strong>@Model.Inventory.TotalQuantity.ToString("N0")</strong></div></article>
+                <article class="report-metric metric-purple"><span class="report-metric-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></span><div><p>Available / Unavailable</p><strong>@Model.Inventory.AvailableProducts / @Model.Inventory.UnavailableProducts</strong></div></article>
+                <article class="report-metric metric-orange"><span class="report-metric-icon"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></span><div><p>Low / Out of Stock</p><strong>@Model.Inventory.LowStockProducts / @Model.Inventory.OutOfStockProducts</strong></div></article>
+            </div>
+
+            <div class="reports-grid inventory-chart-grid">
+                <section class="reports-panel inventory-chart-panel" aria-labelledby="stockStatusHeading">
+                    <div class="reports-panel-header"><div><h2 id="stockStatusHeading">Product Stock Status</h2><p>Current stored snapshot</p></div></div>
+                    <div class="inventory-chart-layout">
+                        <div class="inventory-doughnut"><canvas id="inventoryStatusChart" role="img" aria-label="Inventory status chart"></canvas><div><strong>@Model.Inventory.TotalProducts</strong><span>Products</span></div></div>
+                        <ul class="report-legend"><li><i class="available"></i><span>Available</span><strong>@Model.Inventory.AvailableProducts</strong></li><li><i class="unavailable"></i><span>Unavailable</span><strong>@Model.Inventory.UnavailableProducts</strong></li><li><i class="low-stock"></i><span>Low Stock</span><strong>@Model.Inventory.LowStockProducts</strong></li><li><i class="out-of-stock"></i><span>Out of Stock</span><strong>@Model.Inventory.OutOfStockProducts</strong></li></ul>
+                    </div>
+                </section>
+                <section class="reports-panel inventory-chart-panel" aria-labelledby="categoryQuantityHeading">
+                    <div class="reports-panel-header"><div><h2 id="categoryQuantityHeading">Quantity by Category</h2><p>Category names from the product catalog</p></div></div>
+                    <div class="category-quantity-chart"><canvas id="categoryQuantityChart" role="img" aria-label="Quantity by category chart"></canvas></div>
+                </section>
+            </div>
+
+            <section class="reports-panel inventory-stock-panel" aria-labelledby="productStockHeading"><div class="reports-panel-header"><div><h2 id="productStockHeading">Product Stock Summary</h2><p>Product and category names included</p></div><span class="reports-count">@Model.Inventory.ProductStock.Count records</span></div><div class="table-responsive"><table class="table reports-table reports-table-wide" data-report-paginate="true"><thead><tr><th>Product Code</th><th>Product Name</th><th>Category</th><th class="text-end">Current Quantity</th><th class="text-end">Reorder Level</th><th>Stock Status</th><th>Last Updated</th></tr></thead><tbody>
+                @foreach (var row in Model.Inventory.ProductStock){<tr><td class="report-code"><a asp-controller="Product" asp-action="Details" asp-route-id="@row.ProductID">@row.ProductCode</a></td><td>@row.ProductName</td><td>@row.CategoryName</td><td class="text-end">@row.CurrentQuantity</td><td class="text-end">@row.ReorderLevel</td><td><span class="report-status @StatusClass(row.StockStatus)">@row.StockStatus</span></td><td data-sort-value="@row.LastUpdated.ToString("O")">@DateTimeText(row.LastUpdated)</td></tr>}
+                @if (Model.Inventory.ProductStock.Count == 0){<tr><td colspan="7"><div class="reports-empty reports-empty-table">No generated report data for this selection.</div></td></tr>}
+            </tbody></table></div></section>
+
+            <section class="reports-panel inventory-category-panel" aria-labelledby="categoryOverviewHeading"><div class="reports-panel-header"><div><h2 id="categoryOverviewHeading">Product Category Overview</h2><p>Category names replace internal category codes</p></div></div><div class="table-responsive"><table class="table reports-table reports-table-wide" data-report-paginate="true"><thead><tr><th>Category</th><th class="text-end">Total Products</th><th class="text-end">Total Quantity</th><th class="text-end">Available Quantity</th><th class="text-end">Unavailable Quantity</th><th>Last Updated</th></tr></thead><tbody>
+                    @foreach (var row in Model.Inventory.ProductCategories){<tr><td>@row.CategoryName</td><td class="text-end">@row.TotalProducts</td><td class="text-end">@row.TotalQuantity</td><td class="text-end">@row.AvailableQuantity</td><td class="text-end">@row.UnavailableQuantity</td><td>@DateTimeText(row.LastUpdated)</td></tr>}
+                    @if (Model.Inventory.ProductCategories.Count == 0){<tr><td colspan="6"><div class="reports-empty reports-empty-table">No generated report data for this selection.</div></td></tr>}
+                </tbody></table></div></section>
+
+            <div class="stock-extremes">
+                <article class="reports-panel stock-extreme metric-blue" aria-labelledby="mostStockedHeading">
+                    <div class="reports-panel-header"><div><h2 id="mostStockedHeading">Most Stocked Product</h2><p>Product with the highest current quantity</p></div><span class="stock-extreme-rank"><i class="bi bi-arrow-up-right" aria-hidden="true"></i> Highest</span></div>
+                    @if (Model.Inventory.MostStockedProduct is { } most)
+                    {
+                        <div class="stock-extreme-body">
+                            <span class="report-metric-icon"><i class="bi bi-trophy" aria-hidden="true"></i></span>
+                            <div class="stock-extreme-content">
+                                <a class="stock-product-code" asp-controller="Product" asp-action="Details" asp-route-id="@most.ProductID">@most.ProductCode</a>
+                                <strong>@most.ProductName</strong>
+                                <div class="stock-extreme-details"><div><span>Current Quantity</span><b>@most.CurrentQuantity.ToString("N0")</b></div><div><span>Last Updated</span><time datetime="@most.LastUpdated.ToString("O")">@DateTimeText(most.LastUpdated)</time></div></div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="reports-empty stock-extreme-empty">No products available.</div>
+                    }
+                </article>
+                <article class="reports-panel stock-extreme metric-orange" aria-labelledby="leastStockedHeading">
+                    <div class="reports-panel-header"><div><h2 id="leastStockedHeading">Least Stocked Product</h2><p>Product with the lowest current quantity</p></div><span class="stock-extreme-rank"><i class="bi bi-arrow-down-right" aria-hidden="true"></i> Lowest</span></div>
+                    @if (Model.Inventory.LeastStockedProduct is { } least)
+                    {
+                        <div class="stock-extreme-body">
+                            <span class="report-metric-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
+                            <div class="stock-extreme-content">
+                                <a class="stock-product-code" asp-controller="Product" asp-action="Details" asp-route-id="@least.ProductID">@least.ProductCode</a>
+                                <strong>@least.ProductName</strong>
+                                <div class="stock-extreme-details"><div><span>Current Quantity</span><b>@least.CurrentQuantity.ToString("N0")</b></div><div><span>Last Updated</span><time datetime="@least.LastUpdated.ToString("O")">@DateTimeText(least.LastUpdated)</time></div></div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="reports-empty stock-extreme-empty">No products available.</div>
+                    }
+                </article>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section aria-label="Delivery overview" class="reports-tab-content">
+            <div class="reports-metrics reports-metrics-four">
+                <article class="report-metric metric-blue"><span class="report-metric-icon"><i class="bi bi-truck" aria-hidden="true"></i></span><div><p>Total Deliveries</p><strong>@Model.Delivery.TotalDeliveries.ToString("N0")</strong></div></article>
+                <article class="report-metric metric-green"><span class="report-metric-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span><div><p>Total Items Delivered</p><strong>@Model.Delivery.TotalItemsDelivered.ToString("N0")</strong></div></article>
+                <article class="report-metric metric-purple"><span class="report-metric-icon"><i class="bi bi-boxes" aria-hidden="true"></i></span><div><p>Total Products Delivered</p><strong>@Model.Delivery.TotalProductsDelivered.ToString("N0")</strong></div></article>
+                <article class="report-metric metric-orange"><span class="report-metric-icon"><i class="bi bi-calendar-check" aria-hidden="true"></i></span><div><p>Last Delivery Date</p><strong>@DateText(Model.Delivery.LastDeliveryDate)</strong></div></article>
+            </div>
+
+            <div class="reports-grid reports-grid-halves">
+                <section class="reports-panel" aria-labelledby="deliveryItemsHeading"><div class="reports-panel-header"><div><h2 id="deliveryItemsHeading">Items by Delivery ID</h2><p>Delivered quantities by formatted delivery ID</p></div></div><div class="report-chart report-chart-large">@if(Model.Delivery.DeliverySummaries.Count > 0){<canvas id="deliveryItemsChart" role="img" aria-label="Items by delivery chart"></canvas>}else{<div class="reports-empty"><i class="bi bi-truck" aria-hidden="true"></i><strong>No delivery summaries</strong><span>Received deliveries will appear here.</span></div>}</div></section>
+                <section class="reports-panel" aria-labelledby="productDeliveryChartHeading"><div class="reports-panel-header"><div><h2 id="productDeliveryChartHeading">Quantity Delivered by Product</h2><p>Product delivery totals</p></div></div><div class="report-chart report-chart-large">@if(Model.Delivery.ProductDeliveries.Count > 0){<canvas id="productDeliveryChart" role="img" aria-label="Quantity delivered by product chart"></canvas>}else{<div class="reports-empty"><i class="bi bi-box-seam" aria-hidden="true"></i><strong>No product deliveries</strong><span>Delivered products will appear here.</span></div>}</div></section>
+            </div>
+
+            <div class="reports-grid reports-grid-delivery-tables">
+                <section class="reports-panel delivery-table-panel" aria-labelledby="deliverySummaryHeading"><div class="reports-panel-header"><div><h2 id="deliverySummaryHeading">Delivery Summary</h2><p>Stored totals per delivery</p></div><span class="reports-count">@Model.Delivery.DeliverySummaries.Count records</span></div><div class="table-responsive"><table class="table reports-table delivery-summary-table" data-report-paginate="true"><thead><tr><th>Delivery Code</th><th class="text-end">Total Items</th><th class="text-end">Total Products</th><th>Last Updated</th></tr></thead><tbody>
+                    @foreach(var row in Model.Delivery.DeliverySummaries){<tr><td class="report-code"><a asp-controller="Delivery" asp-action="Details" asp-route-id="@row.DeliveryID">@row.DeliveryCode</a></td><td class="text-end">@row.TotalItems</td><td class="text-end">@row.TotalProducts</td><td>@DateTimeText(row.LastUpdated)</td></tr>}
+                    @if(Model.Delivery.DeliverySummaries.Count == 0){<tr><td colspan="4"><div class="reports-empty reports-empty-table">No generated report data for this selection.</div></td></tr>}
+                </tbody></table></div></section>
+                <section class="reports-panel delivery-table-panel" aria-labelledby="productDeliveryHeading"><div class="reports-panel-header"><div><h2 id="productDeliveryHeading">Product Delivery Summary</h2><p>Product names and cumulative delivery totals</p></div><span class="reports-count">@Model.Delivery.ProductDeliveries.Count records</span></div><div class="table-responsive"><table class="table reports-table reports-table-wide product-delivery-table" data-report-paginate="true"><thead><tr><th>Product Code</th><th>Product Name</th><th class="text-end">Total Quantity Delivered</th><th class="text-end">Total Deliveries</th><th>Last Delivery Date</th><th>Last Updated</th></tr></thead><tbody>
+                    @foreach(var row in Model.Delivery.ProductDeliveries){<tr><td class="report-code"><a asp-controller="Product" asp-action="Details" asp-route-id="@row.ProductID">@row.ProductCode</a></td><td>@row.ProductName</td><td class="text-end">@row.TotalQuantityDelivered</td><td class="text-end">@row.TotalDeliveries</td><td>@DateText(row.LastDeliveryDate)</td><td>@DateTimeText(row.LastUpdated)</td></tr>}
+                    @if(Model.Delivery.ProductDeliveries.Count == 0){<tr><td colspan="6"><div class="reports-empty reports-empty-table">No generated report data for this selection.</div></td></tr>}
+                </tbody></table></div></section>
+            </div>
+        </section>
+    }
+
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/reports.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script type="application/json" id="reportsData">@Html.Raw(JsonSerializer.Serialize(new
+    {
+        activeTab = Model.ActiveTab,
+        salesHistory = Model.Sales.History,
+        salesByCategory = Model.Sales.SalesByCategory,
+        inventory = new[] { Model.Inventory.AvailableProducts, Model.Inventory.UnavailableProducts, Model.Inventory.LowStockProducts, Model.Inventory.OutOfStockProducts },
+        inventoryCategories = Model.Inventory.ProductCategories,
+        deliveries = Model.Delivery.DeliverySummaries,
+        productDeliveries = Model.Delivery.ProductDeliveries
+    }, new JsonSerializerOptions(JsonSerializerDefaults.Web)))</script>
+    <script src="~/lib/chartjs/chart.umd.min.js" asp-append-version="true"></script>
+    <script src="~/js/reports.js" asp-append-version="true"></script>
+}

@@ -26,17 +26,17 @@
 }
 
 .notification-row:hover {
-    background: #f7faff;
+    background: var(--theme-surface-soft, #f7faff);
     color: inherit;
 }
 
 .notification-row.is-unread {
-    background: #f1f7ff;
+    background: var(--theme-surface-soft, #f1f7ff);
 }
 
 .notification-icon {
     align-items: center;
-    background: #e7f1ff;
+    background: var(--theme-blue-soft, #e7f1ff);
     border-radius: 12px;
     color: var(--rj-primary);
     display: flex;
@@ -46,18 +46,13 @@
 }
 
 .notification-icon-low-stock {
-    background: #fff4d6;
-    color: #a15c00;
+    background: var(--theme-amber-soft, #fff4d6);
+    color: var(--theme-amber, #a15c00);
 }
 
 .notification-icon-out-of-stock {
-    background: #feeceb;
-    color: #b42318;
-}
-
-.notification-icon-calendar {
-    background: #e7f1ff;
-    color: var(--rj-primary);
+    background: var(--theme-red-soft, #feeceb);
+    color: var(--theme-red, #b42318);
 }
 
 .notification-copy {
@@ -68,7 +63,7 @@
 }
 
 .notification-title {
-    color: #111827;
+    color: var(--theme-strong, #111827);
     font-weight: 700;
 }
 
@@ -78,7 +73,7 @@
 }
 
 .notification-copy time {
-    color: #9ca3af;
+    color: var(--theme-muted, #9ca3af);
     font-size: 0.75rem;
     margin-top: 0.3rem;
 }

@@ -33,4 +33,5 @@
     window.addEventListener('beforeprint', () => rows.forEach(row => row.classList.remove('d-none')));
     window.addEventListener('afterprint', render);
     render();
+    if (new URLSearchParams(window.location.search).get('print') === 'true') window.print();
 })();

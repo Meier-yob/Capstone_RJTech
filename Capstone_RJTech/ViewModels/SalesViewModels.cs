@@ -29,7 +29,11 @@ namespace Capstone_RJTech.ViewModels
         [Required, StringLength(300)]
         public string CustomerAddress { get; set; } = string.Empty;
 
+        public string PaymentType { get; set; } = "Full Payment";
         public string PaymentMethod { get; set; } = "Cash";
+        public int? InstallmentMonths { get; set; }
+        public decimal? DownPayment { get; set; }
+        public decimal? InterestRate { get; set; }
         public List<CheckoutItemRequest> Items { get; set; } = new();
     }
 
@@ -50,13 +54,34 @@ namespace Capstone_RJTech.ViewModels
         public string CustomerEmail { get; set; } = string.Empty;
         public string CustomerPhone { get; set; } = string.Empty;
         public string CustomerAddress { get; set; } = string.Empty;
+        public string PaymentType { get; set; } = "Full Payment";
         public string PaymentMethod { get; set; } = "Cash";
         public DateTime DatePurchased { get; set; } = DateTime.Now;
         public List<CheckoutFormItemViewModel> Items { get; set; } = new();
+        public List<CheckoutProductOptionViewModel> AvailableProducts { get; set; } = new();
+    }
+
+    public class CheckoutProductOptionViewModel
+    {
+        public int ProductId { get; set; }
+        public string Code { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Brand { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public int Stock { get; set; }
+        public decimal Price { get; set; }
+        public string ImageUrl { get; set; } = string.Empty;
     }
 
     public class CheckoutDetailsViewModel
     {
         public required Checkout Checkout { get; set; }
+    }
+
+    public class RecordInstallmentPaymentRequest
+    {
+        public int CheckoutID { get; set; }
+        public decimal PaymentAmount { get; set; }
+        public string PaymentMethod { get; set; } = "Cash";
     }
 }

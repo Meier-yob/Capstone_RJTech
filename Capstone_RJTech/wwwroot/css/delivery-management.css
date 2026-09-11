@@ -1,10 +1,12 @@
 /* Delivery Management page */
-
+.del-toolbar .search-control {
+    max-width: 480px;
+}
 .delivery-row {
     cursor: pointer;
 }
 
 .status-archived {
-    background: #e9ecef;
-    color: #495057;
+    background: var(--theme-surface-soft, #e9ecef);
+    color: var(--theme-text, #495057);
 }

@@ -1,0 +1,178 @@
+@model Capstone_RJTech.ViewModels.InstallmentDetailsViewModel
+
+@{
+    ViewData["Title"] = "Installment Details";
+    var installment = Model.Installment;
+    var checkout = Model.Checkout;
+    var customer = Model.Customer;
+    decimal suggestedPayment = Math.Min(installment.MonthlyPayment, installment.Balance);
+    string displayDate = Model.DisplayDate?.ToString("MMMM d, yyyy") ?? "—";
+    string dateLabel = installment.Status == "Completed" ? "Completed On" : "Next Due";
+    string statusClass = installment.Status.ToLowerInvariant();
+    string progressValue = Model.ProgressPercentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+}
+
+<div class="app-page installment-page installment-details-page" id="installmentPage"
+     data-record-url="@Url.Action("RecordPayment")"
+     data-return-url="@Url.Action("Details", new { id = installment.InstallmentID })">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Installments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@installment.FormattedInstallmentID</li>
+        </ol>
+    </nav>
+
+    <div class="page-heading installment-details-heading">
+        <div>
+            <h1>Installment Details</h1>
+            <p>@installment.FormattedInstallmentID · Payment information for @checkout.FormattedCheckoutID.</p>
+        </div>
+        <div class="installment-heading-actions">
+            
+            @if (installment.Status is "Active" or "Overdue")
+            {
+                <button class="btn btn-primary open-payment-modal" type="button"
+                        data-bs-toggle="modal" data-bs-target="#recordPaymentModal"
+                        data-installment-id="@installment.InstallmentID"
+                        data-installment-code="@installment.FormattedInstallmentID"
+                        data-customer="@(customer?.customer_FullName ?? "Unknown customer")"
+                        data-monthly="@installment.MonthlyPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        data-balance="@installment.Balance.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        data-next-due="@displayDate"
+                        data-suggested="@suggestedPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                    <i class="bi bi-cash-coin me-1"></i> Record Payment
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="installment-details-grid">
+        <div class="installment-details-main">
+            <section class="app-card installment-detail-card" aria-labelledby="installmentInformationTitle">
+                <div class="installment-section-heading">
+                    <div class="installment-card-heading">
+                        <span><i class="bi bi-calendar-check" aria-hidden="true"></i></span>
+                        <h2 id="installmentInformationTitle">Installment Information</h2>
+                    </div>
+                    <span class="installment-status status-@statusClass">@installment.Status</span>
+                </div>
+                <dl class="installment-information-grid">
+                    <div><dt>Installment ID</dt><dd>@installment.FormattedInstallmentID</dd></div>
+                    <div><dt>Checkout ID</dt><dd><a asp-controller="Sales" asp-action="SelectedCheckoutDetails" asp-route-id="@checkout.CheckoutID">@checkout.FormattedCheckoutID</a></dd></div>
+                    <div><dt>Start Date</dt><dd>@installment.StartDate.ToString("MMMM d, yyyy")</dd></div>
+                    <div><dt>Installment Term</dt><dd>@installment.Months Months</dd></div>
+                    <div><dt>Interest Rate</dt><dd>@installment.InterestRate.ToString("N2")% / month</dd></div>
+                    <div><dt>@dateLabel</dt><dd>@displayDate</dd></div>
+                </dl>
+            </section>
+
+            <section class="app-card installment-detail-card" aria-labelledby="installmentCustomerTitle">
+                <div class="installment-card-heading">
+                    <span><i class="bi bi-person" aria-hidden="true"></i></span>
+                    <h2 id="installmentCustomerTitle">Customer Details</h2>
+                </div>
+                <dl class="installment-detail-list">
+                    <div><dt>Full Name</dt><dd>@(customer?.customer_FullName ?? "Unknown customer")</dd></div>
+                    <div><dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(customer?.customer_Email) ? "—" : customer.customer_Email)</dd></div>
+                    <div><dt>Phone</dt><dd>@(string.IsNullOrWhiteSpace(customer?.customer_Phone) ? "—" : customer.customer_Phone)</dd></div>
+                    <div><dt>Address</dt><dd>@(string.IsNullOrWhiteSpace(customer?.customer_Address) ? "—" : customer.customer_Address)</dd></div>
+                </dl>
+            </section>
+
+            <section class="app-card installment-detail-card installment-payments-card" aria-labelledby="installmentPaymentsTitle">
+                <div class="installment-card-heading">
+                    <span><i class="bi bi-cash-stack" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 id="installmentPaymentsTitle">Installment Payments</h2>
+                        
+                    </div>
+                </div>
+                <div class="table-responsive installment-payment-table-wrap">
+                    <table class="table app-table installment-payment-history-table" data-sortable="false">
+                        <thead>
+                            <tr>
+                                <th scope="col">Installment ID</th>
+                                <th scope="col">Payment Method</th>
+                                <th scope="col" class="text-end">Payment Amount</th>
+                                <th scope="col">Payment Date</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var payment in installment.InstallmentPayments
+                                .OrderByDescending(payment => payment.PaymentDate))
+                            {
+                                var paymentStatusClass = payment.Status.ToLowerInvariant();
+                                <tr>
+                                    <td class="fw-semibold">@($"INS-{payment.InstallmentID:D3}")</td>
+                                    <td>@payment.PaymentMethod</td>
+                                    <td class="text-end amount-cell">₱@payment.PaymentAmount.ToString("N2")</td>
+                                    <td data-sort-value="@payment.PaymentDate.ToString("O")">@payment.PaymentDate.ToString("MMM d, yyyy")</td>
+                                    <td><span class="installment-payment-status status-@paymentStatusClass">@payment.Status</span></td>
+                                </tr>
+                            }
+                            @if (!installment.InstallmentPayments.Any())
+                            {
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state installment-payment-empty">
+                                            <i class="bi bi-receipt" aria-hidden="true"></i>
+                                            <span>No installment payments recorded yet.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <aside class="app-card installment-detail-card payment-summary-card" aria-labelledby="installmentSummaryTitle">
+            <div class="installment-card-heading">
+                <span><i class="bi bi-wallet2" aria-hidden="true"></i></span>
+                <h2 id="installmentSummaryTitle">Payment Summary</h2>
+            </div>
+            <dl class="installment-detail-list payment-detail-list">
+                <div><dt>Installment Total</dt><dd>₱@installment.TotalAmount.ToString("N2")</dd></div>
+                <div><dt>Down Payment</dt><dd>₱@installment.DownPayment.ToString("N2")</dd></div>
+                <div><dt>Monthly Payment</dt><dd>₱@installment.MonthlyPayment.ToString("N2")</dd></div>
+            </dl>
+
+            <div class="remaining-balance-block balance-@statusClass">
+                <span>Remaining Balance</span>
+                <strong>₱@(installment.Status == "Completed" ? "0.00" : installment.Balance.ToString("N2"))</strong>
+            </div>
+
+            <div class="installment-repayment-progress">
+                <div class="summary-progress-copy">
+                    <span>Repayment Progress</span>
+                    <strong>@Model.ProgressPercentage.ToString("0.#")%</strong>
+                </div>
+                <div class="progress summary-progress" role="progressbar" aria-label="Installment repayment progress" aria-valuenow="@progressValue" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: @(progressValue)%"></div>
+                </div>
+                <p class="installment-progress-caption">@installment.MonthsPaid of @installment.Months months paid</p>
+            </div>
+
+            <dl class="installment-detail-list payment-detail-list summary-final-rows">
+                <div><dt>Months Remaining</dt><dd>@installment.MonthsRemaining</dd></div>
+                <div><dt>@dateLabel</dt><dd>@displayDate</dd></div>
+            </dl>
+        </aside>
+    </div>
+</div>
+
+@if (installment.Status is "Active" or "Overdue")
+{
+    @await Html.PartialAsync("_RecordPaymentModal")
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/installments.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <script src="~/js/installments.js" asp-append-version="true"></script>
+}

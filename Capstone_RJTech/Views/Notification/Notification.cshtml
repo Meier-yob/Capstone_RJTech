@@ -1,12 +1,12 @@
 @model IEnumerable<Capstone_RJTech.Models.AppNotification>
 @{
     ViewData["Title"] = "Notifications";
-    ViewData["Description"] = "Stay up to date with inventory alerts and scheduled activity.";
+    ViewData["Description"] = "Stay up to date with inventory alerts.";
 }
 
 <div class="app-page notification-page" id="notificationPage" data-read-url="@Url.Action("MarkAsRead")" data-read-all-url="@Url.Action("MarkAllAsRead")">
     <div class="page-heading">
-        <div><h1>Notifications</h1><p>Stay up to date with inventory alerts and scheduled activity.</p></div>
+        <div><h1>Notifications</h1><p>Stay up to date with inventory alerts.</p></div>
         <button id="markAllNotificationsRead" class="btn btn-primary" type="button"><i class="bi bi-check2-all me-1"></i>Mark all as read</button>
     </div>
 
@@ -27,7 +27,6 @@
                 {
                     "low-stock" => "bi-exclamation-triangle",
                     "out-of-stock" => "bi-x-circle",
-                    "calendar" => "bi-calendar-event",
                     _ => "bi-info-circle"
                 };
                 <a class="notification-row @(!notification.is_read ? "is-unread" : "")" href="@notification.action_url"

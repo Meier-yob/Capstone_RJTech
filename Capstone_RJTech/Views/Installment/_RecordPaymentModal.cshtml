@@ -1,0 +1,54 @@
+<div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-labelledby="recordPaymentTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content installment-payment-modal">
+            <div class="modal-header">
+                <div>
+                    <h2 class="modal-title fs-5" id="recordPaymentTitle">Record Installment Payment</h2>
+                    <p class="small text-muted mb-0">Enter the payment received from the customer.</p>
+                </div>
+                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recordPaymentForm" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input id="modalInstallmentId" name="InstallmentID" type="hidden" />
+
+                    <div class="payment-readonly-grid" aria-label="Installment payment information">
+                        <div><span>Installment ID</span><strong id="modalInstallmentCode">—</strong></div>
+                        <div><span>Customer</span><strong id="modalCustomer">—</strong></div>
+                        <div><span>Monthly Payment</span><strong id="modalMonthlyPayment">₱0.00</strong></div>
+                        <div><span>Current Balance</span><strong id="modalCurrentBalance">₱0.00</strong></div>
+                        <div><span>Next Due</span><strong id="modalNextDue">—</strong></div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-sm-7">
+                            <label class="form-label" for="modalPaymentAmount">Payment Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₱</span>
+                                <input id="modalPaymentAmount" name="PaymentAmount" class="form-control"
+                                       type="number" min="0.01" step="0.01" required />
+                            </div>
+                            <div class="invalid-feedback">Enter an amount greater than zero that does not exceed the balance.</div>
+                        </div>
+                        <div class="col-sm-5">
+                            <label class="form-label" for="modalPaymentMethod">Payment Method</label>
+                            <select id="modalPaymentMethod" name="PaymentMethod" class="form-select" required>
+                                <option value="Cash">Cash</option>
+                                <option value="E-Wallet">E-Wallet</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" type="submit" form="recordPaymentForm" id="recordInstallmentPayment">
+                    <span class="spinner-border spinner-border-sm d-none me-1" aria-hidden="true"></span>
+                    Record Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

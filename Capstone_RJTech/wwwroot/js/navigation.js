@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebarClose = document.getElementById('sidebarClose');
     const groupToggles = document.querySelectorAll('.nav-group-toggle');
     const sidebarLinks = document.querySelectorAll('.sidebar a');
-    const searchInput = document.querySelector('.top-navbar .search-bar input');
 
     function setMobileSidebar(open) {
         if (!sidebar || !sidebarOverlay) return;
@@ -84,11 +83,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.addEventListener('keydown', function (event) {
-        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && searchInput) {
-            event.preventDefault();
-            searchInput.focus();
-            searchInput.select();
-        }
         if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) {
             setMobileSidebar(false);
             sidebarToggle?.focus();

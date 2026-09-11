@@ -1,16 +1,23 @@
 (() => {
     const page = document.getElementById('salesOrdersPage');
-    const rows = [...document.querySelectorAll('.sales-order-row')];
+    let rows = [...document.querySelectorAll('.sales-order-row')];
+    const table = document.getElementById('salesOrdersTable');
     const search = document.getElementById('salesOrderSearch');
     const pageSize = document.getElementById('salesOrderPageSize');
     const pagination = document.getElementById('salesOrderPagination');
     const rangeText = document.getElementById('salesOrderRangeText');
     const emptyRow = document.getElementById('emptySalesOrders');
+    const statusTabs = [...document.querySelectorAll('.sales-status-tabs [data-status]')];
+    let selectedStatus = 'all';
     let currentPage = 1;
 
     function matchingRows() {
         const term = search.value.trim().toLowerCase();
-        return rows.filter(row => !term || row.dataset.search.includes(term));
+        return rows.filter(row => {
+            const matchesSearch = !term || row.dataset.search.includes(term);
+            const matchesStatus = selectedStatus === 'all' || row.dataset.status === selectedStatus;
+            return matchesSearch && matchesStatus;
+        });
     }
 
     function addPageButton(label, pageNumber, options = {}) {
@@ -48,10 +55,10 @@
         addPageButton('Next', currentPage + 1, { disabled: currentPage === pageCount });
     }
 
-    async function deleteCheckout(button) {
-        if (!confirm('Are you sure you want to delete this sales transaction?')) return;
+    async function refundCheckout(button) {
+        if (!confirm(`Refund ${button.dataset.code}? Product inventory will be restored.`)) return;
 
-        const response = await fetch(page.dataset.deleteUrl, {
+        const response = await fetch(page.dataset.refundUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({ id: button.dataset.id })
@@ -59,28 +66,73 @@
         const result = await response.json();
 
         if (result.success) {
-            window.reloadWithToast(result.message || 'Sales transaction deleted.');
+            window.reloadWithToast(result.message || 'Sales transaction updated.');
+            return;
         }
+        window.showToast(result.message || 'Unable to update the sales transaction.', 'error');
     }
 
-    function exportCsv() {
-        const data = [['Checkout ID', 'Customer', 'Payment Method', 'Date Purchased', 'Status', 'Total Amount']];
-        matchingRows().forEach(row => {
-            data.push([...row.querySelectorAll('td')].slice(0, 6).map(cell => cell.innerText.trim().replace(/\s+/g, ' ')));
+    async function deleteCheckout(button) {
+        if (!confirm(`Delete the sales details for ${button.dataset.code}? Product inventory will remain unchanged.`)) return;
+        const response = await fetch(page.dataset.deleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ id: button.dataset.id })
         });
-        const csv = data.map(values => values.map(value => `"${value.replaceAll('"', '""')}"`).join(',')).join('\n');
-        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-        const link = Object.assign(document.createElement('a'), { href: url, download: 'rjtech-sales-orders.csv' });
-        link.click();
-        URL.revokeObjectURL(url);
+        const result = await response.json();
+        if (result.success) {
+            window.reloadWithToast(result.message || 'Sales details deleted.');
+            return;
+        }
+        window.showToast(result.message || 'Unable to delete the sales details.', 'error');
+    }
+
+    async function deleteSelectedCheckouts(event) {
+        event.preventDefault();
+        const ids = event.detail?.ids ?? [];
+        if (!ids.length || !confirm(`Delete ${ids.length} selected sales details? Product inventory will remain unchanged.`)) return;
+
+        const response = await fetch(page.dataset.bulkDeleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(ids)
+        });
+        const result = await response.json();
+        if (result.success) {
+            window.reloadWithToast(result.message || 'Selected sales details deleted.');
+            return;
+        }
+        window.showToast(result.message || 'Unable to delete the selected sales details.', 'error');
     }
 
     search.addEventListener('input', () => { currentPage = 1; render(); });
     pageSize.addEventListener('change', () => { currentPage = 1; render(); });
-    rows.forEach(row => row.addEventListener('click', event => {
-        if (!event.target.closest('a, button, .dropdown-menu')) window.location.href = row.dataset.href;
+    statusTabs.forEach(tab => tab.addEventListener('click', () => {
+        selectedStatus = tab.dataset.status;
+        currentPage = 1;
+
+        statusTabs.forEach(item => {
+            const isActive = item === tab;
+            item.classList.toggle('active', isActive);
+            item.setAttribute('aria-pressed', String(isActive));
+        });
+
+        render();
     }));
+    rows.forEach(row => row.addEventListener('click', event => {
+        if (!event.target.closest('a, button, input, label, .dropdown-menu')) window.location.href = row.dataset.href;
+    }));
+    document.querySelectorAll('.refund-checkout').forEach(button => button.addEventListener('click', () => refundCheckout(button)));
     document.querySelectorAll('.delete-checkout').forEach(button => button.addEventListener('click', () => deleteCheckout(button)));
-    document.getElementById('exportSalesOrders').addEventListener('click', exportCsv);
+    table?.addEventListener('table:bulk-delete', deleteSelectedCheckouts);
+    table?.addEventListener('table:sorted', () => {
+        rows = [...document.querySelectorAll('.sales-order-row')];
+        currentPage = 1;
+        render();
+    });
+    document.getElementById('exportSalesOrders')?.addEventListener('click', event => {
+        const hasFilters = Boolean(search.value.trim()) || selectedStatus !== 'all';
+        window.rjtechExcelExport.download(event.currentTarget, matchingRows(), hasFilters);
+    });
     render();
 })();

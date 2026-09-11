@@ -9,8 +9,6 @@ namespace Capstone_RJTech.Models
         [Key]
         public int CheckoutID { get; set; }
 
-        public int CheckoutNumber { get; set; }
-
         [Required]
         public int CustomerID { get; set; }
 
@@ -20,17 +18,21 @@ namespace Capstone_RJTech.Models
         [Required, StringLength(50)]
         public string PaymentMethod { get; set; } = "Cash";
 
+        [Required, StringLength(30)]
+        public string PaymentType { get; set; } = "Full Payment";
+
         public DateTime DatePurchased { get; set; } = DateTime.Now;
 
         [Required, StringLength(30)]
-        public string Status { get; set; } = "Completed";
+        public string Status { get; set; } = "Paid";
 
         [ForeignKey(nameof(CustomerID))]
         public virtual Customer? Customer { get; set; }
 
         public virtual ICollection<CheckoutItem> CheckoutItems { get; set; } = new List<CheckoutItem>();
+        public virtual Installment? Installment { get; set; }
 
         [NotMapped]
-        public string FormattedCheckoutID => $"CHK-{CheckoutNumber:D3}";
+        public string FormattedCheckoutID => $"CHK-{CheckoutID:D3}";
     }
 }

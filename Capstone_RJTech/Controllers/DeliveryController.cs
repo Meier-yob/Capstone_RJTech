@@ -1,6 +1,5 @@
 using Capstone_RJTech.Data;
 using Capstone_RJTech.Models;
-using Capstone_RJTech.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
@@ -11,16 +10,13 @@ namespace Capstone_RJTech.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly ILogger<DeliveryController> _logger;
-        private readonly DocumentSequenceService _documentSequences;
 
         public DeliveryController(
             ApplicationDbContext db,
-            ILogger<DeliveryController> logger,
-            DocumentSequenceService documentSequences)
+            ILogger<DeliveryController> logger)
         {
             _db = db;
             _logger = logger;
-            _documentSequences = documentSequences;
         }
 
         public IActionResult Index() => RedirectToAction(nameof(DeliveryManagement));
@@ -54,8 +50,12 @@ namespace Capstone_RJTech.Controllers
             }
             if (statusChanged) _db.SaveChanges();
 
-            DateTime now = DateTime.Now;
-            ViewBag.NextBatchId = BuildBatchId(now, _documentSequences.PeekNextDeliveryNumber(now));
+            int latestDeliveryId = _db.Deliveries
+                .AsNoTracking()
+                .Select(delivery => (int?)delivery.delivery_ID)
+                .Max() ?? 0;
+            ViewData["NextBatchID"] = $"BATCH-{latestDeliveryId + 1:D3}";
+
             return View("ReceiveProduct", products);
         }
 
@@ -87,8 +87,8 @@ namespace Capstone_RJTech.Controllers
                 var list = deliveries.Select(delivery => new
                 {
                     delivery_ID = delivery.delivery_ID,
-                    delivery_code = delivery.batch_ID.Replace("BATCH-", "DEL-"),
-                    batch_ID = delivery.batch_ID,
+                    delivery_code = delivery.FormattedDeliveryID,
+                    batch_ID = delivery.FormattedBatchID,
                     date_delivered = delivery.date_delivered.ToString("yyyy-MM-dd HH:mm:ss"),
                     received_by = delivery.received_by,
                     is_archived = delivery.is_archived,
@@ -123,7 +123,6 @@ namespace Capstone_RJTech.Controllers
         public class DeliveryCompleteRequest
         {
             public string? received_by { get; set; }
-            public string? batch_ID { get; set; }
             public DateTime? delivery_date { get; set; }
             public List<DeliveryItemRequest>? items { get; set; }
         }
@@ -151,16 +150,19 @@ namespace Capstone_RJTech.Controllers
             try
             {
                 DateTime receivedAt = DateTime.Now;
-                int documentNumber = _documentSequences.AllocateNextDeliveryNumber(receivedAt);
-                string batchId = BuildBatchId(receivedAt, documentNumber);
 
                 var delivery = new Delivery
                 {
                     date_delivered = receivedAt,
                     received_by = request.received_by.Trim(),
-                    batch_ID = batchId
+                    // SQL Server assigns delivery_ID during the first save.
+                    batch_ID = $"PENDING-{Guid.NewGuid():N}"
                 };
                 _db.Deliveries.Add(delivery);
+                _db.SaveChanges();
+
+                // Both displayed identifiers use the same database identity.
+                delivery.batch_ID = delivery.FormattedBatchID;
 
                 foreach (var requestedItem in request.items)
                 {
@@ -194,8 +196,8 @@ namespace Capstone_RJTech.Controllers
                     delivery = new
                     {
                         delivery_ID = delivery.delivery_ID,
-                        delivery_code = delivery.batch_ID.Replace("BATCH-", "DEL-"),
-                        batch_ID = delivery.batch_ID,
+                        delivery_code = delivery.FormattedDeliveryID,
+                        batch_ID = delivery.FormattedBatchID,
                         date_delivered = delivery.date_delivered,
                         received_by = delivery.received_by,
                         items = delivery.DeliveryDetails.Select(detail => new
@@ -217,46 +219,18 @@ namespace Capstone_RJTech.Controllers
         }
 
         [HttpPost]
-        public IActionResult ArchiveDeliveryReceipt(int delivery_ID)
-        {
-            var delivery = _db.Deliveries.Find(delivery_ID);
-            if (delivery == null)
-                return Json(new { success = false, message = "Delivery not found." });
-
-            delivery.is_archived = true;
-            _db.SaveChanges();
-            return Json(new { success = true, message = "Delivery archived." });
-        }
-
-        [HttpPost]
         public IActionResult DeleteDeliveryReceipt(int delivery_ID)
         {
             using var transaction = _db.Database.BeginTransaction();
             try
             {
-                var delivery = _db.Deliveries
-                    .Include(item => item.DeliveryDetails)
-                        .ThenInclude(detail => detail.Product)
-                    .FirstOrDefault(item => item.delivery_ID == delivery_ID);
+                var delivery = _db.Deliveries.FirstOrDefault(item => item.delivery_ID == delivery_ID);
                 if (delivery == null) return Json(new { success = false, message = "Delivery not found." });
-                if (!delivery.is_archived)
-                    return Json(new { success = false, message = "Archive the delivery before deleting it." });
-
-                foreach (var detail in delivery.DeliveryDetails)
-                {
-                    var product = detail.Product;
-                    if (product == null) continue;
-
-                    product.product_quantity = Math.Max(0, product.product_quantity - detail.product_quantity);
-                    product.product_status = product.product_quantity <= 0
-                        ? "Out of Stock"
-                        : ProductController.EvaluateProductStatus(product);
-                }
 
                 _db.Deliveries.Remove(delivery);
                 _db.SaveChanges();
                 transaction.Commit();
-                return Json(new { success = true, message = "Delivery receipt deleted and inventory rolled back." });
+                return Json(new { success = true, message = "Delivery details deleted. Received product quantities were not changed." });
             }
             catch (Exception exception)
             {
@@ -266,21 +240,42 @@ namespace Capstone_RJTech.Controllers
             }
         }
 
-        [HttpGet]
-        public IActionResult GetNextDeliveryInfo()
+        [HttpPost]
+        public IActionResult DeleteDeliveryReceipts([FromBody] int[]? ids)
         {
-            DateTime now = DateTime.Now;
-            string batchId = BuildBatchId(now, _documentSequences.PeekNextDeliveryNumber(now));
-            return Json(new
-            {
-                success = true,
-                delivery_ID = batchId.Replace("BATCH-", "DEL-"),
-                batch_ID = batchId
-            });
-        }
+            int[] selectedIds = ids?
+                .Where(id => id > 0)
+                .Distinct()
+                .ToArray() ?? Array.Empty<int>();
 
-        private static string BuildBatchId(DateTime date, int sequence)
-            => $"BATCH-{date:yyyyMMdd}-{sequence:D3}";
+            if (selectedIds.Length == 0)
+                return Json(new { success = false, message = "Select at least one delivery to delete." });
+
+            using var transaction = _db.Database.BeginTransaction();
+            try
+            {
+                var deliveries = _db.Deliveries
+                    .Where(delivery => selectedIds.Contains(delivery.delivery_ID))
+                    .ToList();
+                if (deliveries.Count != selectedIds.Length)
+                    return Json(new { success = false, message = "One or more selected deliveries could not be found." });
+
+                _db.Deliveries.RemoveRange(deliveries);
+                _db.SaveChanges();
+                transaction.Commit();
+                return Json(new
+                {
+                    success = true,
+                    message = $"{deliveries.Count} delivery details deleted. Received product quantities were not changed."
+                });
+            }
+            catch (Exception exception)
+            {
+                transaction.Rollback();
+                _logger.LogError(exception, "Error deleting selected delivery receipts.");
+                return Json(new { success = false, message = "An error occurred while deleting the selected delivery details." });
+            }
+        }
 
         [HttpGet]
         public IActionResult SearchProductForDelivery(string query)
