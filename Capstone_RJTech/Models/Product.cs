@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Capstone_RJTech.Models
 {
-    public class Product
+    public class Product : OwnedEntity
     {
         [Key]
         public int product_ID { get; set; }

@@ -1,19 +1,23 @@
 using Capstone_RJTech.Models;
 using Capstone_RJTech.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Capstone_RJTech.Data
 {
     public class ApplicationDbContext : DbContext
     {
         private readonly ReportUpdateTracker? _reportUpdates;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public ApplicationDbContext(
             DbContextOptions<ApplicationDbContext> options,
-            ReportUpdateTracker? reportUpdates = null)
+            ReportUpdateTracker? reportUpdates = null,
+            IHttpContextAccessor? httpContextAccessor = null)
             : base(options)
         {
             _reportUpdates = reportUpdates;
+            _httpContextAccessor = httpContextAccessor ?? new HttpContextAccessor();
         }
 
         public override int SaveChanges()
@@ -21,6 +25,7 @@ namespace Capstone_RJTech.Data
 
         public override int SaveChanges(bool acceptAllChangesOnSuccess)
         {
+            ApplyOwnerToNewEntities();
             bool reportsChanged = HasReportSourceChanges();
             int savedCount = base.SaveChanges(acceptAllChangesOnSuccess);
             if (reportsChanged && savedCount > 0)
@@ -35,6 +40,7 @@ namespace Capstone_RJTech.Data
             bool acceptAllChangesOnSuccess,
             CancellationToken cancellationToken = default)
         {
+            ApplyOwnerToNewEntities();
             bool reportsChanged = HasReportSourceChanges();
             int savedCount = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
             if (reportsChanged && savedCount > 0)
@@ -47,6 +53,27 @@ namespace Capstone_RJTech.Data
                 (entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted) &&
                 entry.Entity is Product or ProductCategory or Delivery or Capstone_RJTech.Models.DeliveryDetails or
                     Customer or Checkout or CheckoutItem);
+
+        private void ApplyOwnerToNewEntities()
+        {
+            var ownerId = CurrentOwnerId;
+            var isOwner = _httpContextAccessor.HttpContext?.User.IsInRole("Owner") == true;
+
+            foreach (var entry in ChangeTracker.Entries<OwnedEntity>()
+                         .Where(entry => entry.State == EntityState.Added))
+            {
+                if (string.IsNullOrWhiteSpace(ownerId) || !isOwner)
+                {
+                    throw new InvalidOperationException(
+                        "An authenticated Owner account is required to create business data.");
+                }
+
+                entry.Entity.OwnerID = ownerId;
+            }
+        }
+
+        private string? CurrentOwnerId
+            => _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         public DbSet<Product> Products => Set<Product>();
         public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
@@ -75,10 +102,58 @@ namespace Capstone_RJTech.Data
         public DbSet<DeliveryOverviewReport> DeliveryOverviews => Set<DeliveryOverviewReport>();
         public DbSet<DeliverySummaryReport> DeliverySummaries => Set<DeliverySummaryReport>();
         public DbSet<ProductDeliverySummaryReport> ProductDeliverySummaries => Set<ProductDeliverySummaryReport>();
+        public DbSet<Owner> Owners => Set<Owner>();
+        public DbSet<OwnerInvitation> OwnerInvitations => Set<OwnerInvitation>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Owner>()
+                .HasIndex(owner => owner.UserName)
+                .IsUnique();
+
+            modelBuilder.Entity<Owner>()
+                .HasIndex(owner => owner.RecoveryEmail)
+                .IsUnique();
+
+            modelBuilder.Entity<OwnerInvitation>()
+                .Property(invitation => invitation.Status)
+                .HasConversion<string>()
+                .HasMaxLength(20);
+
+            modelBuilder.Entity<OwnerInvitation>()
+                .HasIndex(invitation => invitation.TokenHash)
+                .IsUnique();
+
+            modelBuilder.Entity<OwnerInvitation>()
+                .HasIndex(invitation => new { invitation.Email, invitation.Status, invitation.ExpiresAt });
+
+            ConfigureOwnerScope<ProductCategory>(modelBuilder);
+            ConfigureOwnerScope<Product>(modelBuilder);
+            ConfigureOwnerScope<Delivery>(modelBuilder);
+            ConfigureOwnerScope<DeliveryDetails>(modelBuilder);
+            ConfigureOwnerScope<AppNotification>(modelBuilder);
+            ConfigureOwnerScope<Customer>(modelBuilder);
+            ConfigureOwnerScope<Checkout>(modelBuilder);
+            ConfigureOwnerScope<CheckoutItem>(modelBuilder);
+            ConfigureOwnerScope<Installment>(modelBuilder);
+            ConfigureOwnerScope<InstallmentPayment>(modelBuilder);
+            ConfigureOwnerScope<CustomerPurchaseHistory>(modelBuilder);
+            ConfigureOwnerScope<SalesOverviewReport>(modelBuilder);
+            ConfigureOwnerScope<WeeklySalesReport>(modelBuilder);
+            ConfigureOwnerScope<MonthlySalesReport>(modelBuilder);
+            ConfigureOwnerScope<YearlySalesReport>(modelBuilder);
+            ConfigureOwnerScope<BestSellingProductReport>(modelBuilder);
+            ConfigureOwnerScope<LeastSellingProductReport>(modelBuilder);
+            ConfigureOwnerScope<SalesByCategoryReport>(modelBuilder);
+            ConfigureOwnerScope<TransactionReport>(modelBuilder);
+            ConfigureOwnerScope<InventoryOverviewReport>(modelBuilder);
+            ConfigureOwnerScope<ProductStockSummaryReport>(modelBuilder);
+            ConfigureOwnerScope<ProductCategoryOverviewReport>(modelBuilder);
+            ConfigureOwnerScope<MostStockedProductReport>(modelBuilder);
+            ConfigureOwnerScope<LeastStockedProductReport>(modelBuilder);
+            ConfigureOwnerScope<DeliveryOverviewReport>(modelBuilder);
+            ConfigureOwnerScope<DeliverySummaryReport>(modelBuilder);
+            ConfigureOwnerScope<ProductDeliverySummaryReport>(modelBuilder);
 
             modelBuilder.Entity<ProductCategory>()
                 .HasIndex(category => category.category_name)
@@ -298,6 +373,27 @@ namespace Capstone_RJTech.Data
                     product_status = "Unavailable",
                     category_ID = 3
                 });
+        }
+
+        private void ConfigureOwnerScope<TEntity>(ModelBuilder modelBuilder)
+            where TEntity : OwnedEntity
+        {
+            var entity = modelBuilder.Entity<TEntity>();
+            entity.Property(item => item.OwnerID)
+                .HasMaxLength(450)
+                .HasColumnName("OwnerId")
+                .IsRequired();
+            entity.HasIndex(item => item.OwnerID);
+            entity.HasOne<Owner>()
+                .WithMany()
+                .HasPrincipalKey(owner => owner.OwnerID)
+                .HasForeignKey(item => item.OwnerID)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasQueryFilter(entityInstance =>
+                _httpContextAccessor.HttpContext != null &&
+                _httpContextAccessor.HttpContext.User.Identity != null &&
+                _httpContextAccessor.HttpContext.User.Identity.IsAuthenticated &&
+                entityInstance.OwnerID == CurrentOwnerId);
         }
     }
 }

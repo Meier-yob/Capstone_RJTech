@@ -12,6 +12,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <title>@ViewData["Title"] - DraftSYSTEM</title>
     <script src="~/js/theme.js" asp-append-version="true"></script>
 
@@ -123,7 +126,10 @@
                 <div class="sidebar-user">
                     <span class="sidebar-user-avatar">RJ</span>
                     <span class="sidebar-user-copy"><strong>RJTech Admin</strong><small>Administrator</small></span>
-                    <button class="sidebar-user-action" type="button" data-nav-placeholder="Logout" aria-label="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                    <button class="sidebar-user-action" type="button" aria-label="Logout"
+                            data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal">
+                        <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -218,6 +224,29 @@
         </section>
     </div>
 
+    <div class="modal fade" id="logoutConfirmationModal" tabindex="-1"
+         aria-labelledby="logoutConfirmationTitle" aria-describedby="logoutConfirmationMessage"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="logoutConfirmationTitle">Log out?</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0" id="logoutConfirmationMessage">Are you sure you want to log out of RJTech?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="appToastContainer" class="toast-container position-fixed top-0 end-0 p-3"
          data-success-message="@(TempData["ToastSuccess"] ?? TempData["ImageSuccess"])"
          data-error-message="@(TempData["ToastError"] ?? TempData["ImageError"])"
@@ -242,6 +271,13 @@
     <script src="~/js/navigation.js" asp-append-version="true"></script>
     <script src="~/js/global-search.js" asp-append-version="true"></script>
     <script src="~/js/notification-center.js" asp-append-version="true"></script>
+    <script>
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

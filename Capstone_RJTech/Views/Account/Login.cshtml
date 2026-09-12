@@ -1,0 +1,51 @@
+@{
+    Layout = null;
+    var returnUrl = ViewData["ReturnUrl"] as string ?? "/";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Owner and Staff Login - RJTech</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+</head>
+<body class="bg-light">
+    <main class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h1 class="h3 mb-4">Owner and Staff Login</h1>
+                        @if (TempData["ToastError"] is string errorMessage)
+                        {
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Access Denied</strong>
+                                <span>@errorMessage.Replace("Access Denied: ", string.Empty)</span>
+                            </div>
+                        }
+                        <form asp-action="Login" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <div class="mb-3">
+                                <label for="userName" class="form-label">Username</label>
+                                <input id="userName" name="userName" type="text" class="form-control" autocomplete="username" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input id="password" name="password" type="password" class="form-control" autocomplete="current-password" required />
+                            </div>
+                            <div class="form-check mb-3">
+                                <input id="rememberMe" name="rememberMe" type="checkbox" class="form-check-input" value="true" />
+                                <label for="rememberMe" class="form-check-label">Remember me</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Sign in</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

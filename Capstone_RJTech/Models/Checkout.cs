@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Capstone_RJTech.Models
 {
     [Table("tblCheckout")]
-    public class Checkout
+    public class Checkout : OwnedEntity
     {
         [Key]
         public int CheckoutID { get; set; }

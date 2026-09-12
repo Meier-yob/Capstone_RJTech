@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Capstone_RJTech.Models
 {
-    public class AppNotification
+    public class AppNotification : OwnedEntity
     {
         [Key]
         public int notification_ID { get; set; }
