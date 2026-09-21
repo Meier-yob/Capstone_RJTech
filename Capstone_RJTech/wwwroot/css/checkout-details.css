@@ -267,6 +267,16 @@
     }
 
 
+    /* Serial Number (non-serialized products) */
+
+    .purchased-items-card .serial-nonserialized {
+        color: var(--theme-muted, #667085);
+        font-style: italic;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+
+
     /* Product Code */
 
     .purchased-items-card tbody td:first-child {

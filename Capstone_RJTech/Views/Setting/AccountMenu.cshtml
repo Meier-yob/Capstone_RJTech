@@ -1,0 +1,167 @@
+@model Capstone_RJTech.ViewModels.AccountSettingsViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Account Settings";
+    var culture = CultureInfo.GetCultureInfo("en-PH");
+
+    string Initials(string fullName) => string.Concat(
+        fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2)
+                .Select(w => char.ToUpperInvariant(w[0])));
+}
+
+<div class="app-page account-settings-page" id="accountSettingsPage">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Dashboard">
+                    Dashboard
+                </a>
+            </li>
+            <li class="breadcrumb-item active">
+                Account Settings
+            </li>
+        </ol>
+    </nav>
+
+    <div class="page-heading account-settings-heading">
+        <div>
+            <h1>Account Settings</h1>
+            <p>Manage your profile preferences and security credentials.</p>
+        </div>
+    </div>
+
+    <div class="account-settings-layout">
+
+        <section class="app-card account-settings-section" aria-labelledby="profileTitle">
+
+            <div class="account-section-heading">
+                <div class="account-section-title">
+                    <span class="account-section-icon">
+                        <i class="fa-solid fa-user"></i>
+                    </span>
+                    <h2 id="profileTitle">Profile</h2>
+                </div>
+            </div>
+
+            <div class="profile-header">
+                <div class="profile-avatar-lg">
+                    @Initials(Model.Profile.FullName)
+                </div>
+
+                <div class="profile-header-info">
+                    <strong>@Model.Profile.FullName</strong>
+                    <span class="role-badge">Owner</span>
+                    <small>Member since @Model.Profile.DateCreated.ToString("MMMM d, yyyy", culture)</small>
+                </div>
+            </div>
+
+            <hr class="profile-divider" />
+
+            <form asp-controller="Setting" asp-action="UpdateProfile" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-2 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Profile.FullName" class="form-label">Full Name</label>
+                    <input asp-for="Profile.FullName" class="form-control" autocomplete="name" />
+                    <span asp-validation-for="Profile.FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Profile.Email" class="form-label">Email Address</label>
+                    <input asp-for="Profile.Email" class="form-control" autocomplete="email" />
+                    <span asp-validation-for="Profile.Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Profile.Username" class="form-label">Username</label>
+                    <input asp-for="Profile.Username" class="form-control" autocomplete="username" />
+                    <span asp-validation-for="Profile.Username" class="text-danger small"></span>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-check me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+
+        </section>
+
+        <aside class="app-card account-settings-section" aria-labelledby="securityTitle">
+
+            <div class="account-section-heading">
+                <div class="account-section-title">
+                    <span class="account-section-icon account-section-icon-security">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </span>
+                    <h2 id="securityTitle">Change Password</h2>
+                </div>
+            </div>
+
+            <form asp-controller="Setting" asp-action="ChangePassword" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-2 small"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Security.CurrentPassword" class="form-label">Current Password</label>
+                    <input asp-for="Security.CurrentPassword" type="password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="Security.CurrentPassword" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Security.NewPassword" class="form-label">New Password</label>
+                    <input asp-for="Security.NewPassword" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Security.NewPassword" class="text-danger small"></span>
+                    <small class="form-text text-muted">Must be at least 6 characters long.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Security.ConfirmPassword" class="form-label">Confirm Password</label>
+                    <input asp-for="Security.ConfirmPassword" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Security.ConfirmPassword" class="text-danger small"></span>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-lock me-1"></i> Update Password
+                    </button>
+                </div>
+            </form>
+
+        </aside>
+
+    </div>
+
+    <section class="app-card account-settings-section account-signout-section" aria-labelledby="signOutTitle">
+
+        <div class="account-section-heading account-signout-row mb-0">
+            <div class="account-section-title">
+                <span class="account-section-icon account-section-icon-danger">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                </span>
+                <div class="account-signout-copy">
+                    <h2 id="signOutTitle">Sign Out</h2>
+                    <p class="account-signout-subtext mb-0">Signing out will end your current session on this device.</p>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-outline-danger account-signout-button"
+                    data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal">
+                <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
+            </button>
+        </div>
+
+    </section>
+
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/account-settings.css" asp-append-version="true" />
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

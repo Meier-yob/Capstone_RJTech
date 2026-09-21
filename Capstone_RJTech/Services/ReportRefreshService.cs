@@ -216,7 +216,7 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
             {
                 CheckoutID = checkout.CheckoutID,
                 CustomerID = checkout.CustomerID,
-                TransactionType = checkout.Status == "Refunded" ? "Refund" : "Sale",
+                PaymentType = checkout.PaymentType,
                 PaymentMethod = checkout.PaymentMethod,
                 Amount = checkout.TotalAmount,
                 TransactionDate = checkout.DatePurchased,

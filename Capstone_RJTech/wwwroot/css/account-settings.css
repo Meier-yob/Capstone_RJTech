@@ -1,0 +1,195 @@
+.account-settings-page {
+    background: var(--theme-surface-soft, #f8fafc);
+}
+
+.account-settings-heading {
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.account-settings-layout {
+    align-items: start;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 420px);
+    margin-bottom: 1rem;
+}
+
+.account-settings-section {
+    min-width: 0;
+    padding: 1.25rem;
+}
+
+.account-section-heading {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+
+.account-section-title {
+    align-items: center;
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0.65rem;
+}
+
+    .account-section-title h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+.account-section-icon {
+    align-items: center;
+    background: var(--theme-blue-soft, #e7f2ff);
+    border-radius: 0.5rem;
+    color: var(--theme-blue, #0d6efd);
+    display: inline-flex;
+    flex: 0 0 32px;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+    font-size: 0.9rem;
+}
+
+.account-section-icon-security {
+    background: rgba(139, 92, 246, 0.12);
+    color: #8b5cf6;
+}
+
+.account-section-icon-danger {
+    background: rgba(220, 53, 69, 0.12);
+    color: #dc3545;
+}
+
+.profile-header {
+    align-items: center;
+    display: flex;
+    gap: 0.85rem;
+}
+
+.profile-avatar-lg {
+    align-items: center;
+    background: var(--nav-accent, #1683e8);
+    border-radius: 0.65rem;
+    color: #ffffff;
+    display: flex;
+    flex: 0 0 46px;
+    font-size: 0.9rem;
+    font-weight: 750;
+    height: 46px;
+    justify-content: center;
+    width: 46px;
+}
+
+.profile-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+    .profile-header-info strong {
+        color: var(--theme-strong, #111827);
+        font-size: 0.95rem;
+        font-weight: 700;
+    }
+
+    .profile-header-info small {
+        color: var(--theme-muted, #667085);
+        font-size: 0.75rem;
+    }
+
+.role-badge {
+    align-self: flex-start;
+    background: var(--theme-blue-soft, #e8f0fe);
+    border-radius: 999px;
+    color: var(--theme-blue, #1673ff);
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    padding: 2px 8px;
+    text-transform: uppercase;
+    width: fit-content;
+}
+
+.profile-divider {
+    border: 0;
+    border-top: 1px solid var(--theme-border, #eef1f5);
+    margin: 1rem 0 1.25rem;
+    opacity: 1;
+}
+
+.account-settings-page .form-label {
+    color: var(--theme-strong, #344054);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.account-settings-page .form-control {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-color: var(--theme-border, #d0d5dd);
+    border-radius: 0.5rem;
+}
+
+    .account-settings-page .form-control:focus {
+        border-color: var(--theme-blue, #1673ff);
+        box-shadow: 0 0 0 3px rgba(22, 115, 255, 0.12);
+    }
+
+.account-settings-page .form-text {
+    color: var(--theme-muted, #667085);
+    font-size: 0.72rem;
+    margin-top: 0.25rem;
+}
+
+.account-settings-page .btn {
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+}
+
+.account-signout-section {
+    margin-top: 0;
+}
+
+.account-signout-row {
+    align-items: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.account-signout-copy {
+    display: flex;
+    flex-direction: column;
+}
+
+.account-signout-subtext {
+    color: var(--theme-muted, #667085);
+    font-size: 0.78rem;
+    margin-top: 0.15rem;
+}
+
+@media (max-width: 991.98px) {
+    .account-settings-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .account-signout-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+
+    .account-signout-button {
+        width: 100%;
+    }
+}

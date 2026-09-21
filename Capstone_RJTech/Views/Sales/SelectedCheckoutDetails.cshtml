@@ -69,7 +69,20 @@
                             <tr class="purchased-item-row">
                                 <td class="fw-bold">@(item.Product?.formatted_code ?? "—")</td>
                                 <td><strong>@item.Product?.product_name</strong><div class="product-meta">@item.Product?.product_brand</div></td>
-                                <td>@(string.IsNullOrWhiteSpace(item.SerialNo) ? "—" : item.SerialNo)</td>
+                                <td>
+                                    @if (item.Product is { is_serialized: false })
+                                    {
+                                        <span class="serial-nonserialized">Non Serialized</span>
+                                    }
+                                    else if (string.IsNullOrWhiteSpace(item.SerialNo))
+                                    {
+                                        <span>—</span>
+                                    }
+                                    else
+                                    {
+                                        @item.SerialNo
+                                    }
+                                </td>
                                 <td class="text-end">@item.ItemQuantity</td>
                                 <td class="text-end">₱@item.Price.ToString("N2")</td>
                                 <td class="text-end fw-semibold">₱@item.SubTotal.ToString("N2")</td>

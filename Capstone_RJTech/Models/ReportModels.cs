@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Capstone_RJTech.Models;
 
 [Table("tblSalesOverview")]
-public sealed class SalesOverviewReport : OwnedEntity
+public sealed class SalesOverviewReport 
 {
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalSales { get; set; }
@@ -26,7 +26,7 @@ public sealed class SalesOverviewReport : OwnedEntity
 }
 
 [Table("tblWeeklySales")]
-public sealed class WeeklySalesReport : OwnedEntity
+public sealed class WeeklySalesReport 
 {
     [Key]
     public int WeeklySalesID { get; set; }
@@ -39,7 +39,7 @@ public sealed class WeeklySalesReport : OwnedEntity
 }
 
 [Table("tblMonthlySales")]
-public sealed class MonthlySalesReport : OwnedEntity
+public sealed class MonthlySalesReport 
 {
     [Key]
     public int MonthlySalesID { get; set; }
@@ -52,7 +52,7 @@ public sealed class MonthlySalesReport : OwnedEntity
 }
 
 [Table("tblYearlySales")]
-public sealed class YearlySalesReport : OwnedEntity
+public sealed class YearlySalesReport 
 {
     [Key]
     public int YearlySalesID { get; set; }
@@ -64,7 +64,7 @@ public sealed class YearlySalesReport : OwnedEntity
 }
 
 [Table("tblBestSellingProduct")]
-public sealed class BestSellingProductReport : OwnedEntity
+public sealed class BestSellingProductReport 
 {
     [Key]
     public int BestSellingID { get; set; }
@@ -81,7 +81,7 @@ public sealed class BestSellingProductReport : OwnedEntity
 }
 
 [Table("tblLeastSellingProduct")]
-public sealed class LeastSellingProductReport : OwnedEntity
+public sealed class LeastSellingProductReport 
 {
     [Key]
     public int LeastSellingID { get; set; }
@@ -98,7 +98,7 @@ public sealed class LeastSellingProductReport : OwnedEntity
 }
 
 [Table("tblSalesByCategory")]
-public sealed class SalesByCategoryReport : OwnedEntity
+public sealed class SalesByCategoryReport 
 {
     [Key]
     public int SalesCategoryID { get; set; }
@@ -115,7 +115,7 @@ public sealed class SalesByCategoryReport : OwnedEntity
 }
 
 [Table("tblTransaction")]
-public sealed class TransactionReport : OwnedEntity
+public sealed class TransactionReport 
 {
     [Key]
     public int TransactionID { get; set; }
@@ -123,7 +123,7 @@ public sealed class TransactionReport : OwnedEntity
     public int CustomerID { get; set; }
 
     [Required, StringLength(30)]
-    public string TransactionType { get; set; }
+    public string PaymentType { get; set; } = string.Empty;
 
     [Required, StringLength(50)]
     public string PaymentMethod { get; set; } = string.Empty;
@@ -140,7 +140,7 @@ public sealed class TransactionReport : OwnedEntity
 }
 
 [Table("tblInventoryOverview")]
-public sealed class InventoryOverviewReport : OwnedEntity
+public sealed class InventoryOverviewReport 
 {
     public int TotalProducts { get; set; }
     public int TotalQuantity { get; set; }
@@ -154,7 +154,7 @@ public sealed class InventoryOverviewReport : OwnedEntity
 }
 
 [Table("tblProductStockSummary")]
-public sealed class ProductStockSummaryReport : OwnedEntity
+public sealed class ProductStockSummaryReport 
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -170,7 +170,7 @@ public sealed class ProductStockSummaryReport : OwnedEntity
 }
 
 [Table("tblProductCategoryOverview")]
-public sealed class ProductCategoryOverviewReport : OwnedEntity
+public sealed class ProductCategoryOverviewReport 
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -184,7 +184,7 @@ public sealed class ProductCategoryOverviewReport : OwnedEntity
 }
 
 [Table("tblMostStockedProduct")]
-public sealed class MostStockedProductReport : OwnedEntity
+public sealed class MostStockedProductReport 
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -195,7 +195,7 @@ public sealed class MostStockedProductReport : OwnedEntity
 }
 
 [Table("tblLeastStockedProduct")]
-public sealed class LeastStockedProductReport : OwnedEntity
+public sealed class LeastStockedProductReport 
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -206,7 +206,7 @@ public sealed class LeastStockedProductReport : OwnedEntity
 }
 
 [Table("tblDeliveryOverview")]
-public sealed class DeliveryOverviewReport : OwnedEntity
+public sealed class DeliveryOverviewReport 
 {
     public int TotalDeliveries { get; set; }
     public int TotalItemsDelivered { get; set; }
@@ -218,7 +218,7 @@ public sealed class DeliveryOverviewReport : OwnedEntity
 }
 
 [Table("tblDeliverySummary")]
-public sealed class DeliverySummaryReport : OwnedEntity
+public sealed class DeliverySummaryReport 
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -230,7 +230,7 @@ public sealed class DeliverySummaryReport : OwnedEntity
 }
 
 [Table("tblProductDeliverySummary")]
-public sealed class ProductDeliverySummaryReport : OwnedEntity
+public sealed class ProductDeliverySummaryReport 
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.None)]

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Capstone_RJTech.Models
 {
-    public class DeliveryDetails : OwnedEntity
+    public class DeliveryDetails
     {
         [Key]
         public int deldetails_ID { get; set; }

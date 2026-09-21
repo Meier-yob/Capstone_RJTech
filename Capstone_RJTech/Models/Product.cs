@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Capstone_RJTech.Models
 {
-    public class Product : OwnedEntity
+    public class Product
     {
         [Key]
         public int product_ID { get; set; }
@@ -39,6 +39,13 @@ namespace Capstone_RJTech.Models
         [Column(TypeName = "decimal(18,2)")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than zero")]
         public decimal Product_price { get; set; }
+
+        /// <summary>
+        /// Inventory tracking type: true = Serialized (tracked by individual serial
+        /// numbers, e.g. laptops, GPUs), false = Non-Serialized (standard bulk stock,
+        /// e.g. cables, accessories). Defaults to non-serialized.
+        /// </summary>
+        public bool is_serialized { get; set; }
 
         [Required]
         [StringLength(50)]

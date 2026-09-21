@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Capstone_RJTech.Models
 {
     [Table("tblInstallmentPayment")]
-    public class InstallmentPayment : OwnedEntity
+    public class InstallmentPayment
     {
         [Key]
         public int PaymentID { get; set; }

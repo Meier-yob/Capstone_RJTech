@@ -9,8 +9,17 @@
     const bulkErrors = document.getElementById('bulkErrors');
     const exitModal = new bootstrap.Modal(document.getElementById('confirmExitModal'));
 
+    const categoryIdHidden = document.getElementById('categoryIdHidden');
+    const categoryTrigger = document.getElementById('categorySearchTrigger');
+    const categoryPanel = document.getElementById('categorySearchPanel');
+    const categoryInput = document.getElementById('categorySearchInput');
+    const categoryList = document.getElementById('categorySearchList');
+    const categoryText = document.getElementById('categorySelectedText');
+    const categoryEmpty = document.getElementById('categorySearchEmpty');
+
     let hasUnsavedChanges = false;
     let requestedExitUrl = '';
+    let categoryHighlightIndex = -1;
 
     function markAsChanged() {
         hasUnsavedChanges = true;
@@ -54,6 +63,7 @@
             category_ID: Number(row.querySelector('.bulk-category').value),
             product_name: row.querySelector('.bulk-name').value,
             product_brand: row.querySelector('.bulk-brand').value,
+            IsSerialized: row.querySelector('.bulk-serialized').checked,
             Product_price: Number(row.querySelector('.bulk-price').value),
             reorder_level: Number(row.querySelector('.bulk-reorder').value)
         };
@@ -61,6 +71,11 @@
 
     async function createProduct(event) {
         event.preventDefault();
+
+        if (!categoryIdHidden.value) {
+            setCategoryError(true);
+            return;
+        }
 
         if (!createForm.checkValidity()) {
             createForm.classList.add('was-validated');
@@ -149,6 +164,146 @@
         requestedExitUrl = link.href;
         exitModal.show();
     }
+
+    function setCategoryError(show) {
+        const errorElement = document.querySelector('[data-valmsg-for="category_ID"]');
+        if (errorElement) {
+            errorElement.textContent = show ? 'Select a category.' : '';
+        }
+        categoryTrigger.classList.toggle('is-invalid', show);
+        if (show) {
+            categoryTrigger.focus();
+        }
+    }
+
+    function categoryIsOpen() {
+        return !categoryPanel.classList.contains('d-none');
+    }
+
+    function categoryOpen() {
+        categoryPanel.classList.remove('d-none');
+        categoryTrigger.setAttribute('aria-expanded', 'true');
+        categoryHighlightIndex = -1;
+        categoryInput.value = '';
+        categoryFilter();
+        categoryInput.focus();
+    }
+
+    function categoryClose() {
+        categoryPanel.classList.add('d-none');
+        categoryTrigger.setAttribute('aria-expanded', 'false');
+    }
+
+    function categorySelect(categoryId, categoryName) {
+        categoryIdHidden.value = categoryId;
+        categoryText.textContent = categoryName;
+        categoryText.classList.remove('is-placeholder');
+        categoryIdHidden.dispatchEvent(new Event('change', { bubbles: true }));
+        setCategoryError(false);
+    }
+
+    function categoryFilter() {
+        const term = categoryInput.value.trim().toLowerCase();
+        let visible = 0;
+        categoryHighlightIndex = -1;
+        [...categoryList.querySelectorAll('li[data-category-id]')].forEach(option => {
+            const matches = option.dataset.categoryName.toLowerCase().includes(term);
+            option.classList.toggle('d-none', !matches);
+            option.classList.remove('is-highlighted');
+            if (matches) {
+                visible++;
+            }
+        });
+        categoryEmpty.classList.toggle('d-none', visible > 0);
+    }
+
+    function categoryVisibleOptions() {
+        return [...categoryList.querySelectorAll('li[data-category-id]:not(.d-none)')];
+    }
+
+    function categoryMove(step) {
+        const options = categoryVisibleOptions();
+        if (!options.length) {
+            return;
+        }
+
+        options.forEach(option => option.classList.remove('is-highlighted'));
+        categoryHighlightIndex = (categoryHighlightIndex + step + options.length) % options.length;
+        const target = options[categoryHighlightIndex];
+        target.classList.add('is-highlighted');
+        target.scrollIntoView({ block: 'nearest' });
+    }
+
+    categoryTrigger.addEventListener('click', event => {
+        event.stopPropagation();
+        if (categoryIsOpen()) {
+            categoryClose();
+        } else {
+            categoryOpen();
+        }
+    });
+
+    categoryTrigger.addEventListener('keydown', event => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!categoryIsOpen()) {
+                categoryOpen();
+            } else if (event.key === 'ArrowDown') {
+                categoryMove(1);
+            } else if (event.key === 'ArrowUp') {
+                categoryMove(-1);
+            } else if (event.key === 'Enter') {
+                const highlighted = categoryList.querySelector('li.is-highlighted[data-category-id]');
+                if (highlighted) {
+                    categorySelect(highlighted.dataset.categoryId, highlighted.dataset.categoryName);
+                    categoryClose();
+                } else {
+                    categoryClose();
+                }
+            }
+        } else if (event.key === 'Escape' && categoryIsOpen()) {
+            categoryClose();
+        }
+    });
+
+    categoryInput.addEventListener('input', categoryFilter);
+
+    categoryInput.addEventListener('keydown', event => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            categoryMove(1);
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            categoryMove(-1);
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            const highlighted = categoryList.querySelector('li.is-highlighted[data-category-id]');
+            if (highlighted) {
+                categorySelect(highlighted.dataset.categoryId, highlighted.dataset.categoryName);
+                categoryClose();
+            }
+        } else if (event.key === 'Escape') {
+            categoryClose();
+            categoryTrigger.focus();
+        }
+    });
+
+    categoryList.addEventListener('click', event => {
+        const option = event.target.closest('li[data-category-id]');
+        if (!option) {
+            return;
+        }
+        categorySelect(option.dataset.categoryId, option.dataset.categoryName);
+        categoryClose();
+        categoryTrigger.focus();
+    });
+
+    document.addEventListener('click', event => {
+        if (categoryIsOpen() && !event.target.closest('.category-search')) {
+            categoryClose();
+        }
+    });
 
     createForm.addEventListener('input', markAsChanged);
     createForm.addEventListener('change', markAsChanged);

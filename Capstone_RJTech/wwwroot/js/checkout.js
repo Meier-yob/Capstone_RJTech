@@ -43,7 +43,8 @@
             category: product.category ?? product.productCategory ?? 'Uncategorized',
             stock: Number(product.stock ?? product.availableStock ?? 0),
             price: Number(product.price ?? 0),
-            imageUrl: product.imageUrl ?? ''
+            imageUrl: product.imageUrl ?? '',
+            isSerialized: Boolean(product.isSerialized ?? product.isSerializedProduct ?? false)
         };
     }
 
@@ -83,7 +84,8 @@
             productId: productIdOf(item),
             productCode: item.productCode ?? item.code ?? '',
             quantity: Math.max(1, Number(item.quantity) || 1),
-            serialNumbers: Array.isArray(item.serialNumbers) ? item.serialNumbers : []
+            serialNumbers: Array.isArray(item.serialNumbers) ? item.serialNumbers : [],
+            isSerialized: Boolean(item.isSerialized)
         }));
     let visibleProducts = JSON.parse(
         document.getElementById('initialCheckoutProducts')?.textContent || '[]')
@@ -217,6 +219,10 @@
     }
 
     function resizeSerialNumbers(item, quantity) {
+        if (!item.isSerialized) {
+            item.serialNumbers = [];
+            return;
+        }
         const current = Array.isArray(item.serialNumbers) ? item.serialNumbers : [];
         item.serialNumbers = Array.from({ length: quantity }, (_, index) => current[index] || '');
     }
@@ -234,7 +240,9 @@
     }
 
     function selectedItemsValidationState() {
-        const serials = checkoutItems.flatMap(item => item.serialNumbers.map(normalizeSerial));
+        const serializedItems = checkoutItems.filter(item => item.isSerialized);
+        const hasSerializedItems = serializedItems.length > 0;
+        const serials = serializedItems.flatMap(item => item.serialNumbers.map(normalizeSerial));
         const renderedQuantitiesMatchState = [...checkoutItemsBody.querySelectorAll('.checkout-item-quantity')]
             .every(input => input.checkValidity() && input.value !== '' &&
                 Number(input.value) === checkoutItems[Number(input.dataset.itemIndex)]?.quantity);
@@ -242,10 +250,12 @@
             Number.isInteger(item.quantity) &&
             item.quantity >= 1 &&
             item.quantity <= item.availableStock &&
-            item.serialNumbers.length === item.quantity);
-        const serialsAreComplete = serials.length > 0 && serials.every(Boolean);
+            (!item.isSerialized || item.serialNumbers.length === item.quantity));
+        const serialsAreComplete = !hasSerializedItems ||
+            (serials.length > 0 && serials.every(Boolean));
         const serialsAreUnique = new Set(serials).size === serials.length;
-        const databaseChecksPassed = serials.every(serial => serialValidationStates.get(serial) === 'unique');
+        const databaseChecksPassed = !hasSerializedItems ||
+            serials.every(serial => serialValidationStates.get(serial) === 'unique');
         return {
             hasProducts: checkoutItems.length > 0,
             quantitiesAreValid: renderedQuantitiesMatchState && quantitiesAreValid,
@@ -314,7 +324,8 @@
                     </td>
                     <td>
                         <div class="checkout-row-serials">
-                            ${item.serialNumbers.map((serial, serialIndex) => `
+                            ${item.isSerialized
+                                ? item.serialNumbers.map((serial, serialIndex) => `
                                 <div class="checkout-serial-field">
                                     <label class="visually-hidden" for="checkoutSerial-${item.productId}-${serialIndex}">Serial Number ${serialIndex + 1}</label>
                                     <input id="checkoutSerial-${item.productId}-${serialIndex}" class="form-control checkout-item-serial"
@@ -322,7 +333,13 @@
                                            data-item-index="${itemIndex}" data-serial-index="${serialIndex}"
                                            value="${escapeHtml(serial)}" placeholder="Serial Number ${serialIndex + 1}" />
                                     <div class="serial-duplicate-indicator" aria-live="polite"></div>
-                                </div>`).join('')}
+                                </div>`).join('')
+                                : `
+                                <div class="checkout-serial-field">
+                                    <input class="form-control checkout-item-serial-static" type="text"
+                                           value="Non Serialized" disabled readonly
+                                           aria-label="${escapeHtml(item.productName)} is a non-serialized product" />
+                                </div>`}
                         </div>
                     </td>
                     <td>
@@ -553,6 +570,7 @@
                         <div class="checkout-product-summary">
                             <strong>${Number(product.stock)} available</strong>
                             <span>${currency.format(product.price)}</span>
+                            ${product.isSerialized ? '' : '<span class="checkout-product-tag checkout-product-tag-nonserialized">Non Serialized</span>'}
                         </div>
                     </div>
                 </article>`;
@@ -643,10 +661,11 @@
             productBrand: product.brand,
             productCategory: product.category,
             imageUrl: product.imageUrl,
-            serialNumbers: [''],
+            serialNumbers: product.isSerialized ? [''] : [],
             quantity: 1,
             price: Number(product.price),
-            availableStock: Number(product.stock)
+            availableStock: Number(product.stock),
+            isSerialized: Boolean(product.isSerialized)
         });
         dirty = true;
         selectedItemsPage = Math.ceil(checkoutItems.length / 10);
@@ -690,9 +709,10 @@
             return false;
         }
 
-        const serials = checkoutItems.flatMap(item => item.serialNumbers.map(normalizeSerial));
-        if (serials.some(serial => !serial)) {
-            showError('Enter one serial number for every selected product unit.');
+        const serializedItems = checkoutItems.filter(item => item.isSerialized);
+        const serials = serializedItems.flatMap(item => item.serialNumbers.map(normalizeSerial));
+        if (serializedItems.length && serials.some(serial => !serial)) {
+            showError('Enter one serial number for every unit of serialized products.');
             checkoutItemsBody.querySelector('.checkout-item-serial:invalid')?.reportValidity();
             return false;
         }
@@ -701,7 +721,7 @@
             updateSerialIndicators();
             return false;
         }
-        if (serials.some(serial => serialValidationStates.get(serial) !== 'unique')) {
+        if (serializedItems.length && serials.some(serial => serialValidationStates.get(serial) !== 'unique')) {
             showError('Wait for all serial numbers to finish validation and correct any duplicates.');
             return false;
         }

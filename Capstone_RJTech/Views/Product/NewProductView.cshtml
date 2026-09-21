@@ -1,4 +1,4 @@
-@model Capstone_RJTech.Models.Product
+@model Capstone_RJTech.ViewModels.ProductCreateViewModel
 
 @{
     ViewData["Title"] = "New Product";
@@ -156,6 +156,46 @@
 
                             </div>
 
+
+                            <!-- Inventory Tracking Type -->
+                            <div class="col-12">
+
+                                <label class="form-label">
+                                    Inventory Tracking Type
+                                </label>
+
+                                <div class="inventory-track-options">
+
+                                    <input type="radio"
+                                           class="btn-check"
+                                           name="IsSerialized"
+                                           id="trackNonSerialized"
+                                           value="false"
+                                           autocomplete="off"
+                                           checked />
+
+                                    <label class="btn btn-outline-primary btn-sm"
+                                           for="trackNonSerialized">
+                                        <i class="bi bi-box-seam me-1"></i>
+                                        Non-Serialized
+                                    </label>
+
+                                    <input type="radio"
+                                           class="btn-check"
+                                           name="IsSerialized"
+                                           id="trackSerialized"
+                                           value="true"
+                                           autocomplete="off" />
+
+                                    <label class="btn btn-outline-primary btn-sm"
+                                           for="trackSerialized">
+                                        <i class="bi bi-upc-scan me-1"></i>
+                                        Serialized
+                                    </label>
+
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
@@ -261,10 +301,7 @@
                                        step="1"
                                        required />
 
-                                <div class="form-hint mt-1">
-                                    A low-stock warning appears at or below this quantity.
-                                </div>
-
+                               
                                 <span asp-validation-for="reorder_level"
                                       class="text-danger small">
                                 </span>
@@ -301,7 +338,7 @@
                             </span>
 
                             <h2 id="organizationStatusTitle">
-                                Organization &amp; Status
+                                Categorization &amp; Status
                             </h2>
 
                         </div>
@@ -324,22 +361,61 @@
                                 Category
                             </label>
 
-                            <select asp-for="category_ID"
-                                    class="form-select"
-                                    required>
+                            <input type="hidden"
+                                   name="category_ID"
+                                   id="categoryIdHidden" />
 
-                                <option value="">
-                                    Select a category
-                                </option>
+                            <div class="category-search">
 
-                                @foreach (var category in categories)
-                                {
-                                    <option value="@category.category_ID">
-                                        @category.category_name
-                                    </option>
-                                }
+                                <button type="button"
+                                        class="category-search-trigger"
+                                        id="categorySearchTrigger"
+                                        aria-haspopup="listbox"
+                                        aria-expanded="false">
 
-                            </select>
+                                    <span class="category-search-value is-placeholder"
+                                          id="categorySelectedText">
+                                        Select a category
+                                    </span>
+
+                                    <i class="bi bi-chevron-down category-search-caret"></i>
+
+                                </button>
+
+                                <div class="category-search-panel d-none"
+                                     id="categorySearchPanel">
+
+                                    <input type="text"
+                                           class="form-control category-search-input"
+                                           id="categorySearchInput"
+                                           placeholder="Search categories..."
+                                           autocomplete="off"
+                                           aria-label="Search categories" />
+
+                                    <ul class="category-search-list"
+                                        role="listbox"
+                                        id="categorySearchList">
+
+                                        @foreach (var category in categories)
+                                        {
+                                            <li role="option"
+                                                data-category-id="@category.category_ID"
+                                                data-category-name="@category.category_name">
+                                                @category.category_name
+                                            </li>
+                                        }
+
+                                        <li role="option"
+                                            class="category-search-empty d-none"
+                                            id="categorySearchEmpty">
+                                            No matching categories.
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </div>
 
                             <span asp-validation-for="category_ID"
                                   class="text-danger small">
@@ -473,6 +549,7 @@
                                 <th>Category</th>
                                 <th>Product Name</th>
                                 <th>Brand</th>
+                                <th>Serialized</th>
                                 <th>Price</th>
                                 <th>Stock</th>
                                 <th>Reorder</th>
@@ -490,7 +567,7 @@
 
                 <!-- Add Row -->
                 <button id="addBulkRow"
-                        class="btn btn-sm btn-outline-dark"
+                        class="btn btn-sm btn-primary"
                         type="button">
 
                     <i class="bi bi-plus-lg me-1"></i>
@@ -578,6 +655,21 @@
 
             <input class="form-control form-control-sm bulk-brand"
                    required />
+
+        </td>
+
+
+        <!-- Serialized -->
+        <td class="text-center">
+
+            <div class="form-check form-switch bulk-serialized-switch">
+
+                <input class="form-check-input bulk-serialized form-check-input-sm"
+                       type="checkbox"
+                       role="switch"
+                       aria-label="Serialized" />
+
+            </div>
 
         </td>
 

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Capstone_RJTech.Models
 {
-    public class Delivery : OwnedEntity
+    public class Delivery
     {
         [Key]
         public int delivery_ID { get; set; }

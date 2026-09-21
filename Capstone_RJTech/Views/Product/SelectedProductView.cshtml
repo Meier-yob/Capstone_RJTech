@@ -218,6 +218,23 @@
                         <div class="product-information-field">
 
                             <div class="product-information-label">
+                                Tracking Type
+                            </div>
+
+                            <div class="product-information-value">
+
+                                @(Model.is_serialized
+                                    ? "Serialized"
+                                    : "Non Serialized")
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="product-information-field">
+
+                            <div class="product-information-label">
                                 Latest Batch
                             </div>
 
@@ -354,6 +371,45 @@
                                 Low-stock warning appears at or below this quantity.
                             </div>
 
+                        </div>
+
+
+                        <!-- Inventory Tracking Type -->
+                        <div class="col-md-6">
+
+                            <label class="form-label">
+                                Inventory Tracking Type
+                            </label>
+
+                            <div class="inventory-track-options">
+
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="is_serialized"
+                                       id="editNonSerialized"
+                                       value="false"
+                                       @(!Model.is_serialized ? "checked" : "") />
+
+                                <label class="btn btn-outline-primary"
+                                       for="editNonSerialized">
+                                    Non Serialized
+                                </label>
+
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="is_serialized"
+                                       id="editSerialized"
+                                       value="true"
+                                       @(Model.is_serialized ? "checked" : "") />
+
+                                <label class="btn btn-outline-primary"
+                                       for="editSerialized">
+                                    Serialized
+                                </label>
+
+                            </div>
+
+                           
                         </div>
 
                     </div>

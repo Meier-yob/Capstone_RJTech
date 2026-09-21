@@ -2,7 +2,7 @@
 
 namespace Capstone_RJTech.Models
 {
-    public class ProductCategory : OwnedEntity
+    public class ProductCategory
     {
         [Key]
         public int category_ID { get; set; }

@@ -400,6 +400,32 @@
     padding: 0.35rem 0.55rem;
 }
 
+.checkout-serial-field .checkout-item-serial-static {
+    background: var(--theme-surface-soft, #f3f6fa);
+    color: var(--theme-muted, #667085);
+    font-style: italic;
+    font-weight: 600;
+    cursor: not-allowed;
+    letter-spacing: 0.02em;
+}
+
+.checkout-product-tag {
+    display: inline-block;
+    margin-top: 0.3rem;
+    padding: 0.08rem 0.45rem;
+    border-radius: 2rem;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.checkout-product-tag-nonserialized {
+    background: var(--theme-surface-soft, #f3f6fa);
+    border: 1px solid var(--theme-border, #dbe1ea);
+    color: var(--theme-muted, #667085);
+}
+
 .checkout-quantity-control {
     align-items: stretch;
     display: grid;

@@ -6,6 +6,14 @@
     var salesListActive = currentController == "Sales" &&
         (currentAction == "SalesOrders" || currentAction == "SelectedCheckoutDetails");
     var newCheckoutActive = currentController == "Sales" && currentAction == "Checkout";
+
+    // Initials for the account chips (derived from the FullName claim)
+    var _userFullName = User.FindFirstValue("FullName") ?? User.Identity?.Name ?? "User";
+    var _userInitials = string.Concat(
+        _userFullName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                     .Take(2)
+                     .Select(w => char.ToUpperInvariant(w[0])));
+    if (_userInitials.Length == 0) _userInitials = "U";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -109,7 +117,7 @@
                         </li>
                         <li class="nav-item"><a asp-controller="Sales" asp-action="Customer" class="nav-link-custom @(currentController == "Sales" && currentAction == "Customer" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-users"></i></span><span class="nav-label">Customers</span></a></li>
 
-                        <li class="nav-item"><a asp-controller="Sales" asp-action="SalesHistory" class="nav-link-custom @(currentController == "Sales" && currentAction == "SalesHistory" ? "active" : "")"><span class="nav-icon"><i class="bi bi-clock-history"></i></span><span class="nav-label">Sales History</span></a></li>
+                        <li class="nav-item"><a asp-controller="Sales" asp-action="SalesHistory" class="nav-link-custom @(currentController == "Sales" && currentAction == "SalesHistory" ? "active" : "")"><span class="nav-icon"><i class="bi bi-clock-history"></i></span><span class="nav-label">Purchase History</span></a></li>
                         <li class="nav-item"><a asp-controller="Installment" asp-action="Index" class="nav-link-custom @(currentController == "Installment" ? "active" : "")"><span class="nav-icon"><i class="fa-solid fa-calendar-check"></i></span><span class="nav-label">Installments</span></a></li>
                     </ul>
                 </section>
@@ -117,15 +125,17 @@
                 <section class="nav-section" aria-labelledby="notificationLabel">
                     <div class="nav-section-label" id="notificationLabel">Notification</div>
                     <ul class="sidebar-nav">
-                        <li class="nav-item"><a asp-controller="Notification" asp-action="Notification" class="nav-link-custom @(currentAction == "Notification" ? "active" : "")"><span class="nav-icon"><i class="fa-regular fa-bell"></i></span><span class="nav-label">Notification</span><span class="nav-count">3</span></a></li>
+                        <li class="nav-item"><a asp-controller="Notification" asp-action="Notification" class="nav-link-custom @(currentAction == "Notification" ? "active" : "")"><span class="nav-icon"><i class="fa-regular fa-bell"></i></span><span class="nav-label">Notification</span><span class="nav-count"></span></a></li>
                     </ul>
                 </section>
             </div>
 
             <div class="sidebar-footer">
                 <div class="sidebar-user">
-                    <span class="sidebar-user-avatar">RJ</span>
-                    <span class="sidebar-user-copy"><strong>RJTech Admin</strong><small>Administrator</small></span>
+                    <a asp-controller="Setting" asp-action="AccountMenu" class="sidebar-user-link">
+                        <span class="sidebar-user-avatar">@_userInitials[..1]</span>
+                        <span class="sidebar-user-copy"><strong>@(User.Identity?.Name ?? "User")</strong><small>Owner</small></span>
+                    </a>
                     <button class="sidebar-user-action" type="button" aria-label="Logout"
                             data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal">
                         <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
@@ -175,9 +185,30 @@
                         <a asp-controller="Notification" asp-action="Notification" class="notification-flyout-footer">View all notifications</a>
                     </div>
                     <div class="header-divider"></div>
-                    <button type="button" class="profile-chip" data-nav-placeholder="Account settings" aria-label="Open account menu">
-                        <span class="profile-avatar">RJ</span>
-                    </button>
+                    <div class="dropdown">
+                        <button type="button" class="profile-chip dropdown-toggle" data-bs-toggle="dropdown"
+                                aria-expanded="false" aria-label="Open account menu">
+                            <span class="profile-avatar">@_userInitials</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end account-dropdown-menu">
+                            <li class="account-dropdown-header">
+                                <strong>@_userFullName</strong>
+                                <small>Owner</small>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" asp-controller="Setting" asp-action="AccountMenu">
+                                    <i class="fa-solid fa-gear"></i> Account Settings
+                                </a>
+                            </li>
+                            <li>
+                                <button class="dropdown-item text-danger" type="button"
+                                        data-bs-toggle="modal" data-bs-target="#logoutConfirmationModal">
+                                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </header>
 

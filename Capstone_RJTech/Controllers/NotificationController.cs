@@ -10,11 +10,16 @@ namespace Capstone_RJTech.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly StockNotificationService _stockNotifications;
+        private readonly InstallmentNotificationService _installmentNotifications;
 
-        public NotificationController(ApplicationDbContext db, StockNotificationService stockNotifications)
+        public NotificationController(
+            ApplicationDbContext db,
+            StockNotificationService stockNotifications,
+            InstallmentNotificationService installmentNotifications)
         {
             _db = db;
             _stockNotifications = stockNotifications;
+            _installmentNotifications = installmentNotifications;
         }
 
         public IActionResult Index() => RedirectToAction(nameof(Notification));
@@ -22,6 +27,7 @@ namespace Capstone_RJTech.Controllers
         public IActionResult Notification()
         {
             _stockNotifications.Synchronize();
+            _installmentNotifications.Synchronize();
             return View(_db.Notifications.AsNoTracking().OrderByDescending(item => item.created_at).ToList());
         }
 
@@ -29,6 +35,7 @@ namespace Capstone_RJTech.Controllers
         public IActionResult GetNotifications(int limit = 6)
         {
             _stockNotifications.Synchronize();
+            _installmentNotifications.Synchronize();
             var notifications = _db.Notifications
                 .AsNoTracking()
                 .OrderByDescending(item => item.created_at)

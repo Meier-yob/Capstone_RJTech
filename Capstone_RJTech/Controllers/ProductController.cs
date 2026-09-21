@@ -1,5 +1,6 @@
 using Capstone_RJTech.Data;
 using Capstone_RJTech.Models;
+using Capstone_RJTech.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,7 +47,7 @@ namespace Capstone_RJTech.Controllers
         public IActionResult Create()
         {
             ViewBag.Categories = _db.ProductCategories.OrderBy(category => category.category_name).ToList();
-            return View("NewProductView", new Product());
+            return View("NewProductView", new ProductCreateViewModel());
         }
 
         [HttpGet]
@@ -121,7 +122,7 @@ namespace Capstone_RJTech.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromForm] Product product)
+        public IActionResult Create([FromForm] ProductCreateViewModel model)
         {
             ModelState.Remove("Category");
 
@@ -131,27 +132,36 @@ namespace Capstone_RJTech.Controllers
                 return Json(new { success = false, message = "Validation failed.", errors });
             }
 
-            product.product_name = NormalizeProductIdentity(product.product_name);
-            product.product_brand = NormalizeProductIdentity(product.product_brand);
-            if (string.IsNullOrWhiteSpace(product.product_name) || string.IsNullOrWhiteSpace(product.product_brand))
+            string normalizedName = NormalizeProductIdentity(model.product_name);
+            string normalizedBrand = NormalizeProductIdentity(model.product_brand);
+            if (string.IsNullOrWhiteSpace(normalizedName) || string.IsNullOrWhiteSpace(normalizedBrand))
                 return Json(new { success = false, message = "Validation failed.", errors = new[] { "Product name and brand are required." } });
 
-            bool categoryExists = _db.ProductCategories.Any(category => category.category_ID == product.category_ID);
+            bool categoryExists = _db.ProductCategories.Any(category => category.category_ID == model.category_ID);
             if (!categoryExists) return Json(new { success = false, message = "Select a valid category." });
 
             bool alreadyExists = _db.Products.Any(existing =>
-                existing.category_ID == product.category_ID &&
-                existing.product_name == product.product_name &&
-                existing.product_brand == product.product_brand);
+                existing.category_ID == model.category_ID &&
+                existing.product_name == normalizedName &&
+                existing.product_brand == normalizedBrand);
             if (alreadyExists) return Json(new { success = false, message = "Item Already Exists" });
 
-            product.product_ID = 0;
-            product.product_quantity = 0;
-            product.product_status = "Unavailable";
+            var product = new Product
+            {
+                category_ID = model.category_ID,
+                product_name = normalizedName,
+                product_brand = normalizedBrand,
+                product_description = model.product_description?.Trim(),
+                product_quantity = 0,
+                reorder_level = model.reorder_level,
+                Product_price = model.Product_price,
+                product_status = "Unavailable",
+                is_serialized = model.IsSerialized
+            };
             _db.Products.Add(product);
             _db.SaveChanges();
 
-            var category = _db.ProductCategories.AsNoTracking().First(item => item.category_ID == product.category_ID);
+            var category = _db.ProductCategories.AsNoTracking().First(item => item.category_ID == model.category_ID);
             return Json(new
             {
                 success = true,
@@ -217,19 +227,9 @@ namespace Capstone_RJTech.Controllers
                 image.product_ImageContentType ?? "application/octet-stream");
         }
 
-        public class ProductCreateRequest
-        {
-            public int category_ID { get; set; }
-            public string? product_name { get; set; }
-            public string? product_brand { get; set; }
-            public string? product_description { get; set; }
-            public int reorder_level { get; set; }
-            public decimal Product_price { get; set; }
-        }
-
         public class BulkCreateProductsRequest
         {
-            public List<ProductCreateRequest>? products { get; set; }
+            public List<BulkProductRowDto>? products { get; set; }
         }
 
         [HttpPost]
@@ -244,7 +244,7 @@ namespace Capstone_RJTech.Controllers
             var categories = _db.ProductCategories.AsNoTracking().ToDictionary(category => category.category_ID);
             var existingProducts = _db.Products.AsNoTracking().ToList();
             var errors = new List<string>();
-            var normalizedRows = new List<(ProductCreateRequest Row, string Name, string Brand)>();
+            var normalizedRows = new List<(BulkProductRowDto Row, string Name, string Brand)>();
             var batchKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             for (int index = 0; index < rows.Count; index++)
@@ -282,7 +282,8 @@ namespace Capstone_RJTech.Controllers
                 product_quantity = 0,
                 reorder_level = entry.Row.reorder_level,
                 Product_price = entry.Row.Product_price,
-                product_status = "Unavailable"
+                product_status = "Unavailable",
+                is_serialized = entry.Row.IsSerialized
             }).ToList();
 
             _db.Products.AddRange(products);
@@ -314,12 +315,13 @@ namespace Capstone_RJTech.Controllers
                 reorder_level = product.reorder_level,
                 product_price = product.Product_price,
                 product_description = product.product_description,
-                product_status = product.product_status
+                product_status = product.product_status,
+                is_serialized = product.is_serialized
             });
         }
 
         [HttpPost]
-        public IActionResult UpdateProductDetails(int product_ID, string product_name, string product_brand, decimal product_price, string product_description, string product_status, int reorder_level)
+        public IActionResult UpdateProductDetails(int product_ID, string product_name, string product_brand, decimal product_price, string product_description, string product_status, int reorder_level, bool is_serialized)
         {
             try
             {
@@ -342,6 +344,7 @@ namespace Capstone_RJTech.Controllers
                 product.Product_price = product_price;
                 product.product_description = product_description?.Trim();
                 product.reorder_level = Math.Max(0, reorder_level);
+                product.is_serialized = is_serialized;
                 product.product_status = EvaluateProductStatus(product);
                 _db.SaveChanges();
                 return Json(new { success = true, message = "Product updated successfully!" });

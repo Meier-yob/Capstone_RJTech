@@ -30,12 +30,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("notification_ID"));
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<string>("action_url")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -67,11 +61,53 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("notification_ID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("product_ID");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Capstone_RJTech.Models.AppUser", b =>
+                {
+                    b.Property<string>("UserID")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("UserID");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("tblUser");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.BestSellingProductReport", b =>
@@ -84,12 +120,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.Property<DateTime>("DateGenerated")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<string>("Period")
                         .IsRequired()
@@ -106,8 +136,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("BestSellingID");
-
-                    b.HasIndex("OwnerID");
 
                     b.HasIndex("Period")
                         .IsUnique();
@@ -131,12 +159,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("DatePurchased")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -159,8 +181,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("CustomerID");
 
-                    b.HasIndex("OwnerID");
-
                     b.ToTable("tblCheckout");
                 });
 
@@ -177,12 +197,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.Property<int>("ItemQuantity")
                         .HasColumnType("int");
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -201,8 +215,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("CheckoutID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("ProductID");
 
                     b.HasIndex("SerialNo")
@@ -218,12 +230,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("customer_ID"));
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<string>("customer_Address")
                         .IsRequired()
@@ -247,8 +253,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("customer_ID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("customer_Email")
                         .IsUnique();
 
@@ -269,12 +273,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<int>("CustomerID")
                         .HasColumnType("int");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -292,8 +290,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("CustomerID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("PurchaseDate", "HistoryID");
 
                     b.ToTable("tblCustomerPurchaseHistory");
@@ -306,12 +302,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("delivery_ID"));
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<string>("batch_ID")
                         .IsRequired()
@@ -331,8 +321,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("delivery_ID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("batch_ID")
                         .IsUnique();
 
@@ -346,12 +334,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("deldetails_ID"));
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<int>("delivery_ID")
                         .HasColumnType("int");
@@ -370,8 +352,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("deldetails_ID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("delivery_ID");
 
                     b.HasIndex("product_ID");
@@ -387,12 +367,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime?>("LastDeliveryDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<int>("TotalDeliveries")
                         .HasColumnType("int");
 
@@ -403,8 +377,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("LastUpdated");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblDeliveryOverview");
                 });
@@ -417,12 +389,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<int>("TotalItems")
                         .HasColumnType("int");
 
@@ -430,8 +396,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("DeliveryID");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblDeliverySummary");
                 });
@@ -468,12 +432,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<int>("MonthsRemaining")
                         .HasColumnType("int");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -490,8 +448,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("CheckoutID")
                         .IsUnique();
 
-                    b.HasIndex("OwnerID");
-
                     b.ToTable("tblInstallment");
                 });
 
@@ -505,12 +461,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.Property<int>("InstallmentID")
                         .HasColumnType("int");
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<decimal>("PaymentAmount")
                         .HasColumnType("decimal(18,2)");
@@ -532,8 +482,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("InstallmentID");
 
-                    b.HasIndex("OwnerID");
-
                     b.ToTable("tblInstallmentPayment");
                 });
 
@@ -551,12 +499,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<int>("OutOfStockProducts")
                         .HasColumnType("int");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<int>("TotalProducts")
                         .HasColumnType("int");
 
@@ -567,8 +509,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("LastUpdated");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblInventoryOverview");
                 });
@@ -583,12 +523,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.Property<DateTime>("DateGenerated")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<string>("Period")
                         .IsRequired()
@@ -605,8 +539,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("LeastSellingID");
-
-                    b.HasIndex("OwnerID");
 
                     b.HasIndex("Period")
                         .IsUnique();
@@ -627,15 +559,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.HasKey("ProductID");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblLeastStockedProduct");
                 });
@@ -651,12 +575,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<int>("Month")
                         .HasColumnType("int");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<int>("TotalItemsSold")
                         .HasColumnType("int");
 
@@ -670,8 +588,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("MonthlySalesID");
-
-                    b.HasIndex("OwnerID");
 
                     b.HasIndex("Year", "Month")
                         .IsUnique();
@@ -690,78 +606,16 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.HasKey("ProductID");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblMostStockedProduct");
                 });
 
-            modelBuilder.Entity("Capstone_RJTech.Models.Owner", b =>
+            modelBuilder.Entity("Capstone_RJTech.Models.PasswordResetCode", b =>
                 {
-                    b.Property<string>("OwnerID")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RecoveryEmail")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("OwnerID");
-
-                    b.HasIndex("RecoveryEmail")
-                        .IsUnique();
-
-                    b.HasIndex("UserName")
-                        .IsUnique();
-
-                    b.ToTable("Owners");
-                });
-
-            modelBuilder.Entity("Capstone_RJTech.Models.OwnerInvitation", b =>
-                {
-                    b.Property<int>("InvitationID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvitationID"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CreatedByClerkUserId")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -771,27 +625,19 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTimeOffset>("ExpiresAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("TokenHash")
+                    b.Property<string>("OtpHash")
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<DateTimeOffset?>("UsedAt")
+                    b.Property<DateTimeOffset?>("VerifiedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.HasKey("InvitationID");
+                    b.HasKey("Id");
 
-                    b.HasIndex("TokenHash")
-                        .IsUnique();
+                    b.HasIndex("Email");
 
-                    b.HasIndex("Email", "Status", "ExpiresAt");
-
-                    b.ToTable("tblOwnerInvitation");
+                    b.ToTable("tblPasswordResetCode");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Product", b =>
@@ -802,17 +648,14 @@ namespace Capstone_RJTech.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("product_ID"));
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<decimal>("Product_price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("category_ID")
                         .HasColumnType("int");
+
+                    b.Property<bool>("is_serialized")
+                        .HasColumnType("bit");
 
                     b.Property<byte[]>("product_Image")
                         .HasColumnType("varbinary(max)");
@@ -848,8 +691,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("product_ID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("category_ID", "product_name", "product_brand")
                         .IsUnique();
 
@@ -859,9 +700,9 @@ namespace Capstone_RJTech.Data.Migrations
                         new
                         {
                             product_ID = 1,
-                            OwnerID = "",
                             Product_price = 200.00m,
                             category_ID = 2,
+                            is_serialized = false,
                             product_brand = "A4 Tech",
                             product_description = "Optical Wired Mouse",
                             product_name = "Optical Wired Mouse",
@@ -872,9 +713,9 @@ namespace Capstone_RJTech.Data.Migrations
                         new
                         {
                             product_ID = 2,
-                            OwnerID = "",
                             Product_price = 1200.00m,
                             category_ID = 3,
+                            is_serialized = false,
                             product_brand = "Logitech",
                             product_description = "Mechanical Keyboard",
                             product_name = "Mechanical Keyboard",
@@ -892,20 +733,12 @@ namespace Capstone_RJTech.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("category_ID"));
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<string>("category_name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("category_ID");
-
-                    b.HasIndex("OwnerID");
 
                     b.HasIndex("category_name")
                         .IsUnique();
@@ -916,26 +749,27 @@ namespace Capstone_RJTech.Data.Migrations
                         new
                         {
                             category_ID = 1,
-                            OwnerID = "",
                             category_name = "Monitors"
                         },
                         new
                         {
                             category_ID = 2,
-                            OwnerID = "",
                             category_name = "Mouses"
                         },
                         new
                         {
                             category_ID = 3,
-                            OwnerID = "",
                             category_name = "Keyboards"
                         },
                         new
                         {
                             category_ID = 4,
-                            OwnerID = "",
                             category_name = "Headsets"
+                        },
+                        new
+                        {
+                            category_ID = 5,
+                            category_name = "Computer Accessories"
                         });
                 });
 
@@ -950,12 +784,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<int>("TotalProducts")
                         .HasColumnType("int");
 
@@ -966,8 +794,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("CategoryID");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblProductCategoryOverview");
                 });
@@ -983,12 +809,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<int>("TotalDeliveries")
                         .HasColumnType("int");
 
@@ -996,8 +816,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("ProductID");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblProductDeliverySummary");
                 });
@@ -1013,12 +831,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<int>("ReorderLevel")
                         .HasColumnType("int");
 
@@ -1028,8 +840,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.HasKey("ProductID");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblProductStockSummary");
                 });
@@ -1048,12 +858,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("DateGenerated")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<string>("Period")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -1068,8 +872,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasKey("SalesCategoryID");
 
                     b.HasIndex("CategoryID");
-
-                    b.HasIndex("OwnerID");
 
                     b.HasIndex("Period", "CategoryID")
                         .IsUnique();
@@ -1087,12 +889,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.Property<decimal>("MonthlySales")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<decimal>("TodaySales")
                         .HasColumnType("decimal(18,2)");
@@ -1117,8 +913,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("LastUpdated");
 
-                    b.HasIndex("OwnerID");
-
                     b.ToTable("tblSalesOverview");
                 });
 
@@ -1139,16 +933,15 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<int>("CustomerID")
                         .HasColumnType("int");
 
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
-
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PaymentType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -1158,19 +951,12 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("TransactionType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
                     b.HasKey("TransactionID");
 
                     b.HasIndex("CheckoutID")
                         .IsUnique();
 
                     b.HasIndex("CustomerID");
-
-                    b.HasIndex("OwnerID");
 
                     b.ToTable("tblTransaction");
                 });
@@ -1182,12 +968,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WeeklySalesID"));
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<int>("TotalItemsSold")
                         .HasColumnType("int");
@@ -1206,8 +986,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("WeeklySalesID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("WeekStartDate")
                         .IsUnique();
 
@@ -1221,12 +999,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("YearlySalesID"));
-
-                    b.Property<string>("OwnerID")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("OwnerId");
 
                     b.Property<int>("TotalItemsSold")
                         .HasColumnType("int");
@@ -1242,8 +1014,6 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasKey("YearlySalesID");
 
-                    b.HasIndex("OwnerID");
-
                     b.HasIndex("Year")
                         .IsUnique();
 
@@ -1252,12 +1022,6 @@ namespace Capstone_RJTech.Data.Migrations
 
             modelBuilder.Entity("Capstone_RJTech.Models.AppNotification", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", null)
                         .WithMany()
                         .HasForeignKey("product_ID")
@@ -1266,12 +1030,6 @@ namespace Capstone_RJTech.Data.Migrations
 
             modelBuilder.Entity("Capstone_RJTech.Models.BestSellingProductReport", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
@@ -1289,12 +1047,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Customer");
                 });
 
@@ -1306,12 +1058,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", "Product")
                         .WithMany("CheckoutItems")
                         .HasForeignKey("ProductID")
@@ -1321,15 +1067,6 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Navigation("Checkout");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Capstone_RJTech.Models.Customer", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.CustomerPurchaseHistory", b =>
@@ -1346,34 +1083,13 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Checkout");
 
                     b.Navigation("Customer");
                 });
 
-            modelBuilder.Entity("Capstone_RJTech.Models.Delivery", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Capstone_RJTech.Models.DeliveryDetails", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Delivery", "Delivery")
                         .WithMany("DeliveryDetails")
                         .HasForeignKey("delivery_ID")
@@ -1391,27 +1107,12 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Capstone_RJTech.Models.DeliveryOverviewReport", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Capstone_RJTech.Models.DeliverySummaryReport", b =>
                 {
                     b.HasOne("Capstone_RJTech.Models.Delivery", "Delivery")
                         .WithMany()
                         .HasForeignKey("DeliveryID")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Delivery");
@@ -1425,12 +1126,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Checkout");
                 });
 
@@ -1442,32 +1137,11 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Installment");
-                });
-
-            modelBuilder.Entity("Capstone_RJTech.Models.InventoryOverviewReport", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.LeastSellingProductReport", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
@@ -1479,12 +1153,6 @@ namespace Capstone_RJTech.Data.Migrations
 
             modelBuilder.Entity("Capstone_RJTech.Models.LeastStockedProductReport", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
@@ -1494,23 +1162,8 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Capstone_RJTech.Models.MonthlySalesReport", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Capstone_RJTech.Models.MostStockedProductReport", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
@@ -1522,12 +1175,6 @@ namespace Capstone_RJTech.Data.Migrations
 
             modelBuilder.Entity("Capstone_RJTech.Models.Product", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.ProductCategory", "Category")
                         .WithMany("Products")
                         .HasForeignKey("category_ID")
@@ -1535,15 +1182,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("Capstone_RJTech.Models.ProductCategory", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.ProductCategoryOverviewReport", b =>
@@ -1554,23 +1192,11 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Category");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.ProductDeliverySummaryReport", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
@@ -1582,12 +1208,6 @@ namespace Capstone_RJTech.Data.Migrations
 
             modelBuilder.Entity("Capstone_RJTech.Models.ProductStockSummaryReport", b =>
                 {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Capstone_RJTech.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductID")
@@ -1605,22 +1225,7 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("Capstone_RJTech.Models.SalesOverviewReport", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.TransactionReport", b =>
@@ -1637,33 +1242,9 @@ namespace Capstone_RJTech.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Checkout");
 
                     b.Navigation("Customer");
-                });
-
-            modelBuilder.Entity("Capstone_RJTech.Models.WeeklySalesReport", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Capstone_RJTech.Models.YearlySalesReport", b =>
-                {
-                    b.HasOne("Capstone_RJTech.Models.Owner", null)
-                        .WithMany()
-                        .HasForeignKey("OwnerID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Checkout", b =>

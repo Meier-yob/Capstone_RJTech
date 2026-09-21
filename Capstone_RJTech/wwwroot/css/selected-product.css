@@ -243,6 +243,27 @@
 }
 
 
+.inventory-track-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.inventory-track-options .btn {
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    min-height: 38px;
+    padding: 0.35rem 0.9rem;
+}
+
+.inventory-track-options .btn-check:checked + .btn {
+    background: var(--theme-blue, #0d6efd);
+    border-color: var(--theme-blue, #0d6efd);
+    color: #fff;
+    font-weight: 600;
+}
+
+
 /* =========================================================
    PRODUCT IMAGE
    ========================================================= */

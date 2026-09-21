@@ -128,7 +128,8 @@ namespace Capstone_RJTech.Controllers
                     Category = product.Category?.category_name ?? "Uncategorized",
                     Stock = product.product_quantity,
                     Price = product.Product_price,
-                    ImageUrl = Url.Action("Image", "Product", new { id = product.product_ID }) ?? string.Empty
+                    ImageUrl = Url.Action("Image", "Product", new { id = product.product_ID }) ?? string.Empty,
+                    IsSerialized = product.is_serialized
                 }).ToList()
             };
 
@@ -230,7 +231,8 @@ namespace Capstone_RJTech.Controllers
                     category = item.Product.Category?.category_name ?? "Uncategorized",
                     stock = item.AvailableStock,
                     price = item.Product.Product_price,
-                    imageUrl = Url.Action("Image", "Product", new { id = item.Product.product_ID })
+                    imageUrl = Url.Action("Image", "Product", new { id = item.Product.product_ID }),
+                    isSerialized = item.Product.is_serialized
                 });
 
             return Json(new { success = true, products = result });
@@ -363,15 +365,11 @@ namespace Capstone_RJTech.Controllers
 
         private IActionResult SaveCheckout(SaveCheckoutRequest request)
         {
-            var validationError = ValidateRequest(request);
-            if (validationError != null)
-                return Json(new { success = false, message = validationError });
-
             using var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable);
 
             try
             {
-                int[] productIds = request.Items
+                int[] productIds = (request.Items ?? new List<CheckoutItemRequest>())
                     .Select(item => item.ProductID)
                     .Distinct()
                     .ToArray();
@@ -380,8 +378,15 @@ namespace Capstone_RJTech.Controllers
                     .Where(product => productIds.Contains(product.product_ID))
                     .ToDictionary(product => product.product_ID);
 
+                if (request.Items == null || request.Items.Count == 0)
+                    return Json(new { success = false, message = "Add at least one product to the order." });
+
                 if (request.Items.Any(item => !products.ContainsKey(item.ProductID)))
                     return Json(new { success = false, message = "One or more selected products no longer exist." });
+
+                var validationError = ValidateRequest(request, products);
+                if (validationError != null)
+                    return Json(new { success = false, message = validationError });
 
                 var requestedQuantities = request.Items
                     .GroupBy(item => item.ProductID)
@@ -401,6 +406,7 @@ namespace Capstone_RJTech.Controllers
                 }
 
                 string[] serialNumbers = request.Items
+                    .Where(item => products[item.ProductID].is_serialized)
                     .SelectMany(item => item.SerialNumbers)
                     .Select(serial => NormalizeSerial(serial)!)
                     .ToArray();
@@ -482,14 +488,7 @@ namespace Capstone_RJTech.Controllers
                 }
 
                 checkout.CheckoutItems = request.Items
-                    .SelectMany(item => item.SerialNumbers.Select(serial => new CheckoutItem
-                    {
-                        ProductID = item.ProductID,
-                        SerialNo = NormalizeSerial(serial),
-                        ItemQuantity = 1,
-                        Price = products[item.ProductID].Product_price,
-                        SubTotal = products[item.ProductID].Product_price
-                    }))
+                    .SelectMany(item => BuildCheckoutItems(item, products[item.ProductID]))
                     .ToList();
 
                 _db.SaveChanges();
@@ -536,7 +535,7 @@ namespace Capstone_RJTech.Controllers
             return customer;
         }
 
-        private string? ValidateRequest(SaveCheckoutRequest request)
+        private string? ValidateRequest(SaveCheckoutRequest request, Dictionary<int, Product> products)
         {
             if (string.IsNullOrWhiteSpace(Normalize(request.CustomerFullName)))
                 return "Customer full name is required.";
@@ -562,15 +561,21 @@ namespace Capstone_RJTech.Controllers
             if (request.Items.Select(item => item.ProductID).Distinct().Count() != request.Items.Count)
                 return "The same product cannot be added more than once.";
 
-            if (request.Items.Any(item =>
+            // Serial numbers are only required for serialized products; non-serialized
+            // products bypass serial validation entirely.
+            var serializedItems = request.Items
+                .Where(item => products[item.ProductID].is_serialized)
+                .ToList();
+
+            if (serializedItems.Any(item =>
                 item.SerialNumbers == null ||
                 item.SerialNumbers.Count != item.Quantity ||
                 item.SerialNumbers.Any(serial => string.IsNullOrWhiteSpace(serial))))
             {
-                return "Enter one serial number for every product unit.";
+                return "Enter one serial number for every unit of serialized products.";
             }
 
-            var serials = request.Items
+            var serials = serializedItems
                 .SelectMany(item => item.SerialNumbers)
                 .Select(serial => NormalizeSerial(serial)!)
                 .ToList();
@@ -579,6 +584,36 @@ namespace Capstone_RJTech.Controllers
                 return "Duplicate serial numbers are not allowed.";
 
             return null;
+        }
+
+        private static IEnumerable<CheckoutItem> BuildCheckoutItems(
+            CheckoutItemRequest item, Product product)
+        {
+            if (product.is_serialized)
+            {
+                return item.SerialNumbers.Select(serial => new CheckoutItem
+                {
+                    ProductID = item.ProductID,
+                    SerialNo = NormalizeSerial(serial),
+                    ItemQuantity = 1,
+                    Price = product.Product_price,
+                    SubTotal = product.Product_price
+                });
+            }
+
+            // A non-serialized product has no serial numbers: store it as a single
+            // line item whose quantity covers every unit.
+            return new[]
+            {
+                new CheckoutItem
+                {
+                    ProductID = item.ProductID,
+                    SerialNo = null,
+                    ItemQuantity = item.Quantity,
+                    Price = product.Product_price,
+                    SubTotal = product.Product_price * item.Quantity
+                }
+            };
         }
 
         private static string Normalize(string? value)

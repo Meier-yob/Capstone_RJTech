@@ -1,233 +1,319 @@
+using Capstone_RJTech.Data;
 using Capstone_RJTech.Models;
 using Capstone_RJTech.Services;
 using Capstone_RJTech.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace Capstone_RJTech.Controllers;
 
 [Route("Account")]
 public sealed class AccountController : Controller
 {
-    private readonly OwnerAuthenticationService _authenticationService;
-    private readonly IOwnerInvitationService _invitationService;
+    private readonly ApplicationDbContext _db;
+    private readonly UserAuthenticationService _authenticationService;
+    private readonly PasswordResetService _passwordResetService;
+    private readonly PasswordHashService _passwordHasher;
     private readonly ILogger<AccountController> _logger;
-    private readonly ClerkSessionRejectionStore _rejectionStore;
 
     public AccountController(
-        OwnerAuthenticationService authenticationService,
-        IOwnerInvitationService invitationService,
-        ILogger<AccountController> logger,
-        ClerkSessionRejectionStore rejectionStore)
+        ApplicationDbContext db,
+        UserAuthenticationService authenticationService,
+        PasswordResetService passwordResetService,
+        PasswordHashService passwordHasher,
+        ILogger<AccountController> logger)
     {
+        _db = db;
         _authenticationService = authenticationService;
-        _invitationService = invitationService;
+        _passwordResetService = passwordResetService;
+        _passwordHasher = passwordHasher;
         _logger = logger;
-        _rejectionStore = rejectionStore;
     }
+
+    private static string SafeReturnUrl(string? returnUrl)
+        => string.IsNullOrWhiteSpace(returnUrl) || !UrlValidation.IsLocalUrl(returnUrl) ? "/" : returnUrl;
 
     [HttpGet("Login")]
     [AllowAnonymous]
-    public async Task<IActionResult> Login(string? returnUrl = null)
+    public IActionResult Login(string? returnUrl = null)
     {
-        // The Owner login must render normally for Owner flows even when the
-        // browser also holds a Clerk session. Only when the visitor was actively
-        // routed here from the app root or a Developer path (ReturnUrl="/" or
-        // "/Developer/...") do we hand a valid SystemDeveloper session straight
-        // to the Developer Portal, or send a non-SystemDeveloper Clerk session
-        // to the access-denied page. A plain Owner logout or a direct visit to
-        // /Account/Login always shows the Owner/Staff login form.
-        var developerTargeted =
-            returnUrl == "/" ||
-            returnUrl?.StartsWith("/Developer", StringComparison.OrdinalIgnoreCase) == true;
-
-        var clerkResult = await HttpContext.AuthenticateAsync("Clerk");
-
-        // A Clerk session that was already denied (and is now dropped server-side)
-        // must not strand the visitor on the Owner login. If they were routed here
-        // from the root or a Developer path, send them to the Developer
-        // access-denied page so they can switch accounts.
-        var previouslyDeniedSession = HttpContext.Items[ClerkSessionRejectionStore.RejectedSessionItemKey] as string;
-        if (developerTargeted && !string.IsNullOrWhiteSpace(previouslyDeniedSession))
+        if (User.Identity?.IsAuthenticated == true)
         {
-            _logger.LogWarning(
-                "Clerk session {SessionId} was previously denied and is being routed through the Owner root; " +
-                "sending to the Developer access-denied page.",
-                previouslyDeniedSession);
-            TempData["DeveloperAccessDenied"] =
-                "Access Denied: Your account does not have System Developer permissions. Please sign in with an authorized account.";
-            return RedirectToAction(nameof(DeveloperController.Login), "Developer", new { accessDenied = "true" });
+            return Redirect(SafeReturnUrl(returnUrl));
         }
 
-        if (clerkResult.Succeeded &&
-            clerkResult.Principal?.IsInRole("SystemDeveloper") == true &&
-            developerTargeted)
-        {
-            _logger.LogInformation(
-                "Owner login: valid SystemDeveloper Clerk session {SessionId} for subject {Subject}; " +
-                "bouncing ReturnUrl={ReturnUrl} to the Developer portal.",
-                clerkResult.Principal?.FindFirst("sid")?.Value ?? "(none)",
-                clerkResult.Principal?.FindFirst("sub")?.Value ?? "(none)",
-                returnUrl ?? "(empty)");
-            return RedirectToAction("Invitations", "Developer");
-        }
-
-        // A valid Clerk session that is NOT a SystemDeveloper must not be left
-        // dangling on the Owner login (it locks the user out and blocks switching
-        // accounts). Terminate it and send the visitor to the Developer login,
-        // which shows a dismissible Access Denied alert.
-        if (clerkResult.Succeeded &&
-            clerkResult.Principal?.IsInRole("SystemDeveloper") != true &&
-            developerTargeted)
-        {
-            _logger.LogWarning(
-                "Clerk account {Subject} reached the Owner login without the SystemDeveloper role; terminating its Clerk session.",
-                clerkResult.Principal?.FindFirst("sub")?.Value ?? "(unknown)");
-
-            // Permanently deny this Clerk session id: even if the Clerk client
-            // re-issues the session cookie, the server will treat it as
-            // unauthenticated (see OnMessageReceived in Program.cs).
-            var rejectedSessionId = clerkResult.Principal?.FindFirst("sid")?.Value;
-            if (!string.IsNullOrWhiteSpace(rejectedSessionId))
-            {
-                _rejectionStore.MarkRejected(rejectedSessionId);
-            }
-
-            await TerminateClerkSessionAsync();
-
-            TempData["DeveloperAccessDenied"] =
-                "Access Denied: Your account does not have System Developer permissions. Please sign in with an authorized account.";
-            // accessDenied is also carried in the URL: Clerk's signOut() can reload the
-            // page (consuming TempData), and the query flag keeps the Alert page's
-            // redirect guard active so a restored Clerk session cannot bounce it.
-            return RedirectToAction(nameof(DeveloperController.Login), "Developer", new { accessDenied = "true" });
-        }
-
-        _logger.LogInformation(
-            "Owner login page rendered. ReturnUrl={ReturnUrl}, Clerk session present={HasClerk}, " +
-            "SystemDeveloper={IsDev}, developerTargeted={Targeted}.",
-            returnUrl ?? "(empty)",
-            clerkResult.Succeeded,
-            clerkResult.Principal?.IsInRole("SystemDeveloper"),
-            developerTargeted);
-
-        ViewData["ReturnUrl"] = Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
-        return View();
-    }
-
-    private async Task TerminateClerkSessionAsync()
-    {
-        // The JWT Bearer scheme keeps no server-side session state; terminating
-        // the Clerk session here means clearing its session cookie on the browser.
-        // The Clerk SDK on the Developer login page then revokes the session at
-        // Clerk and clears any remaining client-side state.
-        try
-        {
-            await HttpContext.SignOutAsync("Clerk");
-        }
-        catch (InvalidOperationException)
-        {
-            // JWT Bearer does not support scheme sign-out; the cookie clearing
-            // below is what terminates the session on the backend.
-        }
-
-        if (HttpContext.Request.Cookies.ContainsKey("__session"))
-        {
-            HttpContext.Response.Cookies.Delete("__session");
-        }
+        ViewData["ReturnUrl"] = SafeReturnUrl(returnUrl);
+        return View(new LoginViewModel());
     }
 
     [HttpPost("Login")]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(
-        string userName,
-        string password,
-        bool rememberMe = false,
-        string? returnUrl = null)
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
-        var owner = await _authenticationService.AuthenticateAsync(userName, password, cancellationToken: HttpContext.RequestAborted);
-        if (owner is not null)
+        ViewData["ReturnUrl"] = SafeReturnUrl(returnUrl);
+
+        if (!ModelState.IsValid)
         {
-            await HttpContext.SignInAsync("OwnerCookie", OwnerAuthenticationService.CreatePrincipal(owner),
-                new AuthenticationProperties { IsPersistent = rememberMe });
-            return LocalRedirect(Url.IsLocalUrl(returnUrl) ? returnUrl! : "/");
+            return View(model);
         }
 
-        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-        ViewData["ReturnUrl"] = Url.IsLocalUrl(returnUrl) ? returnUrl : "/";
-        return View();
-    }
+        var user = await _authenticationService.AuthenticateAsync(
+            model.Identifier,
+            model.Password,
+            HttpContext.RequestAborted);
 
-    [HttpPost("Logout")]
-    [Authorize(AuthenticationSchemes = "OwnerCookie")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout()
-    {
-        await HttpContext.SignOutAsync("OwnerCookie");
-        return Redirect("/Account/Login");
-    }
-
-    [HttpGet("AcceptInvitation")]
-    [AllowAnonymous]
-    public async Task<IActionResult> AcceptInvitation(
-        string? token,
-        CancellationToken cancellationToken)
-    {
-        var validation = await _invitationService.ValidateAsync(token ?? string.Empty, cancellationToken);
-        if (!validation.IsValid || validation.Invitation is null)
+        if (user is null)
         {
-            Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("InvitationError", validation.Error ?? "The invitation is invalid.");
+            ModelState.AddModelError(string.Empty, "Invalid login attempt. Check your username/email and password.");
+            return View(model);
         }
 
-        return View(new AcceptInvitationViewModel
-        {
-            Token = token!,
-            Email = validation.Invitation.Email
-        });
+        await HttpContext.SignInAsync(
+            UserAuthenticationService.AuthScheme,
+            UserAuthenticationService.CreatePrincipal(user),
+            new AuthenticationProperties { IsPersistent = model.RememberMe });
+
+        _logger.LogInformation("User {UserId} signed in.", user.UserID);
+        return LocalRedirect(ViewData["ReturnUrl"] as string ?? "/");
     }
 
-    [HttpPost("CreateOwnerAccount")]
+    [HttpGet("SignUp")]
+    [AllowAnonymous]
+    public IActionResult SignUp()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return Redirect("/");
+        }
+
+        return View(new SignUpViewModel());
+    }
+
+    [HttpPost("SignUp")]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateOwnerAccount(
-        CreateOwnerAccountViewModel model,
+    public async Task<IActionResult> SignUp(
+        SignUpViewModel model,
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
-            var validation = await _invitationService.ValidateAsync(model.Token, cancellationToken);
-            ViewData["InvitationEmail"] = validation.Invitation?.Email;
-            return View("CreateOwnerAccount", model);
+            return View(model);
         }
 
-        var result = await _invitationService.CreateOwnerAccountAsync(
-            model.Token,
-            model.FullName,
-            model.UserName,
-            model.Password,
-            cancellationToken);
+        var normalizedUsername = model.Username.Trim();
+        var normalizedEmail = model.Email.Trim();
 
-        if (!result.Succeeded)
+        if (await _db.Users.AnyAsync(user => user.Username == normalizedUsername, cancellationToken))
         {
-            foreach (var error in result.Errors)
+            ModelState.AddModelError(nameof(SignUpViewModel.Username), "That username is already in use.");
+        }
+
+        if (await _db.Users.AnyAsync(user => user.Email == normalizedEmail, cancellationToken))
+        {
+            ModelState.AddModelError(nameof(SignUpViewModel.Email), "An account with that email already exists.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = new AppUser
+        {
+            FullName = model.FullName.Trim(),
+            Email = normalizedEmail,
+            Username = normalizedUsername,
+            Password = _passwordHasher.Hash(model.Password),
+            Role = "Owner",
+            DateCreated = DateTime.UtcNow
+        };
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("New account registered for {Email}.", normalizedEmail);
+        TempData["AccountMessage"] = "Your account was created. You can now sign in.";
+        return RedirectToAction(nameof(Login));
+    }
+
+    [HttpGet("ForgotPassword")]
+    [AllowAnonymous]
+    public IActionResult ForgotPassword()
+        => View(new ForgotPasswordViewModel());
+
+    [HttpPost("ForgotPassword")]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPassword(
+        ForgotPasswordViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var accountExists = await _passwordResetService.AccountExistsAsync(model.Email, cancellationToken);
+        if (!accountExists)
+        {
+            ModelState.AddModelError(string.Empty, "We could not find an account with that email address. Check the email you registered with and try again.");
+            return View(model);
+        }
+
+        var code = await _passwordResetService.CreateCodeAsync(model.Email, cancellationToken);
+        if (code is null)
+        {
+            ModelState.AddModelError(string.Empty, "The verification code could not be sent. Verify the SMTP email settings (Email:Host, Email:Username, Email:Password), then try again.");
+            return View(model);
+        }
+
+        TempData["AccountMessage"] = "A verification code was sent to the email on file.";
+        return RedirectToAction(nameof(ForgotPasswordVerify), new { id = code.Id });
+    }
+
+    [HttpGet("ForgotPasswordVerify")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPasswordVerify(string id, CancellationToken cancellationToken)
+    {
+        var code = await _passwordResetService.GetPendingRequestAsync(id, cancellationToken);
+        if (code is null)
+        {
+            TempData["ToastError"] = "This password reset request is invalid or has expired. Please start again.";
+            return RedirectToAction(nameof(ForgotPassword));
+        }
+
+        ViewData["ResetEmail"] = MaskEmail(code.Email);
+        return View(new VerifyOtpViewModel { RequestId = code.Id });
+    }
+
+    [HttpPost("ForgotPasswordVerify")]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ForgotPasswordVerify(
+        VerifyOtpViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            var pending = await _passwordResetService.GetPendingRequestAsync(model.RequestId, cancellationToken);
+            if (pending is null)
             {
-                ModelState.AddModelError(string.Empty, error);
+                TempData["ToastError"] = "This password reset request is invalid or has expired. Please start again.";
+                return RedirectToAction(nameof(ForgotPassword));
             }
 
-            var validation = await _invitationService.ValidateAsync(model.Token, cancellationToken);
-            ViewData["InvitationEmail"] = validation.Invitation?.Email;
-            return View("CreateOwnerAccount", model);
+            ViewData["ResetEmail"] = MaskEmail(pending.Email);
+            return View(model);
         }
 
-        TempData["AccountMessage"] = "Your Owner account was created. You can now sign in.";
+        var verified = await _passwordResetService.VerifyCodeAsync(model.RequestId, model.Otp, cancellationToken);
+        if (verified is null)
+        {
+            var pending = await _passwordResetService.GetPendingRequestAsync(model.RequestId, cancellationToken);
+            if (pending is null)
+            {
+                TempData["ToastError"] = "This password reset request has expired. Please start again.";
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            ModelState.AddModelError(nameof(VerifyOtpViewModel.Otp), "The code is incorrect or has expired. Check the code in your email and try again.");
+            ViewData["ResetEmail"] = MaskEmail(pending.Email);
+            return View(model);
+        }
+
+        TempData["AccountMessage"] = "Code confirmed. You can now create a new password.";
+        return RedirectToAction(nameof(ResetPassword), new { id = verified.Id });
+    }
+
+    [HttpGet("ResetPassword")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(string id, CancellationToken cancellationToken)
+    {
+        var code = await _passwordResetService.GetVerifiedRequestAsync(id, cancellationToken);
+        if (code is null)
+        {
+            TempData["ToastError"] = "This password reset request is invalid or has expired. Please start again.";
+            return RedirectToAction(nameof(ForgotPassword));
+        }
+
+        return View(new ResetPasswordViewModel { RequestId = code.Id });
+    }
+
+    [HttpPost("ResetPassword")]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ResetPassword(
+        ResetPasswordViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var reset = await _passwordResetService.ResetPasswordAsync(model.RequestId, model.Password, cancellationToken);
+        if (!reset)
+        {
+            TempData["ToastError"] = "This password reset request is invalid or has expired. Please start again.";
+            return RedirectToAction(nameof(ForgotPassword));
+        }
+
+        TempData["AccountMessage"] = "Your password has been reset. You can now sign in with your new password.";
         return RedirectToAction(nameof(Login));
+    }
+
+    [HttpPost("Logout")]
+    [Authorize(AuthenticationSchemes = UserAuthenticationService.AuthScheme)]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(UserAuthenticationService.AuthScheme);
+        return Redirect("/Account/Login");
     }
 
     [HttpGet("AccessDenied")]
     [AllowAnonymous]
-    public IActionResult AccessDenied() => Forbid();
+    public IActionResult AccessDenied() => View();
+
+    private static string MaskEmail(string email)
+    {
+        var at = email.IndexOf('@');
+        if (at <= 1)
+        {
+            return email;
+        }
+
+        var head = email[..at];
+        var maskedHead = head.Length <= 2
+            ? head[..1] + "***"
+            : head[..2] + "***";
+        return maskedHead + email[at..];
+    }
+
+    private static class UrlValidation
+    {
+        public static bool IsLocalUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return false;
+            }
+
+            if (url.StartsWith("//", StringComparison.Ordinal) || url.StartsWith("/\\", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            if (url.StartsWith('/'))
+            {
+                return true;
+            }
+
+            return Uri.TryCreate(url, UriKind.Absolute, out var absolute) && absolute.IsFile;
+        }
+    }
 }
