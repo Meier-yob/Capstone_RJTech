@@ -34,7 +34,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("notification_ID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -89,7 +88,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -135,7 +133,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -182,7 +179,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -223,7 +219,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("customer_ID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -273,7 +268,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -311,7 +305,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("delivery_ID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -351,7 +344,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("deldetails_ID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -391,7 +383,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -421,7 +412,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -472,7 +462,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -510,7 +499,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -555,7 +543,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -588,7 +575,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -631,7 +617,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -655,7 +640,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -694,7 +678,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -835,7 +818,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("product_ID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -925,7 +907,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("category_ID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -983,7 +964,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -1016,7 +996,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -1046,7 +1025,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -1081,7 +1059,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -1121,7 +1098,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -1172,7 +1148,6 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -1216,7 +1191,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WeeklySalesID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");
@@ -1255,7 +1229,6 @@ namespace Capstone_RJTech.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("YearlySalesID"));
 
                     b.Property<string>("OwnerID")
-                        .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)")
                         .HasColumnName("OwnerId");

@@ -6,6 +6,7 @@
 
 <div class="app-page installment-page" id="installmentPage"
      data-record-url="@Url.Action("RecordPayment")"
+     data-details-url="@Url.Action("Details", "Installment")"
      data-bulk-delete-url="@Url.Action("DeleteInstallments")"
      data-return-url="@Url.Action("Index")">
     @Html.AntiForgeryToken()
@@ -31,29 +32,21 @@
     </div>
 
     <div class="toolbar installment-toolbar">
-        <div class="input-group search-control installment-search" style="gap:12px;">
+        <div class="input-group search-control installment-search">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
             <input id="installmentSearch" class="form-control" type="search"
                    placeholder="Search installment, checkout, or customer..." autocomplete="off" />
-            <div >
-                <select id="installmentProgressFilter" class="form-select installment-progress-filter" aria-label="Filter by progress">
-                    <option value="all">All progress</option>
-                    <option value="not-started">Not started</option>
-                    <option value="in-progress">In progress</option>
-                    <option value="fully-paid">Fully paid</option>
-                </select>
-            </div>
-            
         </div>
-        
-           
-        <div>
-            <button id="exportInstallments" class="btn btn-success text-nowrap" type="button"
-                    data-export-url="@Url.Action("Installments", "ExcelExport")">
-                <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Export Excel
-            </button>
-        </div>
-        
+        <select id="installmentProgressFilter" class="form-select installment-progress-filter" aria-label="Filter by progress">
+            <option value="all">All progress</option>
+            <option value="not-started">Not started</option>
+            <option value="in-progress">In progress</option>
+            <option value="fully-paid">Fully paid</option>
+        </select>
+        <button id="exportInstallments" class="btn btn-success text-nowrap" type="button"
+                data-export-url="@Url.Action("Installments", "ExcelExport")">
+            <i class="bi bi-file-earmark-excel me-1" aria-hidden="true"></i>Export Excel
+        </button>
     </div>
 
     <div class="app-card management-card installment-management-card">
@@ -99,7 +92,9 @@
                             <td class="amount-cell balance-@item.Status.ToLowerInvariant()">₱@item.Balance.ToString("N2")</td>
                             <td>
                                 <div class="progress-copy"><strong>@item.MonthsPaid / @item.Months</strong><span> months</span></div>
-                                <div class="progress installment-progress" role="progressbar" aria-valuenow="@item.ProgressPercentage" aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress installment-progress" role="progressbar" aria-label="Repayment progress"
+                                     aria-valuenow="@item.ProgressPercentage" aria-valuemin="0" aria-valuemax="100"
+                                     aria-valuetext="@item.MonthsPaid of @item.Months months paid">
                                     <div class="progress-bar" style="width: @item.ProgressPercentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture)%"></div>
                                 </div>
                             </td>
@@ -125,7 +120,12 @@
                                                         data-monthly="@item.MonthlyPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                                                         data-balance="@item.Balance.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                                                         data-next-due="@displayDate"
-                                                        data-suggested="@suggestedPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                                                        data-next-due-iso="@(item.DisplayDate?.ToString("yyyy-MM-dd"))"
+                                                        data-suggested="@suggestedPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                        data-status="@item.Status"
+                                                        data-months="@item.Months"
+                                                        data-months-paid="@item.MonthsPaid"
+                                                        data-months-remaining="@item.MonthsRemaining">
                                                     <i class="bi bi-cash-coin me-2"></i>Record payment
                                                 </button>
                                             </li>

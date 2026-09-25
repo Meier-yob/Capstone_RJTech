@@ -357,8 +357,131 @@
    Bulk Add modal
    --------------------------------------------------------- */
 
+#bulkAddModal .bulk-add-dialog {
+    max-width: 1200px;
+}
+
+#bulkAddModal .modal-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -12px rgba(16, 24, 40, 0.28),
+                0 10px 24px -10px rgba(16, 24, 40, 0.14);
+}
+
+#bulkAddModal .bulk-add-header {
+    align-items: flex-start;
+    border-bottom: 1px solid var(--theme-border, #eef1f5);
+    padding: 1.15rem 1.4rem;
+}
+
+#bulkAddModal .bulk-add-subtitle {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.stock-note-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid var(--theme-blue-border, #d6e4ff);
+    border-radius: 999px;
+    background: var(--theme-blue-soft, #eef4ff);
+    color: var(--theme-blue, #0d6efd);
+    font-size: 0.68rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#bulkAddModal .bulk-add-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-height: 0;
+    padding: 1rem 1.4rem 1.2rem;
+}
+
+.bulk-table-scroll {
+    max-height: calc(100vh - 270px);
+    max-height: calc(100dvh - 270px);
+    overflow: auto;
+    border: 1px solid var(--theme-border, #eef1f5);
+    border-radius: 12px;
+}
+
 .bulk-product-table {
-    min-width: 900px;
+    width: 100%;
+    min-width: 1134px;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+/* Column widths: the space freed by removing Stock goes to Name/Brand.
+   They sum to 1134px, well inside the 1200px modal (minus body padding),
+   so the table fills the dialog without horizontal scrolling. */
+.bulk-product-table th:nth-child(1), .bulk-product-table td:nth-child(1) { width: 42px; }
+.bulk-product-table th:nth-child(2) { width: 170px; }
+.bulk-product-table th:nth-child(3) { width: 300px; }
+.bulk-product-table th:nth-child(4) { width: 230px; }
+.bulk-product-table th:nth-child(5) { width: 76px; }
+.bulk-product-table th:nth-child(6) { width: 120px; }
+.bulk-product-table th:nth-child(7) { width: 96px; }
+.bulk-product-table th:nth-child(8) { width: 100px; }
+
+.bulk-product-table th,
+.bulk-product-table td {
+    border-bottom: 1px solid var(--theme-border-soft, #f2f4f7);
+    padding: 0.5rem 0.6rem;
+    vertical-align: middle;
+}
+
+.bulk-product-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+/* Sticky column header */
+.bulk-product-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--theme-surface-soft, #f8fafc);
+    color: var(--theme-text, #475467);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.bulk-product-table tfoot td {
+    border-bottom: 0;
+    padding: 0.65rem 0.6rem;
+    background: var(--theme-surface, #fff);
+}
+
+/* Row number */
+.bulk-row-number {
+    color: var(--theme-muted, #98a2b3);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+/* Taller inputs with the app's focus glow */
+.bulk-product-table .form-control,
+.bulk-product-table .form-select {
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: 0.86rem;
+}
+
+.bulk-product-table .form-control:focus,
+.bulk-product-table .form-select:focus {
+    border-color: var(--theme-link, #0d6efd);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.12);
 }
 
 .bulk-serialized-switch {
@@ -366,22 +489,119 @@
     margin: 0;
 }
 
-#bulkAddModal .modal-content {
-    border: 0;
-    border-radius: 0.85rem;
-    box-shadow: 0 20px 50px rgba(16, 24, 40, 0.18);
+.bulk-serialized-switch .form-check-input {
+    margin-top: 0;
 }
 
-#bulkAddModal .modal-header,
-#bulkAddModal .modal-footer {
-    border-color: var(--theme-border, #eef1f5);
+/* Row actions (duplicate + remove) */
+.bulk-row-actions {
+    display: inline-flex;
+    gap: 0.35rem;
+    justify-content: flex-end;
 }
 
-#bulkAddModal .bulk-product-table th {
-    background: var(--theme-surface-soft, #f8fafc);
-    color: var(--theme-text, #475467);
-    font-size: 0.72rem;
-    font-weight: 700;
+.duplicate-bulk-row {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--theme-border, #d0d5dd);
+    border-radius: 8px;
+    background: var(--theme-surface, #fff);
+    color: var(--theme-muted, #667085);
+}
+
+.duplicate-bulk-row:hover {
+    background: var(--theme-blue-soft, #eef4ff);
+    border-color: var(--theme-blue, #0d6efd);
+    color: var(--theme-blue, #0d6efd);
+}
+
+.remove-bulk-row {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 8px;
+}
+
+/* Full-width dashed "add another product" row */
+#bulkAddModal .bulk-add-row-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border: 1.5px dashed var(--theme-border, #d0d5dd);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--theme-blue, #0d6efd);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#bulkAddModal .bulk-add-row-button:hover {
+    border-color: var(--theme-blue, #0d6efd);
+    background: var(--theme-blue-soft, #eef4ff);
+    color: var(--theme-blue, #0d6efd);
+}
+
+/* Footer */
+#bulkAddModal .bulk-add-footer {
+    border-top: 1px solid var(--theme-border, #eef1f5);
+    padding: 0.9rem 1.4rem;
+}
+
+#bulkAddModal .bulk-add-footer .btn {
+    border-radius: 10px;
+    padding: 0.5rem 1.1rem;
+}
+
+/* Dark mode */
+:root[data-theme="dark"] #bulkAddModal .bulk-product-table thead th {
+    background: var(--theme-surface-soft, #1e2530);
+    color: var(--theme-text, #d0d5dd);
+}
+
+:root[data-theme="dark"] .bulk-product-table th,
+:root[data-theme="dark"] .bulk-product-table td {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .bulk-product-table tfoot td {
+    background: var(--theme-surface, #14171c);
+}
+
+:root[data-theme="dark"] .duplicate-bulk-row {
+    background: transparent;
+    border-color: #4a4a4a;
+    color: #98a2b3;
+}
+
+:root[data-theme="dark"] .duplicate-bulk-row:hover {
+    background: var(--theme-blue-soft, #1d3556);
+    border-color: var(--theme-blue, #0d6efd);
+    color: #7fb0ff;
+}
+
+:root[data-theme="dark"] #bulkAddModal .bulk-add-row-button {
+    border-color: #4a4a4a;
+    color: #7fb0ff;
+}
+
+:root[data-theme="dark"] #bulkAddModal .bulk-add-row-button:hover {
+    border-color: var(--theme-blue, #0d6efd);
+    background: var(--theme-blue-soft, #1d3556);
+}
+
+:root[data-theme="dark"] .stock-note-chip {
+    background: var(--theme-blue-soft, #1d3556);
+    border-color: var(--theme-blue-border, #2a4a74);
+    color: #7fb0ff;
 }
 
 

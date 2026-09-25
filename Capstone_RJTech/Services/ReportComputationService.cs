@@ -1,60 +1,19 @@
 using Capstone_RJTech.Data;
-using Capstone_RJTech.Models;
+using Capstone_RJTech.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace Capstone_RJTech.Services;
 
-public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTracker reportUpdates)
+/// <summary>
+/// Computes every report data set directly from the live inventory and sales
+/// tables on demand. Replaces the old snapshot-table pipeline: nothing is
+/// persisted, so the Reports page is always current.
+/// </summary>
+public sealed class ReportComputationService(ApplicationDbContext db)
 {
-    private static readonly SemaphoreSlim RefreshLock = new(1, 1);
     private static readonly string[] ReportStatuses = ["Paid", "Ongoing", "Refunded"];
 
-    public async Task EnsureGeneratedAsync(CancellationToken cancellationToken = default)
-    {
-        await RefreshLock.WaitAsync(cancellationToken);
-        try
-        {
-            bool hasReports = await HasOverviewReportsAsync(cancellationToken);
-            if (!hasReports || reportUpdates.NeedsRefresh)
-                await RefreshUntilCurrentAsync(cancellationToken);
-        }
-        finally
-        {
-            RefreshLock.Release();
-        }
-    }
-
-    public async Task RefreshAsync(CancellationToken cancellationToken = default)
-    {
-        await RefreshLock.WaitAsync(cancellationToken);
-        try
-        {
-            await RefreshUntilCurrentAsync(cancellationToken);
-        }
-        finally
-        {
-            RefreshLock.Release();
-        }
-    }
-
-    private async Task<bool> HasOverviewReportsAsync(CancellationToken cancellationToken)
-        => await db.SalesOverviews.AsNoTracking().AnyAsync(cancellationToken)
-            && await db.InventoryOverviews.AsNoTracking().AnyAsync(cancellationToken)
-            && await db.DeliveryOverviews.AsNoTracking().AnyAsync(cancellationToken);
-
-    private async Task RefreshUntilCurrentAsync(CancellationToken cancellationToken)
-    {
-        long sourceVersion;
-        do
-        {
-            sourceVersion = reportUpdates.SourceVersion;
-            await RefreshCoreAsync(cancellationToken);
-            reportUpdates.MarkRefreshed(sourceVersion);
-        }
-        while (sourceVersion != reportUpdates.SourceVersion);
-    }
-
-    private async Task RefreshCoreAsync(CancellationToken cancellationToken)
+    public async Task<ReportSnapshot> BuildAsync(CancellationToken cancellationToken = default)
     {
         var generatedAt = DateTime.Now;
         var today = generatedAt.Date;
@@ -104,10 +63,8 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
             .Select(detail => new DeliveryItemSource(detail.delivery_ID, detail.product_ID, detail.product_quantity))
             .ToListAsync(cancellationToken);
 
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
-        await ClearReportTablesAsync(cancellationToken);
-
         var weekStart = SalesPeriod.StartOfWeek(today);
+
         var salesOverview = new SalesOverviewReport
         {
             TotalSales = paidCheckouts.Sum(checkout => checkout.TotalAmount),
@@ -118,12 +75,10 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
             WeeklySales = paidCheckouts.Where(checkout => checkout.DatePurchased >= weekStart && checkout.DatePurchased < weekStart.AddDays(7)).Sum(checkout => checkout.TotalAmount),
             MonthlySales = paidCheckouts.Where(checkout => checkout.DatePurchased.Year == today.Year && checkout.DatePurchased.Month == today.Month).Sum(checkout => checkout.TotalAmount),
             YearlySales = paidCheckouts.Where(checkout => checkout.DatePurchased.Year == today.Year).Sum(checkout => checkout.TotalAmount),
-            LastSaleDate = paidCheckouts.Count == 0 ? null : paidCheckouts.Max(checkout => checkout.DatePurchased),
-            LastUpdated = generatedAt
+            LastSaleDate = paidCheckouts.Count == 0 ? null : paidCheckouts.Max(checkout => checkout.DatePurchased)
         };
-        db.SalesOverviews.Add(salesOverview);
 
-        db.WeeklySales.AddRange(paidCheckouts
+        var weeklySales = paidCheckouts
             .GroupBy(checkout => SalesPeriod.StartOfWeek(checkout.DatePurchased.Date))
             .OrderBy(group => group.Key)
             .Select(group => new WeeklySalesReport
@@ -133,9 +88,9 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 TotalSales = group.Sum(checkout => checkout.TotalAmount),
                 TotalTransactions = group.Count(),
                 TotalItemsSold = group.Sum(checkout => itemTotals.GetValueOrDefault(checkout.CheckoutID))
-            }));
+            }).ToList();
 
-        db.MonthlySales.AddRange(paidCheckouts
+        var monthlySales = paidCheckouts
             .GroupBy(checkout => new { checkout.DatePurchased.Year, checkout.DatePurchased.Month })
             .OrderBy(group => group.Key.Year).ThenBy(group => group.Key.Month)
             .Select(group => new MonthlySalesReport
@@ -145,9 +100,9 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 TotalSales = group.Sum(checkout => checkout.TotalAmount),
                 TotalTransactions = group.Count(),
                 TotalItemsSold = group.Sum(checkout => itemTotals.GetValueOrDefault(checkout.CheckoutID))
-            }));
+            }).ToList();
 
-        db.YearlySales.AddRange(paidCheckouts
+        var yearlySales = paidCheckouts
             .GroupBy(checkout => checkout.DatePurchased.Year)
             .OrderBy(group => group.Key)
             .Select(group => new YearlySalesReport
@@ -156,7 +111,7 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 TotalSales = group.Sum(checkout => checkout.TotalAmount),
                 TotalTransactions = group.Count(),
                 TotalItemsSold = group.Sum(checkout => itemTotals.GetValueOrDefault(checkout.CheckoutID))
-            }));
+            }).ToList();
 
         var monthlyProductSales = checkoutItems
             .Select(item => new
@@ -174,13 +129,15 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 group.Sum(item => item.Amount)))
             .ToList();
 
+        var bestSelling = new List<BestSellingProductReport>();
+        var leastSelling = new List<LeastSellingProductReport>();
         foreach (var period in monthlyProductSales.GroupBy(item => item.Period))
         {
             var best = period.OrderByDescending(item => item.Quantity)
                 .ThenByDescending(item => item.Amount).ThenBy(item => item.ProductID).First();
             var least = period.OrderBy(item => item.Quantity)
                 .ThenBy(item => item.Amount).ThenBy(item => item.ProductID).First();
-            db.BestSellingProducts.Add(new BestSellingProductReport
+            bestSelling.Add(new BestSellingProductReport
             {
                 ProductID = best.ProductID,
                 TotalQuantitySold = best.Quantity,
@@ -188,7 +145,7 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 Period = period.Key,
                 DateGenerated = generatedAt
             });
-            db.LeastSellingProducts.Add(new LeastSellingProductReport
+            leastSelling.Add(new LeastSellingProductReport
             {
                 ProductID = least.ProductID,
                 TotalQuantitySold = least.Quantity,
@@ -198,7 +155,7 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
             });
         }
 
-        db.SalesByCategories.AddRange(monthlyProductSales
+        var salesByCategories = monthlyProductSales
             .Where(item => productCategories.ContainsKey(item.ProductID))
             .GroupBy(item => new { item.Period, CategoryID = productCategories[item.ProductID] })
             .Select(group => new SalesByCategoryReport
@@ -208,9 +165,9 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 TotalQuantitySold = group.Sum(item => item.Quantity),
                 TotalSalesAmount = group.Sum(item => item.Amount),
                 DateGenerated = generatedAt
-            }));
+            }).ToList();
 
-        db.ReportTransactions.AddRange(checkouts.OrderBy(checkout => checkout.DatePurchased)
+        var transactions = checkouts.OrderBy(checkout => checkout.DatePurchased)
             .ThenBy(checkout => checkout.CheckoutID)
             .Select(checkout => new TransactionReport
             {
@@ -221,29 +178,27 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 Amount = checkout.TotalAmount,
                 TransactionDate = checkout.DatePurchased,
                 Status = checkout.Status
-            }));
+            }).ToList();
 
         var stockRows = products.Select(product => new ProductStockSummaryReport
         {
             ProductID = product.ProductID,
             CurrentQuantity = product.Quantity,
             ReorderLevel = product.ReorderLevel,
-            StockStatus = StockStatus(product),
-            LastUpdated = generatedAt
+            StockStatus = StockStatus(product)
         }).ToList();
-        db.ProductStockSummaries.AddRange(stockRows);
-        db.InventoryOverviews.Add(new InventoryOverviewReport
+
+        var inventoryOverview = new InventoryOverviewReport
         {
             TotalProducts = products.Count,
             TotalQuantity = products.Sum(product => product.Quantity),
             AvailableProducts = stockRows.Count(row => row.StockStatus == "Available"),
             UnavailableProducts = stockRows.Count(row => row.StockStatus == "Unavailable"),
             LowStockProducts = stockRows.Count(row => row.StockStatus == "Low Stock"),
-            OutOfStockProducts = stockRows.Count(row => row.StockStatus == "Out of Stock"),
-            LastUpdated = generatedAt
-        });
+            OutOfStockProducts = stockRows.Count(row => row.StockStatus == "Out of Stock")
+        };
 
-        db.ProductCategoryOverviews.AddRange(categories.Select(categoryId =>
+        var categoryOverviews = categories.Select(categoryId =>
         {
             var categoryProducts = products.Where(product => product.CategoryID == categoryId).ToList();
             return new ProductCategoryOverviewReport
@@ -253,50 +208,49 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 TotalQuantity = categoryProducts.Sum(product => product.Quantity),
                 AvailableQuantity = categoryProducts.Where(product => StockStatus(product) is "Available" or "Low Stock").Sum(product => product.Quantity),
                 UnavailableQuantity = categoryProducts.Where(product => StockStatus(product) is "Unavailable" or "Out of Stock").Sum(product => product.Quantity),
-                LastUpdated = generatedAt
+                LowStockProducts = categoryProducts.Count(product => StockStatus(product) == "Low Stock"),
+                OutOfStockProducts = categoryProducts.Count(product => StockStatus(product) == "Out of Stock")
             };
-        }));
+        }).ToList();
 
+        var mostStocked = new List<MostStockedProductReport>();
+        var leastStocked = new List<LeastStockedProductReport>();
         if (products.Count > 0)
         {
-            var mostStocked = products.OrderByDescending(product => product.Quantity).ThenBy(product => product.ProductID).First();
-            var leastStocked = products.OrderBy(product => product.Quantity).ThenBy(product => product.ProductID).First();
-            db.MostStockedProducts.Add(new MostStockedProductReport
+            var most = products.OrderByDescending(product => product.Quantity).ThenBy(product => product.ProductID).First();
+            var least = products.OrderBy(product => product.Quantity).ThenBy(product => product.ProductID).First();
+            mostStocked.Add(new MostStockedProductReport
             {
-                ProductID = mostStocked.ProductID,
-                CurrentQuantity = mostStocked.Quantity,
-                LastUpdated = generatedAt
+                ProductID = most.ProductID,
+                CurrentQuantity = most.Quantity
             });
-            db.LeastStockedProducts.Add(new LeastStockedProductReport
+            leastStocked.Add(new LeastStockedProductReport
             {
-                ProductID = leastStocked.ProductID,
-                CurrentQuantity = leastStocked.Quantity,
-                LastUpdated = generatedAt
+                ProductID = least.ProductID,
+                CurrentQuantity = least.Quantity
             });
         }
 
-        db.DeliveryOverviews.Add(new DeliveryOverviewReport
+        var deliveryOverview = new DeliveryOverviewReport
         {
             TotalDeliveries = deliveries.Count,
             TotalItemsDelivered = deliveryDetails.Sum(detail => detail.Quantity),
             TotalProductsDelivered = deliveryDetails.Select(detail => detail.ProductID).Distinct().Count(),
-            LastDeliveryDate = deliveries.Count == 0 ? null : deliveries.Max(delivery => delivery.DateDelivered),
-            LastUpdated = generatedAt
-        });
+            LastDeliveryDate = deliveries.Count == 0 ? null : deliveries.Max(delivery => delivery.DateDelivered)
+        };
 
-        db.DeliverySummaries.AddRange(deliveries.Select(delivery =>
+        var deliverySummaries = deliveries.Select(delivery =>
         {
             var details = deliveryDetails.Where(detail => detail.DeliveryID == delivery.DeliveryID).ToList();
             return new DeliverySummaryReport
             {
                 DeliveryID = delivery.DeliveryID,
                 TotalItems = details.Sum(detail => detail.Quantity),
-                TotalProducts = details.Select(detail => detail.ProductID).Distinct().Count(),
-                LastUpdated = generatedAt
+                TotalProducts = details.Select(detail => detail.ProductID).Distinct().Count()
             };
-        }));
+        }).ToList();
 
-        db.ProductDeliverySummaries.AddRange(deliveryDetails
+        var productDeliverySummaries = deliveryDetails
             .Where(detail => deliveryDates.ContainsKey(detail.DeliveryID))
             .GroupBy(detail => detail.ProductID)
             .Select(group => new ProductDeliverySummaryReport
@@ -304,32 +258,26 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
                 ProductID = group.Key,
                 TotalQuantityDelivered = group.Sum(detail => detail.Quantity),
                 TotalDeliveries = group.Select(detail => detail.DeliveryID).Distinct().Count(),
-                LastDeliveryDate = group.Max(detail => deliveryDates[detail.DeliveryID]),
-                LastUpdated = generatedAt
-            }));
+                LastDeliveryDate = group.Max(detail => deliveryDates[detail.DeliveryID])
+            }).ToList();
 
-        await db.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-    }
-
-    private async Task ClearReportTablesAsync(CancellationToken cancellationToken)
-    {
-        await db.BestSellingProducts.ExecuteDeleteAsync(cancellationToken);
-        await db.LeastSellingProducts.ExecuteDeleteAsync(cancellationToken);
-        await db.SalesByCategories.ExecuteDeleteAsync(cancellationToken);
-        await db.ReportTransactions.ExecuteDeleteAsync(cancellationToken);
-        await db.WeeklySales.ExecuteDeleteAsync(cancellationToken);
-        await db.MonthlySales.ExecuteDeleteAsync(cancellationToken);
-        await db.YearlySales.ExecuteDeleteAsync(cancellationToken);
-        await db.SalesOverviews.ExecuteDeleteAsync(cancellationToken);
-        await db.ProductStockSummaries.ExecuteDeleteAsync(cancellationToken);
-        await db.ProductCategoryOverviews.ExecuteDeleteAsync(cancellationToken);
-        await db.MostStockedProducts.ExecuteDeleteAsync(cancellationToken);
-        await db.LeastStockedProducts.ExecuteDeleteAsync(cancellationToken);
-        await db.InventoryOverviews.ExecuteDeleteAsync(cancellationToken);
-        await db.DeliverySummaries.ExecuteDeleteAsync(cancellationToken);
-        await db.ProductDeliverySummaries.ExecuteDeleteAsync(cancellationToken);
-        await db.DeliveryOverviews.ExecuteDeleteAsync(cancellationToken);
+        return new ReportSnapshot(
+            salesOverview,
+            weeklySales,
+            monthlySales,
+            yearlySales,
+            bestSelling,
+            leastSelling,
+            salesByCategories,
+            transactions,
+            inventoryOverview,
+            stockRows,
+            categoryOverviews,
+            mostStocked,
+            leastStocked,
+            deliveryOverview,
+            deliverySummaries,
+            productDeliverySummaries);
     }
 
     private static string StockStatus(ProductSource product)
@@ -348,3 +296,22 @@ public sealed class ReportRefreshService(ApplicationDbContext db, ReportUpdateTr
     private sealed record DeliverySource(int DeliveryID, DateTime DateDelivered);
     private sealed record DeliveryItemSource(int DeliveryID, int ProductID, int Quantity);
 }
+
+/// <summary>Every report data set, computed together in a single pass.</summary>
+public sealed record ReportSnapshot(
+    SalesOverviewReport SalesOverview,
+    List<WeeklySalesReport> WeeklySales,
+    List<MonthlySalesReport> MonthlySales,
+    List<YearlySalesReport> YearlySales,
+    List<BestSellingProductReport> BestSellingProducts,
+    List<LeastSellingProductReport> LeastSellingProducts,
+    List<SalesByCategoryReport> SalesByCategories,
+    List<TransactionReport> Transactions,
+    InventoryOverviewReport InventoryOverview,
+    List<ProductStockSummaryReport> ProductStock,
+    List<ProductCategoryOverviewReport> CategoryOverviews,
+    List<MostStockedProductReport> MostStockedProducts,
+    List<LeastStockedProductReport> LeastStockedProducts,
+    DeliveryOverviewReport DeliveryOverview,
+    List<DeliverySummaryReport> DeliverySummaries,
+    List<ProductDeliverySummaryReport> ProductDeliverySummaries);

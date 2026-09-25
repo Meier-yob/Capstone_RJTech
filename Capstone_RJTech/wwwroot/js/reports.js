@@ -8,8 +8,6 @@
     const data = JSON.parse(dataElement.textContent);
     const charts = [];
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const liveWatchUrl = page.dataset.liveWatchUrl;
-    const liveWatchController = new AbortController();
     const money = value => new Intl.NumberFormat('en-PH', {
         style: 'currency', currency: 'PHP', maximumFractionDigits: 0
     }).format(value);
@@ -36,40 +34,6 @@
         if (line) lines.push(line);
         return lines;
     };
-
-    async function watchForReportChanges() {
-        if (!liveWatchUrl) return;
-
-        let version = Number.parseInt(page.dataset.liveVersion || '0', 10);
-        if (!Number.isFinite(version)) version = 0;
-
-        while (!liveWatchController.signal.aborted) {
-            try {
-                const url = new URL(liveWatchUrl, window.location.origin);
-                url.searchParams.set('version', String(version));
-                const response = await fetch(url, {
-                    cache: 'no-store',
-                    headers: { Accept: 'application/json' },
-                    signal: liveWatchController.signal
-                });
-                if (!response.ok) throw new Error(`Live report request failed with ${response.status}.`);
-
-                const result = await response.json();
-                const latestVersion = Number(result.version);
-                if (result.changed === true) {
-                    window.location.reload();
-                    return;
-                }
-                if (Number.isFinite(latestVersion)) version = latestVersion;
-            } catch (error) {
-                if (error?.name === 'AbortError') return;
-                await new Promise(resolve => window.setTimeout(resolve, 3000));
-            }
-        }
-    }
-
-    window.addEventListener('beforeunload', () => liveWatchController.abort(), { once: true });
-    void watchForReportChanges();
 
     document.querySelector('[data-report-print]')?.addEventListener('click', () => window.print());
     document.querySelectorAll('.reports-segmented input').forEach(input => {
@@ -256,32 +220,6 @@
                 }
             });
             charts.push(chart);
-        }
-        const categoryQuantityCanvas = document.getElementById('categoryQuantityChart');
-        const categoryQuantityChart = barChart(
-            categoryQuantityCanvas,
-            data.inventoryCategories.map(row => row.categoryName),
-            data.inventoryCategories.map(row => row.totalQuantity),
-            { horizontal: true, maxBarThickness: 16, showValues: true, wrapLabels: true }
-        );
-        const categoryQuantityFrame = categoryQuantityCanvas?.closest('.category-quantity-chart');
-        if (categoryQuantityFrame && categoryQuantityChart) {
-            const resizeCategoryChart = () => {
-                const compact = categoryQuantityFrame.clientWidth < 520;
-                const desiredHeight = Math.max(compact ? 320 : 280,
-                    data.inventoryCategories.length * (compact ? 46 : 40) + 74);
-                const nextHeight = `${desiredHeight}px`;
-                if (categoryQuantityFrame.style.height !== nextHeight) {
-                    categoryQuantityFrame.style.height = nextHeight;
-                    categoryQuantityChart.resize();
-                }
-            };
-            resizeCategoryChart();
-            if ('ResizeObserver' in window) {
-                new ResizeObserver(resizeCategoryChart).observe(categoryQuantityFrame);
-            } else {
-                window.addEventListener('resize', resizeCategoryChart);
-            }
         }
     }
 

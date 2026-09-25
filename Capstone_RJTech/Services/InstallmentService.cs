@@ -21,7 +21,16 @@ namespace Capstone_RJTech.Services
         string Message,
         int? InstallmentID = null,
         int? CheckoutID = null,
-        decimal? Balance = null);
+        decimal? Balance = null,
+        int? PaymentID = null,
+        string? InstallmentCode = null,
+        decimal? PaymentAmount = null,
+        bool Completed = false,
+        int MonthsPaid = 0,
+        int MonthsRemaining = 0,
+        string? Status = null,
+        DateTime? NextDue = null,
+        decimal ProgressPercentage = 0);
 
     public class InstallmentService
     {
@@ -115,9 +124,12 @@ namespace Capstone_RJTech.Services
             if (normalizedMethod == null)
                 return new(false, "Select a valid payment method.");
 
-            paymentAmount = Money(paymentAmount);
             if (paymentAmount <= 0)
                 return new(false, "Payment amount must be greater than zero.");
+            if (Math.Round(paymentAmount, 2) != paymentAmount)
+                return new(false, "Payment amount can have at most two decimal places.");
+
+            paymentAmount = Money(paymentAmount);
 
             await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
@@ -137,18 +149,32 @@ namespace Capstone_RJTech.Services
                 if (newBalance < 0)
                     return new(false, "Payment cannot make the installment balance negative.");
 
+                // Double-submit guard: an identical payment on the same installment within the
+                // last few seconds is treated as a replay of a submission that already went
+                // through, so a double-click or a retry can never record the payment twice.
+                const int duplicateWindowSeconds = 10;
+                InstallmentPayment? duplicate = await _db.InstallmentPayments
+                    .FirstOrDefaultAsync(payment =>
+                        payment.InstallmentID == installment.InstallmentID &&
+                        payment.Status == "Paid" &&
+                        payment.PaymentAmount == paymentAmount &&
+                        payment.PaymentDate >= DateTime.Now.AddSeconds(-duplicateWindowSeconds));
+                if (duplicate != null)
+                    return BuildPaymentResult(installment, paymentAmount, duplicate.PaymentID);
+
                 DateTime paymentDate = DateTime.Now;
                 decimal totalPaid = Money(CalculateTotalPaid(installment) + paymentAmount);
                 bool completed = newBalance == 0;
 
-                _db.InstallmentPayments.Add(new InstallmentPayment
+                var payment = new InstallmentPayment
                 {
                     Installment = installment,
                     PaymentMethod = normalizedMethod,
                     PaymentAmount = paymentAmount,
                     PaymentDate = paymentDate,
                     Status = "Paid"
-                });
+                };
+                _db.InstallmentPayments.Add(payment);
 
                 // Each successful payment produces exactly one receipt, including the final payment.
                 // Both records and the balance update are committed or rolled back together.
@@ -176,12 +202,7 @@ namespace Capstone_RJTech.Services
                 await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                return new(
-                    true,
-                    completed ? "Installment completed and checkout marked as paid." : "Payment recorded successfully.",
-                    installment.InstallmentID,
-                    installment.CheckoutID,
-                    installment.Balance);
+                return BuildPaymentResult(installment, paymentAmount, payment.PaymentID);
             }
             catch (Exception exception)
             {
@@ -189,6 +210,37 @@ namespace Capstone_RJTech.Services
                 _logger.LogError(exception, "Unable to record payment for installment {InstallmentId}.", installmentId);
                 return new(false, "Unable to record the installment payment. No changes were made.");
             }
+        }
+
+        /// <summary>
+        /// Composes the post-payment result used to refresh the list row in place. The installment
+        /// must already reflect the payment (either just committed or replayed from the duplicate
+        /// guard above).
+        /// </summary>
+        private InstallmentPaymentResult BuildPaymentResult(
+            Installment installment,
+            decimal paymentAmount,
+            int paymentID)
+        {
+            bool completed = installment.Balance <= 0;
+            string message = completed
+                ? "Installment completed and checkout marked as paid."
+                : "Payment recorded successfully.";
+            return new InstallmentPaymentResult(
+                true,
+                message,
+                installment.InstallmentID,
+                installment.CheckoutID,
+                installment.Balance,
+                paymentID,
+                $"INS-{installment.InstallmentID:D3}",
+                paymentAmount,
+                completed,
+                installment.MonthsPaid,
+                installment.MonthsRemaining,
+                installment.Status,
+                CalculateDisplayDate(installment),
+                CalculateProgressPercentage(installment.MonthsPaid, installment.Months));
         }
 
         public int CalculateMonthsPaid(decimal totalInstallmentPayments, decimal monthlyPayment, int months)

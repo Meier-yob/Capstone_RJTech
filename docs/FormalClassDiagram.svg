@@ -1,0 +1,415 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2120" height="2520" viewBox="0 0 2120 2520" font-family="Segoe UI,Arial">
+
+  <defs>
+    <marker id="arr" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#3D5A80"/>
+    </marker>
+    <marker id="hollow" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.2"/>
+    </marker>
+    <marker id="diamond" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M6,0 L12,6 L6,12 L0,6 Z" fill="#3D5A80"/>
+    </marker>
+    <marker id="dashArr" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#5B6B7F"/>
+    </marker>
+    <marker id="dashHollow" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M1,1 L11,6 L1,11 Z" fill="#FFFFFF" stroke="#5B6B7F" stroke-width="1.2"/>
+    </marker>
+  </defs>
+<rect x="0" y="0" width="2120" height="2520" fill="#FBFCFE"/>
+<rect x="130" y="300" width="560" height="1408" rx="10" fill="#F2F6FB" stroke="#C9D4DF" stroke-width="1" stroke-dasharray="6,4"/><text x="410" y="324" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12.5" font-weight="800" letter-spacing="1.5" fill="#5A6B7E">SYSTEM 1 — USER MANAGEMENT</text>
+<rect x="770" y="300" width="560" height="1504" rx="10" fill="#F7F5EF" stroke="#C9D4DF" stroke-width="1" stroke-dasharray="6,4"/><text x="1050" y="324" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12.5" font-weight="800" letter-spacing="1.5" fill="#5A6B7E">SYSTEM 2 — CONTENT SERVICES</text>
+<rect x="1410" y="300" width="560" height="1547" rx="10" fill="#EFF6EF" stroke="#C9D4DF" stroke-width="1" stroke-dasharray="6,4"/><text x="1690" y="324" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12.5" font-weight="800" letter-spacing="1.5" fill="#5A6B7E">SYSTEM 3 — SALES &amp; PERSISTENCE (DATABASE CONNECTOR)</text>
+<rect x="60" y="2030" width="2005" height="330" rx="10" fill="#E9EDF2" stroke="#C9D4DF" stroke-width="1" stroke-dasharray="6,4"/><text x="1062.5" y="2054" text-anchor="middle" font-family="Segoe UI,Arial" font-size="12.5" font-weight="800" letter-spacing="1.5" fill="#5A6B7E">DATABASE CONNECTOR — ENTITY PERSISTENCE LAYER (ApplicationDbContext)</text>
+<text x="1060" y="38" text-anchor="middle" font-size="19" font-weight="800" fill="#1F4E79">RJTech — Formal UML Class Diagram (Hierarchical Architecture)</text>
+<path d="M1050.0 290.0 L1050.0 330.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1080.0 290.0 L1680.0 330.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1700.0 534.0 L2050.0 534.0 L2050.0 290.0 L1280.0 290.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#hollow)"/>
+<path d="M410.0 330.0 L900.0 290.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#hollow)"/>
+<path d="M410.0 605.0 L410.0 625.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M410.0 719.0 L410.0 739.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M660.0 426.3 L700.0 426.3 L700.0 907.5 L660.0 907.5" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M160.0 426.3 L55.0 426.3 L55.0 1051.5 L160.0 1051.5" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M660.0 1051.5 L724.0 1051.5 L724.0 1439.5 L660.0 1439.5" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M410.0 1121.0 L410.0 1141.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M410.0 1240.0 L410.0 1220.0" fill="none" stroke="#5B6B7F" stroke-width="1.6" stroke-dasharray="7,5" marker-end="url(#dashHollow)"/>
+<path d="M660.0 1339.0 L712.0 1339.0 L712.0 1536.7 L660.0 1536.7" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M160.0 1439.5 L60.0 1439.5 L60.0 2207.8 L100.0 2207.8" fill="none" stroke="#5B6B7F" stroke-width="1.6" stroke-dasharray="7,5" marker-end="url(#dashArr)"/>
+<path d="M1050.0 499.0 L1050.0 519.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1150.0 659.0 L1150.0 679.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#diamond)"/>
+<path d="M1300.0 389.1 L1340.0 389.1 L1340.0 831.5 L1300.0 831.5" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1050.0 984.0 L1050.0 1004.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1050.0 1188.0 L1050.0 1208.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M800.0 422.9 L745.0 422.9 L745.0 1247.5 L800.0 1247.5" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1300.0 868.1 L1322.0 868.1 L1322.0 1384.0 L1300.0 1384.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1050.0 1461.0 L1050.0 1481.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1050.0 1640.0 L1050.0 1620.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1300.0 1709.5 L1338.0 1709.5 L1338.0 1384.0 L1300.0 1384.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M800.0 740.0 L755.0 740.0 L755.0 2146.8 L100.0 2146.8" fill="none" stroke="#5B6B7F" stroke-width="1.6" stroke-dasharray="7,5" marker-end="url(#dashArr)"/>
+<path d="M1700.0 514.0 L1700.0 534.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1620.0 673.0 L1620.0 693.0" fill="none" stroke="#3D5A80" stroke-width="1.6"/>
+<path d="M1440.0 407.3 L1390.0 407.3 L1390.0 730.2 L1440.0 730.2" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1500.0 882.0 L1500.0 862.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#diamond)"/>
+<path d="M1440.0 1193.0 L1405.0 1193.0 L1405.0 777.5 L1440.0 777.5" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#diamond)"/>
+<path d="M1960.0 449.6 L1996.0 449.6 L1996.0 1404.5 L1960.0 1404.5" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1440.0 1571.0 L1395.0 1571.0 L1395.0 1217.4 L1440.0 1217.4" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#diamond)"/>
+<path d="M1700.0 1474.0 L1700.0 1494.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1960.0 422.0 L2000.0 422.0 L2000.0 1745.0 L1960.0 1745.0" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1960.0 1421.2 L1993.0 1421.2 L1993.0 1717.3 L1960.0 1717.3" fill="none" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M1700.0 1822.0 L1080.0 2040.0" fill="none" stroke="#5B6B7F" stroke-width="1.6" stroke-dasharray="7,5" marker-end="url(#dashArr)"/>
+<text x="1064" y="296" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">uses</text>
+<text x="1095" y="322" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">uses</text>
+<text x="1660" y="284" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">inheritance</text>
+<text x="520" y="282" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">inheritance</text>
+<text x="707" y="813" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 707 813)">manages</text>
+<text x="47" y="962" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 47 962)">issues OTP</text>
+<text x="731" y="1352" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 731 1352)">creates</text>
+<text x="424" y="1210" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">implements</text>
+<text x="719" y="1546" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 719 1546)">reads</text>
+<text x="52" y="2160" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 52 2160)">persists</text>
+<text x="1158" y="656" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">1</text>
+<text x="1158" y="683" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">1..*</text>
+<text x="1347" y="771.5" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 1347 771.5)">manages</text>
+<text x="1064" y="992" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">triggers low-stock</text>
+<text x="738" y="1239.5" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 738 1239.5)">invokes</text>
+<text x="1329" y="1384" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 1329 1384)">restocked in</text>
+<text x="1064" y="1469" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">belongs to</text>
+<text x="1345" y="1404" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 1345 1404)">creates</text>
+<text x="748" y="2100" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 748 2100)">persists</text>
+<text x="1540" y="683" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">1</text>
+<text x="1540" y="703" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">1..*</text>
+<text x="1383" y="747.5" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 1383 747.5)">creates</text>
+<text x="1472" y="868" text-anchor="end" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">1</text>
+<text x="1472" y="876" text-anchor="end" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">1..*</text>
+<text x="1398" y="777.5" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 1398 777.5)">0..1</text>
+<text x="2003" y="1384.5" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 2003 1384.5)">delegates</text>
+<text x="1388" y="1203" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 1388 1203)">1..*</text>
+<text x="1708" y="1484" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">applies</text>
+<text x="2007" y="1735" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 2007 1735)">records</text>
+<text x="2000" y="1708" text-anchor="middle" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F" transform="rotate(-90 2000 1708)">logs payment</text>
+<text x="1092" y="2034" text-anchor="start" font-family="Segoe UI,Arial" font-size="10.5" font-style="italic" fill="#41586F">persists</text>
+<rect x="820" y="60" width="460" height="230" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M820,67 Q820,60 827,60 L1273,60 Q1280,60 1280,67 L1280,98 L820,98 Z" fill="#1F4E79"/>
+<text x="832" y="80" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">User</text>
+<text x="832" y="95" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«God Class» — root entity</text>
+<text x="832" y="109" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="834" y="125" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ UserID : string (PK)</text>
+<text x="834" y="140" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ FullName : string</text>
+<text x="834" y="155" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Email : string (UQ)</text>
+<text x="834" y="170" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Phone : string</text>
+<text x="834" y="185" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DateCreated : DateTime</text>
+<line x1="828" y1="189" x2="1272" y2="189" stroke="#C9D4DF" stroke-width="1"/>
+<text x="832" y="200" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="834" y="216" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Login() : bool</text>
+<text x="834" y="231" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SearchProducts(query) : List&lt;Product&gt;</text>
+<text x="834" y="246" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ ManageProduct(product) : void</text>
+<text x="834" y="261" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ ProcessCheckout(checkout) : bool</text>
+<rect x="160" y="330" width="500" height="275" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,337 Q160,330 167,330 L653,330 Q660,330 660,337 L660,368 L160,368 Z" fill="#1F4E79"/>
+<text x="172" y="350" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">Owner</text>
+<text x="172" y="365" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» AppUser · tblUser</text>
+<text x="172" y="379" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="174" y="395" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ UserID : string (PK)</text>
+<text x="174" y="410" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ FullName : string</text>
+<text x="174" y="425" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Email : string (UQ)</text>
+<text x="174" y="440" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Username : string (UQ)</text>
+<text x="174" y="455" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Password : string (PBKDF2 hash)</text>
+<text x="174" y="470" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Role : string</text>
+<text x="174" y="485" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DateCreated : DateTime</text>
+<line x1="168" y1="489" x2="652" y2="489" stroke="#C9D4DF" stroke-width="1"/>
+<text x="172" y="500" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="174" y="516" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SignUp()</text>
+<text x="174" y="531" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Login()</text>
+<text x="174" y="546" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Logout()</text>
+<text x="174" y="561" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ UpdateProfile()</text>
+<text x="174" y="576" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ ChangePassword()</text>
+<text x="174" y="591" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ ForgotPassword()</text>
+<rect x="160" y="625" width="500" height="94" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,632 Q160,625 167,625 L653,625 Q660,625 660,632 L660,663 L160,663 Z" fill="#1F4E79"/>
+<text x="172" y="645" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">AuthService</text>
+<text x="172" y="660" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service» UserAuthenticationService</text>
+<text x="172" y="674" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="174" y="690" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ AuthenticateAsync(identifier, password) : AppUser?</text>
+<text x="174" y="705" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ CreatePrincipal(user) : ClaimsPrincipal</text>
+<rect x="160" y="739" width="500" height="94" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,746 Q160,739 167,739 L653,739 Q660,739 660,746 L660,777 L160,777 Z" fill="#1F4E79"/>
+<text x="172" y="759" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">PasswordHashService</text>
+<text x="172" y="774" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service»</text>
+<text x="172" y="788" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="174" y="804" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Hash(password) : string</text>
+<text x="174" y="819" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Verify(password, hash) : bool</text>
+<rect x="160" y="853" width="500" height="109" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,860 Q160,853 167,853 L653,853 Q660,853 660,860 L660,891 L160,891 Z" fill="#1F4E79"/>
+<text x="172" y="873" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">ProfileService</text>
+<text x="172" y="888" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service» · SettingController</text>
+<text x="172" y="902" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="174" y="918" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ GetProfile() : EditProfileViewModel</text>
+<text x="174" y="933" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ UpdateProfile(model) : void</text>
+<text x="174" y="948" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ ChangePassword(model) : void</text>
+<rect x="160" y="982" width="500" height="139" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,989 Q160,982 167,982 L653,982 Q660,982 660,989 L660,1020 L160,1020 Z" fill="#1F4E79"/>
+<text x="172" y="1002" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">PasswordResetService</text>
+<text x="172" y="1017" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service»</text>
+<text x="172" y="1031" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="174" y="1047" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ AccountExistsAsync(email) : bool</text>
+<text x="174" y="1062" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ CreateCodeAsync(email) : PasswordResetCode?</text>
+<text x="174" y="1077" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ VerifyCodeAsync(id, otp) : bool</text>
+<text x="174" y="1092" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ GetVerifiedRequestAsync(id) : PasswordResetCode?</text>
+<text x="174" y="1107" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ ResetPasswordAsync(email, newPassword) : bool</text>
+<rect x="160" y="1141" width="500" height="79" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,1148 Q160,1141 167,1141 L653,1141 Q660,1141 660,1148 L660,1179 L160,1179 Z" fill="#1F4E79"/>
+<text x="172" y="1161" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">IEmailSender</text>
+<text x="172" y="1176" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«interface»</text>
+<text x="172" y="1190" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="174" y="1206" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SendAsync(recipient, subject, htmlBody) : Task</text>
+<rect x="160" y="1240" width="500" height="110" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,1247 Q160,1240 167,1240 L653,1240 Q660,1240 660,1247 L660,1278 L160,1278 Z" fill="#1F4E79"/>
+<text x="172" y="1260" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">SmtpEmailSender</text>
+<text x="172" y="1275" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service»</text>
+<text x="172" y="1289" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="174" y="1305" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">− options : EmailOptions</text>
+<line x1="168" y1="1309" x2="652" y2="1309" stroke="#C9D4DF" stroke-width="1"/>
+<text x="172" y="1320" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="174" y="1336" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SendAsync(...) : Task (implements IEmailSender)</text>
+<rect x="160" y="1370" width="500" height="139" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,1377 Q160,1370 167,1370 L653,1370 Q660,1370 660,1377 L660,1408 L160,1408 Z" fill="#1F4E79"/>
+<text x="172" y="1390" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">PasswordResetCode</text>
+<text x="172" y="1405" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» tblPasswordResetCode</text>
+<text x="172" y="1419" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="174" y="1435" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Id : string (PK)</text>
+<text x="174" y="1450" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Email : string</text>
+<text x="174" y="1465" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ OtpHash : string (SHA-256)</text>
+<text x="174" y="1480" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ ExpiresAt : DateTimeOffset</text>
+<text x="174" y="1495" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ VerifiedAt : DateTimeOffset?</text>
+<rect x="160" y="1529" width="500" height="154" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M160,1536 Q160,1529 167,1529 L653,1529 Q660,1529 660,1536 L660,1567 L160,1567 Z" fill="#1F4E79"/>
+<text x="172" y="1549" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">EmailOptions</text>
+<text x="172" y="1564" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«config» appsettings</text>
+<text x="172" y="1578" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="174" y="1594" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Host : string</text>
+<text x="174" y="1609" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Port : int</text>
+<text x="174" y="1624" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Username : string</text>
+<text x="174" y="1639" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Password : string</text>
+<text x="174" y="1654" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ FromAddress : string</text>
+<text x="174" y="1669" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ EnableSsl : bool</text>
+<rect x="800" y="330" width="500" height="169" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,337 Q800,330 807,330 L1293,330 Q1300,330 1300,337 L1300,368 L800,368 Z" fill="#1F4E79"/>
+<text x="812" y="350" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">ProductService</text>
+<text x="812" y="365" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service» · ProductController</text>
+<text x="812" y="379" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="814" y="395" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Create(model) : void</text>
+<text x="814" y="410" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ BulkCreate(request) : void</text>
+<text x="814" y="425" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ UpdateProductDetails(...) : void</text>
+<text x="814" y="440" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ UploadImage(id, image) : void</text>
+<text x="814" y="455" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SearchProducts(query) : List&lt;Product&gt;</text>
+<text x="814" y="470" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ DeleteProduct(id) : void</text>
+<text x="814" y="485" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ FormatProductCode(category, id) : string</text>
+<rect x="800" y="519" width="500" height="140" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,526 Q800,519 807,519 L1293,519 Q1300,519 1300,526 L1300,557 L800,557 Z" fill="#1F4E79"/>
+<text x="812" y="539" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">ProductCategory</text>
+<text x="812" y="554" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» ProductCategories</text>
+<text x="812" y="568" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="814" y="584" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ category_ID : int (PK)</text>
+<text x="814" y="599" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ category_name : string (UQ)</text>
+<line x1="808" y1="603" x2="1292" y2="603" stroke="#C9D4DF" stroke-width="1"/>
+<text x="812" y="614" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="814" y="630" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ CreateCategory()</text>
+<text x="814" y="645" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ EditCategory()</text>
+<rect x="800" y="679" width="500" height="305" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,686 Q800,679 807,679 L1293,679 Q1300,679 1300,686 L1300,717 L800,717 Z" fill="#1F4E79"/>
+<text x="812" y="699" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">Product</text>
+<text x="812" y="714" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» Products</text>
+<text x="812" y="728" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="814" y="744" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_ID : int (PK)</text>
+<text x="814" y="759" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_name : string</text>
+<text x="814" y="774" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_brand : string</text>
+<text x="814" y="789" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_description : string?</text>
+<text x="814" y="804" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_Image : byte[]?</text>
+<text x="814" y="819" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_ImageContentType : string?</text>
+<text x="814" y="834" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_quantity : int</text>
+<text x="814" y="849" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ reorder_level : int</text>
+<text x="814" y="864" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Product_price : decimal(18,2)</text>
+<text x="814" y="879" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ is_serialized : bool</text>
+<text x="814" y="894" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_status : string</text>
+<text x="814" y="909" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ category_ID : int (FK)</text>
+<text x="814" y="924" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_code : string (computed)</text>
+<line x1="808" y1="928" x2="1292" y2="928" stroke="#C9D4DF" stroke-width="1"/>
+<text x="812" y="939" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="814" y="955" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ formatted_code() : string</text>
+<text x="814" y="970" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ product_code() : string</text>
+<rect x="800" y="1004" width="500" height="184" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,1011 Q800,1004 807,1004 L1293,1004 Q1300,1004 1300,1011 L1300,1042 L800,1042 Z" fill="#1F4E79"/>
+<text x="812" y="1024" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">AppNotification</text>
+<text x="812" y="1039" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» Notifications</text>
+<text x="812" y="1053" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="814" y="1069" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ notification_ID : int (PK)</text>
+<text x="814" y="1084" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_ID : int? (FK)</text>
+<text x="814" y="1099" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ title : string</text>
+<text x="814" y="1114" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ message : string</text>
+<text x="814" y="1129" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ notification_type : string</text>
+<text x="814" y="1144" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ action_url : string</text>
+<text x="814" y="1159" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ created_at : DateTime</text>
+<text x="814" y="1174" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ is_read : bool</text>
+<rect x="800" y="1208" width="500" height="79" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,1215 Q800,1208 807,1208 L1293,1208 Q1300,1208 1300,1215 L1300,1246 L800,1246 Z" fill="#1F4E79"/>
+<text x="812" y="1228" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">StockNotificationService</text>
+<text x="812" y="1243" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service»</text>
+<text x="812" y="1257" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="814" y="1273" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Synchronize() : void</text>
+<rect x="800" y="1307" width="500" height="154" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,1314 Q800,1307 807,1307 L1293,1307 Q1300,1307 1300,1314 L1300,1345 L800,1345 Z" fill="#1F4E79"/>
+<text x="812" y="1327" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">DeliveryDetails</text>
+<text x="812" y="1342" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity»</text>
+<text x="812" y="1356" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="814" y="1372" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ deldetails_ID : int (PK)</text>
+<text x="814" y="1387" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_quantity : int</text>
+<text x="814" y="1402" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ previous_quantity : int</text>
+<text x="814" y="1417" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ new_quantity : int</text>
+<text x="814" y="1432" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ product_ID : int (FK)</text>
+<text x="814" y="1447" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ delivery_ID : int (FK)</text>
+<rect x="800" y="1481" width="500" height="139" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,1488 Q800,1481 807,1481 L1293,1481 Q1300,1481 1300,1488 L1300,1519 L800,1519 Z" fill="#1F4E79"/>
+<text x="812" y="1501" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">Delivery</text>
+<text x="812" y="1516" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» Deliveries</text>
+<text x="812" y="1530" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="814" y="1546" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ delivery_ID : int (PK)</text>
+<text x="814" y="1561" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ date_delivered : DateTime</text>
+<text x="814" y="1576" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ received_by : string</text>
+<text x="814" y="1591" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ batch_ID : string (UQ)</text>
+<text x="814" y="1606" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ is_archived : bool</text>
+<rect x="800" y="1640" width="500" height="139" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M800,1647 Q800,1640 807,1640 L1293,1640 Q1300,1640 1300,1647 L1300,1678 L800,1678 Z" fill="#1F4E79"/>
+<text x="812" y="1660" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">DeliveryService</text>
+<text x="812" y="1675" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service» · DeliveryController</text>
+<text x="812" y="1689" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="814" y="1705" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Receive()</text>
+<text x="814" y="1720" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ CompleteDelivery(request) : void</text>
+<text x="814" y="1735" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ GetDeliveries() : List&lt;Delivery&gt;</text>
+<text x="814" y="1750" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ DeleteDeliveryReceipt(id) : void</text>
+<text x="814" y="1765" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SearchProductForDelivery(query)</text>
+<rect x="1440" y="330" width="520" height="184" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,337 Q1440,330 1447,330 L1953,330 Q1960,330 1960,337 L1960,368 L1440,368 Z" fill="#1F4E79"/>
+<text x="1452" y="350" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">SalesService</text>
+<text x="1452" y="365" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service» · SalesController</text>
+<text x="1452" y="379" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="1454" y="395" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SearchCustomers(query)</text>
+<text x="1454" y="410" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SearchProducts(query)</text>
+<text x="1454" y="425" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ CheckSerialNumber(serial) : bool</text>
+<text x="1454" y="440" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ CompleteCheckout(request) : void</text>
+<text x="1454" y="455" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ RefundCheckout(id) : void</text>
+<text x="1454" y="470" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ DeleteCheckout(id) : void</text>
+<text x="1454" y="485" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ DeleteCustomers(ids) : void</text>
+<text x="1454" y="500" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ RecordInstallmentPayment(request)</text>
+<rect x="1440" y="534" width="520" height="139" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,541 Q1440,534 1447,534 L1953,534 Q1960,534 1960,541 L1960,572 L1440,572 Z" fill="#1F4E79"/>
+<text x="1452" y="554" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">Customer</text>
+<text x="1452" y="569" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» tblCustomer</text>
+<text x="1452" y="583" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="1454" y="599" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ customer_ID : int (PK)</text>
+<text x="1454" y="614" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ customer_FullName : string</text>
+<text x="1454" y="629" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ customer_Email : string (UQ · @gmail.com)</text>
+<text x="1454" y="644" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ customer_Phone : string (11 digits)</text>
+<text x="1454" y="659" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ customer_Address : string</text>
+<rect x="1440" y="693" width="520" height="169" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,700 Q1440,693 1447,693 L1953,693 Q1960,693 1960,700 L1960,731 L1440,731 Z" fill="#1F4E79"/>
+<text x="1452" y="713" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">Checkout</text>
+<text x="1452" y="728" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» tblCheckout</text>
+<text x="1452" y="742" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="1454" y="758" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ CheckoutID : int (PK)</text>
+<text x="1454" y="773" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ CustomerID : int (FK)</text>
+<text x="1454" y="788" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ TotalAmount : decimal(18,2)</text>
+<text x="1454" y="803" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PaymentMethod : string</text>
+<text x="1454" y="818" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PaymentType : string</text>
+<text x="1454" y="833" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DatePurchased : DateTime</text>
+<text x="1454" y="848" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Status : string</text>
+<rect x="1440" y="882" width="520" height="169" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,889 Q1440,882 1447,882 L1953,882 Q1960,882 1960,889 L1960,920 L1440,920 Z" fill="#1F4E79"/>
+<text x="1452" y="902" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">CheckoutItem</text>
+<text x="1452" y="917" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» tblCheckoutItem</text>
+<text x="1452" y="931" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="1454" y="947" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ CheckoutItemID : int (PK)</text>
+<text x="1454" y="962" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ CheckoutID : int (FK)</text>
+<text x="1454" y="977" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ ProductID : int (FK)</text>
+<text x="1454" y="992" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ SerialNo : string?</text>
+<text x="1454" y="1007" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ ItemQuantity : int</text>
+<text x="1454" y="1022" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Price : decimal(18,2)</text>
+<text x="1454" y="1037" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ SubTotal : decimal(18,2)</text>
+<rect x="1440" y="1071" width="520" height="244" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,1078 Q1440,1071 1447,1071 L1953,1071 Q1960,1071 1960,1078 L1960,1109 L1440,1109 Z" fill="#1F4E79"/>
+<text x="1452" y="1091" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">Installment</text>
+<text x="1452" y="1106" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» tblInstallment</text>
+<text x="1452" y="1120" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="1454" y="1136" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ InstallmentID : int (PK)</text>
+<text x="1454" y="1151" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ CheckoutID : int (FK)</text>
+<text x="1454" y="1166" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Months : int</text>
+<text x="1454" y="1181" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DownPayment : decimal(18,2)</text>
+<text x="1454" y="1196" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ InterestRate : decimal(5,2)</text>
+<text x="1454" y="1211" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ TotalAmount : decimal(18,2)</text>
+<text x="1454" y="1226" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Balance : decimal(18,2)</text>
+<text x="1454" y="1241" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ MonthlyPayment : decimal(18,2)</text>
+<text x="1454" y="1256" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ MonthsPaid : int</text>
+<text x="1454" y="1271" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ MonthsRemaining : int</text>
+<text x="1454" y="1286" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ StartDate : DateTime</text>
+<text x="1454" y="1301" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Status : string</text>
+<rect x="1440" y="1335" width="520" height="139" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,1342 Q1440,1335 1447,1335 L1953,1335 Q1960,1335 1960,1342 L1960,1373 L1440,1373 Z" fill="#1F4E79"/>
+<text x="1452" y="1355" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">InstallmentService</text>
+<text x="1452" y="1370" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«service»</text>
+<text x="1452" y="1384" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="1454" y="1400" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Calculate(amount, months) : InstallmentCalculation</text>
+<text x="1454" y="1415" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ RecordPaymentAsync(...) : InstallmentPaymentResult</text>
+<text x="1454" y="1430" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ CalculateMonthsPaid(...) : int</text>
+<text x="1454" y="1445" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ DetermineInstallmentStatus(...) : string</text>
+<text x="1454" y="1460" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ UpdateInstallmentStatusesAsync()</text>
+<rect x="1440" y="1494" width="520" height="154" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,1501 Q1440,1494 1447,1494 L1953,1494 Q1960,1494 1960,1501 L1960,1532 L1440,1532 Z" fill="#1F4E79"/>
+<text x="1452" y="1514" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">InstallmentPayment</text>
+<text x="1452" y="1529" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» tblInstallmentPayment</text>
+<text x="1452" y="1543" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="1454" y="1559" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PaymentID : int (PK)</text>
+<text x="1454" y="1574" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ InstallmentID : int (FK)</text>
+<text x="1454" y="1589" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PaymentMethod : string</text>
+<text x="1454" y="1604" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PaymentAmount : decimal(18,2)</text>
+<text x="1454" y="1619" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PaymentDate : DateTime</text>
+<text x="1454" y="1634" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ Status : string</text>
+<rect x="1440" y="1668" width="520" height="154" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M1440,1675 Q1440,1668 1447,1668 L1953,1668 Q1960,1668 1960,1675 L1960,1706 L1440,1706 Z" fill="#1F4E79"/>
+<text x="1452" y="1688" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">CustomerPurchaseHistory</text>
+<text x="1452" y="1703" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«entity» tblCustomerPurchaseHistory</text>
+<text x="1452" y="1717" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="1454" y="1733" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ HistoryID : int (PK)</text>
+<text x="1454" y="1748" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ CustomerID : int (FK)</text>
+<text x="1454" y="1763" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ CheckoutID : int (FK)</text>
+<text x="1454" y="1778" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PurchaseDate : DateTime</text>
+<text x="1454" y="1793" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ TotalAmount : decimal(18,2)</text>
+<text x="1454" y="1808" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ PaymentMethod : string</text>
+<rect x="100" y="2040" width="1960" height="305" rx="7" fill="#FFFFFF" stroke="#3D5A80" stroke-width="1.4"/>
+<path d="M100,2047 Q100,2040 107,2040 L2053,2040 Q2060,2040 2060,2047 L2060,2078 L100,2078 Z" fill="#1F4E79"/>
+<text x="112" y="2060" font-family="Segoe UI,Arial" font-size="13.5" font-weight="700" fill="#FFFFFF">DatabaseContext — ApplicationDbContext</text>
+<text x="112" y="2075" font-family="Segoe UI,Arial" font-size="9.5" font-style="italic" fill="#BFD7EE">«connector» Entity Persistence Layer</text>
+<text x="112" y="2089" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">ATTRIBUTES</text>
+<text x="114" y="2105" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;Product&gt; Products</text>
+<text x="114" y="2120" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;ProductCategory&gt; ProductCategories</text>
+<text x="114" y="2135" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;Delivery&gt; Deliveries</text>
+<text x="114" y="2150" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;DeliveryDetails&gt; DeliveryDetails</text>
+<text x="114" y="2165" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;AppNotification&gt; Notifications</text>
+<text x="114" y="2180" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;Customer&gt; Customers</text>
+<text x="114" y="2195" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;Checkout&gt; Checkouts</text>
+<text x="114" y="2210" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;CheckoutItem&gt; CheckoutItems</text>
+<text x="114" y="2225" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;Installment&gt; Installments</text>
+<text x="114" y="2240" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;InstallmentPayment&gt; InstallmentPayments</text>
+<text x="114" y="2255" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;CustomerPurchaseHistory&gt; CustomerPurchaseHistories</text>
+<text x="114" y="2270" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;AppUser&gt; Users</text>
+<text x="114" y="2285" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#2B3A52">+ DbSet&lt;PasswordResetCode&gt; PasswordResetCodes</text>
+<line x1="108" y1="2289" x2="2052" y2="2289" stroke="#C9D4DF" stroke-width="1"/>
+<text x="112" y="2300" font-family="Segoe UI,Arial" font-size="9" font-weight="700" letter-spacing="1" fill="#8A97A8">OPERATIONS</text>
+<text x="114" y="2316" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ SaveChanges() : int</text>
+<text x="114" y="2331" font-family="Consolas,'Courier New',monospace" font-size="12" fill="#3A4A5F">+ Find&lt;TEntity&gt;(id) : TEntity?</text>
+<text x="120" y="2400" font-size="11.5" font-weight="700" fill="#41586F">LEGEND</text>
+<line x1="120" y1="2426" x2="154" y2="2426" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#arr)"/><text x="162" y="2430" font-size="11" fill="#41586F">Dependency / uses</text>
+<line x1="120" y1="2452" x2="154" y2="2452" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#hollow)"/><text x="162" y="2456" font-size="11" fill="#41586F">Generalization (inheritance)</text>
+<line x1="520" y1="2426" x2="554" y2="2426" stroke="#3D5A80" stroke-width="1.6" marker-end="url(#diamond)"/><text x="562" y="2430" font-size="11" fill="#41586F">Composition (whole) — 1 : 1..*</text>
+<line x1="520" y1="2452" x2="554" y2="2452" stroke="#5B6B7F" stroke-width="1.6" stroke-dasharray="7,5" marker-end="url(#dashArr)"/><text x="562" y="2456" font-size="11" fill="#41586F">Persists (dashed) / Implements</text>
+<text x="120" y="2478" font-size="10.5" fill="#5A6B7E" font-style="italic">Composite children (DeliveryDetails, CheckoutItem, InstallmentPayment) are cascade-deleted with their parent. Dashed rows into DatabaseContext are representative — it exposes a DbSet&lt;T&gt; for every «entity» class.</text>
+</svg>

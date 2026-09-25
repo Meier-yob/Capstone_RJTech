@@ -1,0 +1,656 @@
+%% ============================================================================
+%%  RJTech Capstone — ViewModels UML Class Diagram  (Mermaid)
+%%  Paste into https://mermaid.live to render / export as PNG, SVG, or PDF.
+%%
+%%  Convention used (3 sections per class):
+%%    Section 1 – Name        : class identifier (header)
+%%    Section 2 – Attributes  : properties with type  (+ = public)
+%%    Section 3 – Operations  : methods / computed getters  (+ name() : type)
+%%  Every view model is a concrete class with an implicit public parameterless
+%%  constructor, so each shows `+ Xxx()` as its first operation. Computed
+%%  read-only properties (e.g. `=> $"...")` are modeled as getter operations.
+%% ============================================================================
+
+classDiagram
+    direction TB
+
+    %% ------------------------------------------------------------------
+    %% AUTH — Login / Sign Up / Forgot Password / Reset Password
+    %% ------------------------------------------------------------------
+    subgraph Auth
+        class LoginViewModel {
+            + string Identifier
+            + string Password
+            + bool RememberMe
+            + LoginViewModel()
+        }
+        class SignUpViewModel {
+            + string FullName
+            + string Email
+            + string Username
+            + string Password
+            + string ConfirmPassword
+            + SignUpViewModel()
+        }
+        class ForgotPasswordViewModel {
+            + string Email
+            + ForgotPasswordViewModel()
+        }
+        class VerifyOtpViewModel {
+            + string Otp
+            + string RequestId
+            + VerifyOtpViewModel()
+        }
+        class ResetPasswordViewModel {
+            + string Password
+            + string ConfirmPassword
+            + string RequestId
+            + ResetPasswordViewModel()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% ACCOUNT SETTINGS — Profile & Security
+    %% ------------------------------------------------------------------
+    subgraph Settings
+        class AccountSettingsViewModel {
+            + EditProfileViewModel Profile
+            + ChangePasswordViewModel Security
+            + AccountSettingsViewModel()
+        }
+        class EditProfileViewModel {
+            + string FullName
+            + string Email
+            + string Username
+            + string Role
+            + DateTime DateCreated
+            + EditProfileViewModel()
+        }
+        class ChangePasswordViewModel {
+            + string CurrentPassword
+            + string NewPassword
+            + string ConfirmPassword
+            + ChangePasswordViewModel()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% DASHBOARD
+    %% ------------------------------------------------------------------
+    subgraph Dashboard
+        class DashboardViewModel {
+            + decimal TotalSales
+            + int TotalProducts
+            + decimal OutstandingAmount
+            + int OutstandingPlans
+            + int TotalCustomers
+            + int Month
+            + int Year
+            + int? CategoryId
+            + List~int~ Years
+            + List~DashboardCategoryViewModel~ Categories
+            + List~SalesChartItem~ SalesOverview
+            + List~WeeklySalesChartItem~ WeeklySalesOverview
+            + InventoryHealthViewModel InventoryHealth
+            + List~TopSellingProductViewModel~ TopSellingProducts
+            + List~CategorySalesViewModel~ SalesByCategory
+            + List~RecentTransactionViewModel~ RecentTransactions
+            + DashboardViewModel()
+            + PeriodLabel() : string
+            + PeriodSales() : decimal
+        }
+        class SalesChartItem {
+            + int Day
+            + decimal Revenue
+            + SalesChartItem()
+        }
+        class WeeklySalesChartItem {
+            + DateTime WeekStartDate
+            + DateTime WeekEndDate
+            + decimal Revenue
+            + WeeklySalesChartItem()
+            + Label() : string
+        }
+        class InventoryHealthViewModel {
+            + int Available
+            + int Unavailable
+            + int LowStock
+            + int OutOfStock
+            + InventoryHealthViewModel()
+            + Total() : int
+        }
+        class TopSellingProductViewModel {
+            + int ProductId
+            + string Product
+            + string Category
+            + int QuantitySold
+            + decimal Revenue
+            + TopSellingProductViewModel()
+            + ProductCode() : string
+        }
+        class DashboardCategoryViewModel {
+            + int Id
+            + string Name
+            + DashboardCategoryViewModel()
+        }
+        class CategorySalesViewModel {
+            + int CategoryId
+            + string Category
+            + decimal Revenue
+            + CategorySalesViewModel()
+        }
+        class RecentTransactionViewModel {
+            + int CheckoutId
+            + string Customer
+            + int Items
+            + string PaymentMethod
+            + decimal TotalAmount
+            + string Status
+            + DateTime DatePurchased
+            + RecentTransactionViewModel()
+            + CheckoutCode() : string
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% PRODUCT — Create form, Bulk add, Category management
+    %% ------------------------------------------------------------------
+    subgraph Product
+        class ProductCreateViewModel {
+            + int category_ID
+            + string product_name
+            + string product_brand
+            + string? product_description
+            + int product_quantity
+            + int reorder_level
+            + decimal Product_price
+            + string product_status
+            + bool IsSerialized
+            + ProductCreateViewModel()
+        }
+        class BulkProductRowDto {
+            + int category_ID
+            + string? product_name
+            + string? product_brand
+            + string? product_description
+            + int reorder_level
+            + decimal Product_price
+            + bool IsSerialized
+            + BulkProductRowDto()
+        }
+        class BulkCreateProductsRequest {
+            + List~BulkProductRowDto~? products
+            + BulkCreateProductsRequest()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% SALES / CHECKOUT
+    %% ------------------------------------------------------------------
+    subgraph Sales
+        class CheckoutItemRequest {
+            + int ProductID
+            + int Quantity
+            + List~string~ SerialNumbers
+            + CheckoutItemRequest()
+        }
+        class SaveCheckoutRequest {
+            + int? CustomerID
+            + string CustomerFullName
+            + string CustomerEmail
+            + string CustomerPhone
+            + string CustomerAddress
+            + string PaymentType
+            + string PaymentMethod
+            + int? InstallmentMonths
+            + decimal? DownPayment
+            + decimal? InterestRate
+            + List~CheckoutItemRequest~ Items
+            + SaveCheckoutRequest()
+        }
+        class CheckoutFormItemViewModel {
+            + int ProductID
+            + string ProductName
+            + int Quantity
+            + List~string~ SerialNumbers
+            + decimal Price
+            + int AvailableStock
+            + bool IsSerialized
+            + CheckoutFormItemViewModel()
+        }
+        class CheckoutFormViewModel {
+            + int? CustomerID
+            + string CustomerFullName
+            + string CustomerEmail
+            + string CustomerPhone
+            + string CustomerAddress
+            + string PaymentType
+            + string PaymentMethod
+            + DateTime DatePurchased
+            + List~CheckoutFormItemViewModel~ Items
+            + List~CheckoutProductOptionViewModel~ AvailableProducts
+            + CheckoutFormViewModel()
+        }
+        class CheckoutProductOptionViewModel {
+            + int ProductId
+            + string Code
+            + string Name
+            + string Brand
+            + string Category
+            + int Stock
+            + decimal Price
+            + string ImageUrl
+            + bool IsSerialized
+            + CheckoutProductOptionViewModel()
+        }
+        class CheckoutDetailsViewModel {
+            + Checkout Checkout
+            + CheckoutDetailsViewModel()
+        }
+        class RecordInstallmentPaymentRequest {
+            + int CheckoutID
+            + decimal PaymentAmount
+            + string PaymentMethod
+            + RecordInstallmentPaymentRequest()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% INSTALLMENTS
+    %% ------------------------------------------------------------------
+    subgraph Installments
+        class InstallmentManagementViewModel {
+            + IReadOnlyList~InstallmentListViewModel~ Installments
+            + InstallmentManagementViewModel()
+        }
+        class InstallmentListViewModel {
+            + int InstallmentID
+            + int CheckoutID
+            + string CustomerName
+            + string CustomerPhone
+            + string CustomerEmail
+            + decimal MonthlyPayment
+            + decimal Balance
+            + decimal TotalPaid
+            + int Months
+            + int MonthsPaid
+            + int MonthsRemaining
+            + DateTime? DisplayDate
+            + string Status
+            + decimal ProgressPercentage
+            + InstallmentListViewModel()
+            + FormattedInstallmentID() : string
+            + FormattedCheckoutID() : string
+        }
+        class InstallmentDetailsViewModel {
+            + Installment Installment
+            + Checkout Checkout
+            + Customer? Customer
+            + decimal TotalPaid
+            + decimal ProgressPercentage
+            + DateTime? DisplayDate
+            + DateTime? CompletionDate
+            + InstallmentDetailsViewModel()
+        }
+        class RecordInstallmentPaymentViewModel {
+            + int InstallmentID
+            + decimal PaymentAmount
+            + string PaymentMethod
+            + RecordInstallmentPaymentViewModel()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% DELIVERY — Receive / Complete delivery
+    %% ------------------------------------------------------------------
+    subgraph Delivery
+        class DeliveryItemRequest {
+            + int product_ID
+            + int quantity
+            + DeliveryItemRequest()
+        }
+        class DeliveryCompleteRequest {
+            + string? received_by
+            + DateTime? delivery_date
+            + List~DeliveryItemRequest~? items
+            + DeliveryCompleteRequest()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% REPORTS — Reports page composite models
+    %% ------------------------------------------------------------------
+    subgraph ReportsPage
+        class ReportsViewModel {
+            + string ActiveTab
+            + string Period
+            + int Month
+            + int Year
+            + string? Search
+            + string? Status
+            + string? Sort
+            + List~int~ Years
+            + SalesOverviewViewModel Sales
+            + InventoryOverviewViewModel Inventory
+            + DeliveryOverviewViewModel Delivery
+            + ReportsViewModel()
+        }
+        class SalesOverviewViewModel {
+            + decimal TotalSales
+            + int TotalCheckouts
+            + int TotalSoldItems
+            + int TotalCustomers
+            + decimal TodaySales
+            + decimal WeeklySales
+            + decimal MonthlySales
+            + decimal YearlySales
+            + DateTime? LastSaleDate
+            + List~ReportChartPoint~ History
+            + ProductSalesReportRow? BestSellingProduct
+            + ProductSalesReportRow? LeastSellingProduct
+            + List~CategorySalesReportRow~ SalesByCategory
+            + List~TransactionReportRow~ RecentTransactions
+            + SalesOverviewViewModel()
+        }
+        class InventoryOverviewViewModel {
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableProducts
+            + int UnavailableProducts
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + List~ProductStockReportRow~ ProductStock
+            + List~CategoryInventoryReportRow~ ProductCategories
+            + StockExtremeReportRow? MostStockedProduct
+            + StockExtremeReportRow? LeastStockedProduct
+            + InventoryOverviewViewModel()
+        }
+        class DeliveryOverviewViewModel {
+            + int TotalDeliveries
+            + int TotalItemsDelivered
+            + int TotalProductsDelivered
+            + DateTime? LastDeliveryDate
+            + List~DeliverySummaryReportRow~ DeliverySummaries
+            + List~ProductDeliveryReportRow~ ProductDeliveries
+            + DeliveryOverviewViewModel()
+        }
+        class ReportChartPoint {
+            + string Label
+            + decimal Value
+            + int TotalTransactions
+            + int TotalItems
+            + ReportChartPoint()
+        }
+        class ProductSalesReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + ProductSalesReportRow()
+        }
+        class CategorySalesReportRow {
+            + int CategoryID
+            + string CategoryName
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + CategorySalesReportRow()
+        }
+        class TransactionReportRow {
+            + int CheckoutID
+            + string CustomerName
+            + string PaymentType
+            + string PaymentMethod
+            + decimal Amount
+            + DateTime TransactionDate
+            + string Status
+            + TransactionReportRow()
+            + CheckoutCode() : string
+        }
+        class ProductStockReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + string CategoryName
+            + int CurrentQuantity
+            + int ReorderLevel
+            + string StockStatus
+            + ProductStockReportRow()
+        }
+        class CategoryInventoryReportRow {
+            + string CategoryName
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableQuantity
+            + int UnavailableQuantity
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + CategoryInventoryReportRow()
+        }
+        class StockExtremeReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + int CurrentQuantity
+            + StockExtremeReportRow()
+        }
+        class DeliverySummaryReportRow {
+            + int DeliveryID
+            + int TotalItems
+            + int TotalProducts
+            + DeliverySummaryReportRow()
+            + DeliveryCode() : string
+        }
+        class ProductDeliveryReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + int TotalQuantityDelivered
+            + int TotalDeliveries
+            + DateTime? LastDeliveryDate
+            + ProductDeliveryReportRow()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% REPORTS — computed data sets (ReportComputationService output)
+    %% ------------------------------------------------------------------
+    subgraph ReportSets
+        class SalesOverviewReport {
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + int TotalCustomers
+            + decimal TodaySales
+            + decimal WeeklySales
+            + decimal MonthlySales
+            + decimal YearlySales
+            + DateTime? LastSaleDate
+            + SalesOverviewReport()
+        }
+        class WeeklySalesReport {
+            + int WeeklySalesID
+            + DateTime WeekStartDate
+            + DateTime WeekEndDate
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + WeeklySalesReport()
+        }
+        class MonthlySalesReport {
+            + int MonthlySalesID
+            + int Month
+            + int Year
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + MonthlySalesReport()
+        }
+        class YearlySalesReport {
+            + int YearlySalesID
+            + int Year
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + YearlySalesReport()
+        }
+        class BestSellingProductReport {
+            + int BestSellingID
+            + int ProductID
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + string Period
+            + DateTime DateGenerated
+            + BestSellingProductReport()
+        }
+        class LeastSellingProductReport {
+            + int LeastSellingID
+            + int ProductID
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + string Period
+            + DateTime DateGenerated
+            + LeastSellingProductReport()
+        }
+        class SalesByCategoryReport {
+            + int SalesCategoryID
+            + int CategoryID
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + string Period
+            + DateTime DateGenerated
+            + SalesByCategoryReport()
+        }
+        class TransactionReport {
+            + int TransactionID
+            + int CheckoutID
+            + int CustomerID
+            + string PaymentType
+            + string PaymentMethod
+            + decimal Amount
+            + DateTime TransactionDate
+            + string Status
+            + TransactionReport()
+        }
+        class InventoryOverviewReport {
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableProducts
+            + int UnavailableProducts
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + InventoryOverviewReport()
+        }
+        class ProductStockSummaryReport {
+            + int ProductID
+            + int CurrentQuantity
+            + int ReorderLevel
+            + string StockStatus
+            + ProductStockSummaryReport()
+        }
+        class ProductCategoryOverviewReport {
+            + int CategoryID
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableQuantity
+            + int UnavailableQuantity
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + ProductCategoryOverviewReport()
+        }
+        class MostStockedProductReport {
+            + int ProductID
+            + int CurrentQuantity
+            + MostStockedProductReport()
+        }
+        class LeastStockedProductReport {
+            + int ProductID
+            + int CurrentQuantity
+            + LeastStockedProductReport()
+        }
+        class DeliveryOverviewReport {
+            + int TotalDeliveries
+            + int TotalItemsDelivered
+            + int TotalProductsDelivered
+            + DateTime? LastDeliveryDate
+            + DeliveryOverviewReport()
+        }
+        class DeliverySummaryReport {
+            + int DeliveryID
+            + int TotalItems
+            + int TotalProducts
+            + DeliverySummaryReport()
+        }
+        class ProductDeliverySummaryReport {
+            + int ProductID
+            + int TotalQuantityDelivered
+            + int TotalDeliveries
+            + DateTime? LastDeliveryDate
+            + ProductDeliverySummaryReport()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% REFERENCED DOMAIN MODELS (used by a few view models)
+    %% ------------------------------------------------------------------
+    subgraph DomainModels
+        class Checkout <<model>> {
+            + Checkout()
+        }
+        class Installment <<model>> {
+            + Installment()
+        }
+        class Customer <<model>> {
+            + Customer()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% RELATIONSHIPS
+    %% ------------------------------------------------------------------
+
+    %% Account settings
+    AccountSettingsViewModel *-- EditProfileViewModel : Profile
+    AccountSettingsViewModel *-- ChangePasswordViewModel : Security
+
+    %% Sales / checkout
+    SaveCheckoutRequest *-- CheckoutItemRequest : Items (1..*)
+    CheckoutFormViewModel *-- CheckoutFormItemViewModel : Items
+    CheckoutFormViewModel *-- CheckoutProductOptionViewModel : AvailableProducts
+    CheckoutDetailsViewModel --> Checkout : model
+
+    %% Product
+    BulkCreateProductsRequest *-- BulkProductRowDto : products (1..*)
+
+    %% Delivery
+    DeliveryCompleteRequest *-- DeliveryItemRequest : items (1..*)
+
+    %% Installments
+    InstallmentManagementViewModel *-- InstallmentListViewModel : Installments
+    InstallmentDetailsViewModel --> Installment : model
+    InstallmentDetailsViewModel --> Checkout : model
+    InstallmentDetailsViewModel --> Customer : model
+
+    %% Reports page composites
+    ReportsViewModel *-- SalesOverviewViewModel : Sales
+    ReportsViewModel *-- InventoryOverviewViewModel : Inventory
+    ReportsViewModel *-- DeliveryOverviewViewModel : Delivery
+    SalesOverviewViewModel *-- ReportChartPoint : History
+    SalesOverviewViewModel o-- ProductSalesReportRow : Best / Least seller
+    SalesOverviewViewModel *-- CategorySalesReportRow : SalesByCategory
+    SalesOverviewViewModel *-- TransactionReportRow : RecentTransactions
+    InventoryOverviewViewModel *-- ProductStockReportRow : ProductStock
+    InventoryOverviewViewModel *-- CategoryInventoryReportRow : ProductCategories
+    InventoryOverviewViewModel o-- StockExtremeReportRow : Most / Least stocked
+    DeliveryOverviewViewModel *-- DeliverySummaryReportRow : DeliverySummaries
+    DeliveryOverviewViewModel *-- ProductDeliveryReportRow : ProductDeliveries
+
+    %% Dashboard composites
+    DashboardViewModel *-- DashboardCategoryViewModel : Categories
+    DashboardViewModel *-- SalesChartItem : SalesOverview
+    DashboardViewModel *-- WeeklySalesChartItem : WeeklySalesOverview
+    DashboardViewModel *-- InventoryHealthViewModel : InventoryHealth
+    DashboardViewModel *-- TopSellingProductViewModel : TopSellingProducts
+    DashboardViewModel *-- CategorySalesViewModel : SalesByCategory
+    DashboardViewModel *-- RecentTransactionViewModel : RecentTransactions
+

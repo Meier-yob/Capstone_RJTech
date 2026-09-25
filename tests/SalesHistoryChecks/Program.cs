@@ -82,6 +82,8 @@ try
     product.product_quantity = 20;
     product.Product_price = 18000;
     product.product_status = "Available";
+    // This check exercises serialized-inventory duplicate protection explicitly.
+    product.is_serialized = true;
     await db.SaveChangesAsync();
     var installments = new InstallmentService(db, NullLogger<InstallmentService>.Instance);
     var sales = new SalesController(db, NullLogger<SalesController>.Instance, new StockNotificationService(db), installments)

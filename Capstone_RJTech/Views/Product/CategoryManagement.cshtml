@@ -7,6 +7,7 @@
     var products = ViewBag.Products as List<Product> ?? new List<Product>();
     var productCounts = products.GroupBy(product => product.category_ID)
         .ToDictionary(group => group.Key, group => group.Count());
+    var nextCategoryId = categories.Count == 0 ? 1 : categories.Max(category => category.category_ID) + 1;
     string StatusClass(string status) => status.ToLowerInvariant().Replace(" ", "-");
 }
 
@@ -72,7 +73,7 @@
                 <div id="categorySearchEmpty" class="category-list-empty d-none" role="status">No categories match your search.</div>
                 @if (categories.Count == 0)
                 {
-                    <div class="category-list-empty">No categories yet. Add a category to get started.</div>
+                    <div id="categoryListEmpty" class="category-list-empty">No categories yet. Add a category to get started.</div>
                 }
             </div>
         </section>
@@ -151,22 +152,37 @@
 </div>
 
 <div class="modal fade category-modal" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form id="createCategoryForm" asp-action="CreateCategory" method="post">
-                <div class="modal-header">
-                    <div><h2 class="modal-title fs-5" id="createCategoryTitle">Add Category</h2><p class="small text-muted mb-0">Create a group for related products.</p></div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-dialog modal-dialog-centered category-modal-dialog">
+        <div class="modal-content category-modal-content">
+            <form id="createCategoryForm" asp-action="CreateCategory" method="post" novalidate>
+                <div class="category-modal-head">
+                    <span class="category-modal-icon" aria-hidden="true"><i class="bi bi-folder2"></i></span>
+                    <div>
+                        <h2 class="modal-title fs-5 category-modal-title" id="createCategoryTitle">Add Category</h2>
+                        <p class="category-modal-subtitle">Create a group for related products.</p>
+                    </div>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body category-modal-body">
                     <div class="alert alert-danger category-form-error d-none" role="alert"></div>
-                    <label for="createCategoryName" class="form-label">Category Name</label>
-                    <input type="text" id="createCategoryName" name="category_name" class="form-control" placeholder="e.g. Graphics Cards" maxlength="100" required />
-                    
+                    <div class="category-field-group">
+                        <div class="category-label-row">
+                            <label for="createCategoryName" class="form-label category-field-label">Category Name <span class="category-required" aria-hidden="true">*</span></label>
+                            <span class="category-counter" id="createNameCounter" aria-hidden="true">0/50</span>
+                        </div>
+                        <input type="text" id="createCategoryName" name="category_name" class="form-control category-name-input"
+                               placeholder="e.g. Graphics Cards" maxlength="50" autocomplete="off" spellcheck="false" required />
+                        <div class="category-field-feedback" id="createNameFeedback" role="status"></div>
+                        <div class="category-code-preview">Code: <strong id="createCodePreview">CAT-@nextCategoryId.ToString("D3")</strong></div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>Save Category</button>
+                <div class="modal-footer category-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary category-cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn category-save-another" id="createSaveAnother">
+                        <span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>Save &amp; add another
+                    </button>
+                    <button type="submit" class="btn btn-primary category-save-btn" id="createSaveBtn" disabled>
+                        <span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>Save Category
+                    </button>
                 </div>
             </form>
         </div>
@@ -174,23 +190,34 @@
 </div>
 
 <div class="modal fade category-modal" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form id="editCategoryForm" asp-action="EditCategory" method="post">
+    <div class="modal-dialog modal-dialog-centered category-modal-dialog">
+        <div class="modal-content category-modal-content">
+            <form id="editCategoryForm" asp-action="EditCategory" method="post" novalidate>
                 <input type="hidden" id="editCategoryID" name="category_ID" />
-                <div class="modal-header">
-                    <div><h2 class="modal-title fs-5" id="editCategoryTitle">Edit Category</h2><p class="small text-muted mb-0">Update the name of this product group.</p></div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="category-modal-head">
+                    <span class="category-modal-icon" aria-hidden="true"><i class="bi bi-folder2"></i></span>
+                    <div>
+                        <h2 class="modal-title fs-5 category-modal-title" id="editCategoryTitle">Edit Category</h2>
+                        <p class="category-modal-subtitle">Update the name of this product group.</p>
+                    </div>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body category-modal-body">
                     <div class="alert alert-danger category-form-error d-none" role="alert"></div>
-                    <label for="editCategoryName" class="form-label">Category Name</label>
-                    <input type="text" id="editCategoryName" name="category_name" class="form-control" maxlength="100" required />
-                    <div class="form-text">The updated name appears on all products in this category.</div>
+                    <div class="category-field-group">
+                        <div class="category-label-row">
+                            <label for="editCategoryName" class="form-label category-field-label">Category Name <span class="category-required" aria-hidden="true">*</span></label>
+                            <span class="category-counter" id="editNameCounter" aria-hidden="true">0/50</span>
+                        </div>
+                        <input type="text" id="editCategoryName" name="category_name" class="form-control category-name-input"
+                               maxlength="50" autocomplete="off" spellcheck="false" required />
+                        <div class="category-field-feedback" id="editNameFeedback" role="status"></div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>Save Changes</button>
+                <div class="modal-footer category-modal-footer">
+                    <button type="button" class="btn btn-outline-secondary category-cancel-btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary category-save-btn" id="editSaveBtn" disabled>
+                        <span class="spinner-border spinner-border-sm me-1 d-none" aria-hidden="true"></span>Save Changes
+                    </button>
                 </div>
             </form>
         </div>

@@ -9,7 +9,7 @@
 .category-directory-header { padding: 20px 18px 16px; border-bottom: 1px solid var(--rj-border); }
 .category-directory-header h2 { display: flex; align-items: center; gap: 8px; }
 .category-total { padding: 3px 7px; border-radius: 6px; background: var(--theme-surface-soft, #f2f4f7); color: var(--theme-muted, #667085); font-size: 11px; font-weight: 600; }
-.category-page .search-control { min-width: 0; }
+.category-page .search-control { min-width: 0; max-width: none; width: auto; }
 .category-search { margin-top: 16px; }
 .category-page .search-control .form-control { font-size: .8rem; min-width: 0; }
 .category-list { padding: 10px; max-height: 600px; overflow-y: auto; }
@@ -48,13 +48,112 @@
 .category-products-table .empty-state p { margin: 6px 0 0; font-size: .78rem; }
 .category-products-footer { flex-wrap: wrap; gap: 12px; padding: 14px 20px; }
 .category-products-footer .page-size-select { width: 64px; min-height: 32px; }
-.category-modal .modal-content { border: 1px solid var(--rj-border); border-radius: 12px; overflow: hidden; }
-.category-modal .modal-header, .category-modal .modal-body, .category-modal .modal-footer { padding: 20px 24px; }
-.category-modal .modal-header { align-items: flex-start; }
-.category-modal .modal-title { font-weight: 650; margin-bottom: 5px; }
-.category-modal .modal-header p, .category-modal .form-text { font-size: .78rem; }
-.category-modal .modal-footer { background: var(--theme-surface-soft, #fafbfc); border-top: 1px solid var(--rj-border); padding-top: 16px; padding-bottom: 16px; }
+/* ===== Category modals (create / edit) ===== */
+.category-modal-dialog { max-width: 440px; }
+.category-modal .modal-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -12px rgba(16, 24, 40, 0.28), 0 10px 24px -10px rgba(16, 24, 40, 0.14);
+}
+.category-modal-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 1.35rem 1.5rem 0.4rem;
+}
+.category-modal-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--theme-blue-soft, #eef4ff);
+    color: var(--theme-blue, #0d6efd);
+    font-size: 1.05rem;
+}
+.category-modal-title {
+    margin-bottom: 0.2rem;
+    color: var(--theme-strong, #101828);
+    font-weight: 700;
+}
+.category-modal-subtitle { margin: 0; color: var(--theme-muted, #667085); font-size: .78rem; }
+.category-modal-body { padding: 0.9rem 1.5rem 1.2rem; }
+.category-modal-body .category-form-error { margin-bottom: 0.9rem; padding: 0.55rem 0.8rem; font-size: .78rem; }
+.category-label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+.category-field-label { margin-bottom: 0; color: var(--theme-strong, #344054); font-size: .82rem; font-weight: 600; }
+.category-required { color: var(--theme-red, #dc2626); }
+.category-counter { color: var(--theme-muted, #98a2b3); font-size: .72rem; font-weight: 600; }
+.category-counter.is-over { color: var(--theme-red, #dc2626); }
+.category-name-input { font-size: .9rem; }
+.category-name-input:focus { box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.12); }
+.category-name-input.is-invalid { border-color: var(--theme-red, #dc2626); }
+.category-name-input.is-invalid:focus { box-shadow: 0 0 0 0.25rem rgba(220, 38, 38, 0.12); }
+.category-name-input.is-valid { border-color: var(--theme-green, #16a34a); }
+.category-field-feedback {
+    min-height: 1.2rem;
+    margin-top: 0.3rem;
+    font-size: .75rem;
+    font-weight: 600;
+}
+.category-field-feedback.is-error { color: var(--theme-red, #b42338); }
+.category-field-feedback.is-warning { color: var(--theme-amber, #a16207); }
+.category-code-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+    padding: 0.38rem 0.7rem;
+    border: 1px solid var(--theme-border, #eaecf0);
+    border-radius: 8px;
+    background: var(--theme-surface-soft, #f4f6f9);
+    color: var(--theme-muted, #667085);
+    font-size: .75rem;
+    font-weight: 500;
+}
+.category-code-preview strong { color: var(--theme-blue, #0d6efd); font-weight: 700; letter-spacing: 0.02em; }
+.category-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--theme-border, #eaecf0);
+    background: var(--theme-surface-soft, #fafbfc);
+}
+.category-modal-footer .btn { border-radius: 10px; padding: 0.5rem 1rem; }
+.category-save-btn { min-width: 9rem; }
+.category-save-another {
+    background: var(--theme-blue-soft, #eef4ff);
+    border: 1px solid var(--theme-blue-border, #d6e4ff);
+    color: var(--theme-blue, #0d6efd);
+    font-weight: 600;
+}
+.category-save-another:hover {
+    background: var(--theme-blue, #0d6efd);
+    border-color: var(--theme-blue, #0d6efd);
+    color: #fff;
+}
 .category-item:focus-visible, .category-edit:focus-visible { outline: 2px solid var(--rj-primary); outline-offset: 2px; }
+
+/* Dark mode overrides */
+:root[data-theme="dark"] .category-modal .modal-content { background: var(--theme-surface, #14171c); }
+:root[data-theme="dark"] .category-modal-title { color: var(--theme-strong, #f2f4f7); }
+:root[data-theme="dark"] .category-field-label { color: var(--theme-strong, #e4e7ec); }
+:root[data-theme="dark"] .category-modal-icon { background: var(--theme-blue-soft, #1d3556); }
+:root[data-theme="dark"] .category-code-preview { background: rgba(255, 255, 255, 0.04); border-color: var(--theme-border, #2a2f3a); }
+:root[data-theme="dark"] .category-modal-footer { background: rgba(255, 255, 255, 0.03); }
+:root[data-theme="dark"] .category-save-another { background: var(--theme-blue-soft, #1d3556); border-color: var(--theme-blue-border, #2a4a74); }
+:root[data-theme="dark"] .category-field-feedback.is-warning { color: #f0c36e; }
+:root[data-theme="dark"] .category-field-feedback.is-error { color: #ff9ba5; }
 @media (min-width: 992px) and (max-width: 1439.98px) {
     .category-layout { grid-template-columns: 245px minmax(0, 1fr); gap: 16px; }
 }

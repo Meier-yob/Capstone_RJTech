@@ -110,7 +110,7 @@
                             </button>
                             <div class="nav-submenu-shell" id="salesSummarySubmenu">
                                 <ul class="nav-submenu">
-                                    <li><a asp-controller="Sales" asp-action="SalesOrders" class="nav-sublink @(salesListActive ? "active" : "")"><span></span>Sales Summary</a></li>
+                                    <li><a asp-controller="Sales" asp-action="SalesOrders" class="nav-sublink @(salesListActive ? "active" : "")"><span></span>Sales</a></li>
                                     <li><a asp-controller="Sales" asp-action="Checkout" class="nav-sublink @(newCheckoutActive ? "active" : "")"><span></span>New Checkout</a></li>
                                 </ul>
                             </div>
@@ -255,23 +255,39 @@
         </section>
     </div>
 
-    <div class="modal fade" id="logoutConfirmationModal" tabindex="-1"
+    <!-- Logout confirmation modal -->
+    <div class="modal fade" id="logoutConfirmationModal" tabindex="-1" role="dialog"
          aria-labelledby="logoutConfirmationTitle" aria-describedby="logoutConfirmationMessage"
          aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title fs-5" id="logoutConfirmationTitle">Log out?</h2>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-dialog modal-dialog-centered logout-modal-dialog">
+            <div class="modal-content logout-modal-content">
+                <div class="modal-body text-center logout-modal-body">
+                    <span class="logout-modal-icon" aria-hidden="true"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                    <h2 class="modal-title fs-5 logout-modal-title" id="logoutConfirmationTitle">Log out of RJTech?</h2>
+                    <p class="logout-modal-message" id="logoutConfirmationMessage">You&rsquo;ll need to sign in again to access your inventory.</p>
+
+                    <span class="logout-account-chip">
+                        <i class="fa-solid fa-user" aria-hidden="true"></i>
+                        <span class="logout-account-name">@(User.Identity?.Name ?? "User")</span>
+                        <span class="logout-account-sep" aria-hidden="true">&middot;</span>
+                        <span class="logout-account-role">Owner</span>
+                    </span>
+
+                    @if (ViewData["LogoutHasUnsavedWork"] is true)
+                    {
+                        <div class="logout-unsaved-warning d-none" id="logoutUnsavedWarning" role="alert">
+                            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                            <span>You have unsaved changes that will be lost.</span>
+                        </div>
+                    }
                 </div>
-                <div class="modal-body">
-                    <p class="mb-0" id="logoutConfirmationMessage">Are you sure you want to log out of RJTech?</p>
-                </div>
-                <div class="modal-footer">
+                <div class="modal-footer border-0 logout-modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="logout-modal-form">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger">Logout</button>
+                        <button type="submit" class="btn btn-primary logout-submit">
+                            <span class="logout-submit-label">Log out</span>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -288,6 +304,7 @@
                 <div class="toast-body d-flex align-items-center gap-2">
                     <i id="appToastIcon" class="bi bi-check-circle-fill"></i>
                     <span id="appToastMessage"></span>
+                    <button id="appToastAction" type="button" class="btn btn-sm btn-light text-dark rounded-pill px-3 ms-auto d-none"></button>
                 </div>
                 <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>

@@ -41,11 +41,12 @@ function takePendingToast() {
     }
 }
 
-window.showToast = function showToast(message, type = 'success') {
+window.showToast = function showToast(message, type = 'success', action = null) {
     const toast = document.getElementById('appToast');
     const messageElement = document.getElementById('appToastMessage');
     const icon = document.getElementById('appToastIcon');
     const container = document.getElementById('appToastContainer');
+    const actionButton = document.getElementById('appToastAction');
 
     if (!toast || !messageElement || !icon || !container) {
         return;
@@ -81,6 +82,23 @@ window.showToast = function showToast(message, type = 'success') {
     icon.className = `bi ${iconClass}`;
     messageElement.textContent = message || '';
 
+    if (actionButton) {
+        if (action && typeof action.onClick === 'function') {
+            actionButton.textContent = action.label || 'Action';
+            actionButton.classList.remove('d-none');
+            actionButton.onclick = (event) => {
+                event.preventDefault();
+                if (window.bootstrap?.Toast) {
+                    bootstrap.Toast.getOrCreateInstance(toast).hide();
+                }
+                action.onClick(event);
+            };
+        } else {
+            actionButton.classList.add('d-none');
+            actionButton.onclick = null;
+        }
+    }
+
     if (window.bootstrap?.Toast) {
         bootstrap.Toast.getOrCreateInstance(toast, {
             autohide: true,
@@ -111,8 +129,10 @@ window.reloadWithToast = function reloadWithToast(message, type = 'success') {
 };
 
 // Show feedback consistently for every JSON mutation performed with fetch.
+// Pages that render their own result dialog can set skipToast to avoid a duplicate toast.
 const nativeFetch = window.fetch.bind(window);
 window.fetch = async function fetchWithToast(resource, options = {}) {
+    const skipToast = options.skipToast === true;
     try {
         const response = await nativeFetch(resource, options);
         const contentType = response.headers.get('content-type') || '';
@@ -120,17 +140,17 @@ window.fetch = async function fetchWithToast(resource, options = {}) {
 
         if (contentType.includes('application/json') && method !== 'GET') {
             const result = await response.clone().json();
-            if (result.message) {
+            if (result.message && !skipToast) {
                 window.showToast(result.message, result.success && response.ok ? 'success' : 'error');
             }
         }
 
-        if (!response.ok && !contentType.includes('application/json')) {
+        if (!response.ok && !contentType.includes('application/json') && !skipToast) {
             window.showToast('The request could not be completed.', 'error');
         }
         return response;
     } catch (error) {
-        if (error?.name !== 'AbortError') {
+        if (!skipToast && error?.name !== 'AbortError') {
             window.showToast('Unable to connect. Please try again.', 'error');
         }
         throw error;
@@ -162,3 +182,36 @@ if (pendingToast?.message) {
 } else if (toastContainer?.dataset.infoMessage) {
     window.showToast(toastContainer.dataset.infoMessage, 'info');
 }
+
+// Logout confirmation modal: scoped backdrop, default focus on Cancel, busy state on submit.
+(() => {
+    const logoutModal = document.getElementById('logoutConfirmationModal');
+    if (!logoutModal) {
+        return;
+    }
+
+    const cancelButton = logoutModal.querySelector('[data-bs-dismiss="modal"]');
+
+    logoutModal.addEventListener('show.bs.modal', () => {
+        document.body.classList.add('logout-modal-open');
+    });
+
+    logoutModal.addEventListener('shown.bs.modal', () => {
+        cancelButton?.focus();
+    });
+
+    logoutModal.addEventListener('hidden.bs.modal', () => {
+        document.body.classList.remove('logout-modal-open');
+    });
+
+    logoutModal.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', () => {
+            const button = form.querySelector('button[type="submit"]');
+            if (button && !button.disabled) {
+                button.disabled = true;
+                button.setAttribute('aria-busy', 'true');
+                button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Logging out\u2026';
+            }
+        });
+    });
+})();

@@ -17,20 +17,17 @@ public sealed class PasswordResetService
     private readonly ApplicationDbContext _db;
     private readonly PasswordHashService _passwordHasher;
     private readonly IEmailSender _emailSender;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<PasswordResetService> _logger;
 
     public PasswordResetService(
         ApplicationDbContext db,
         PasswordHashService passwordHasher,
         IEmailSender emailSender,
-        IConfiguration configuration,
         ILogger<PasswordResetService> logger)
     {
         _db = db;
         _passwordHasher = passwordHasher;
         _emailSender = emailSender;
-        _configuration = configuration;
         _logger = logger;
     }
 
@@ -72,24 +69,16 @@ public sealed class PasswordResetService
         _db.PasswordResetCodes.Add(code);
         await _db.SaveChangesAsync(cancellationToken);
 
-        var baseUrl = _configuration["Application:PublicBaseUrl"]?.TrimEnd('/');
-        var verifyUrl = string.IsNullOrWhiteSpace(baseUrl)
-            ? $"/Account/ForgotPasswordVerify?id={code.Id}"
-            : $"{baseUrl}/Account/ForgotPasswordVerify?id={code.Id}";
-        var safeUrl = System.Net.WebUtility.HtmlEncode(verifyUrl);
-
-        var body = "<p>You requested to reset your RJTech password.</p>" +
-                   "<p>Your one-time verification code is:</p>" +
-                   $"<p style=\"font-size: 28px; font-weight: bold; letter-spacing: 4px;\">{otp}</p>" +
-                   $"<p>Enter this code on the verification page. It expires in 10 minutes.</p>" +
-                   $"<p>If you did not request this, you can safely ignore this email.</p>" +
-                   $"<p><a href=\"{safeUrl}\">{safeUrl}</a></p>";
+        var body = PasswordResetEmailTemplate.Build(
+            normalizedEmail,
+            otp,
+            (int)CodeLifetime.TotalMinutes);
 
         try
         {
             await _emailSender.SendAsync(
                 normalizedEmail,
-                "Your RJTech password reset code",
+                PasswordResetEmailTemplate.Subject,
                 body,
                 cancellationToken);
             return code;

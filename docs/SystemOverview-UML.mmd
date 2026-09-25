@@ -1,0 +1,1341 @@
+%% ============================================================================
+%%  RJTech Capstone — Full System UML Class Diagram  (Mermaid)
+%%  ------------------  Paste into https://mermaid.live  ------------------
+%%  Four layers in one diagram:
+%%     1. VIEW MODELS   (ViewModels/*.cs)          — screen/request shapes
+%%     2. CONTROLLERS   (Controllers/*.cs)         — MVC actions
+%%     3. SERVICES      (Services/*.cs)            — business logic + infra
+%%     4. MODELS        (Models/*.cs)              — EF entities (tables)
+%%
+%%  Conventions (3 sections per class):
+%%     Name       : class header, <<sealed>> / <<record>> / <<interface>> / <<static>>
+%%     Attributes : fields & properties   (- private, + public, $ static)
+%%     Operations : constructor first, then methods (+ name(params) : return)
+%%  Relationships:
+%%     <|--  inheritance        ..|> implements
+%%     *--   composition        o--  aggregation
+%%     -->   dependency         +--  inner (nested) class
+%%  Generics use tilde notation (List~int~) for mermaid.live safety.
+%%  ApplicationDbContext (Data/) appears as a stub — its DbSets map to every
+%%  entity in the MODELS layer.
+%% ============================================================================
+
+classDiagram
+    direction TB
+
+    %% ====================================================================
+    %%  LAYER 1 — VIEW MODELS
+    %% ====================================================================
+
+    %% ---------------------------- AUTH -------------------------------
+    subgraph VM_AUTH
+        class LoginViewModel {
+            + string Identifier
+            + string Password
+            + bool RememberMe
+            + LoginViewModel()
+        }
+        class SignUpViewModel {
+            + string FullName
+            + string Email
+            + string Username
+            + string Password
+            + string ConfirmPassword
+            + SignUpViewModel()
+        }
+        class ForgotPasswordViewModel {
+            + string Email
+            + ForgotPasswordViewModel()
+        }
+        class VerifyOtpViewModel {
+            + string Otp
+            + string RequestId
+            + VerifyOtpViewModel()
+        }
+        class ResetPasswordViewModel {
+            + string Password
+            + string ConfirmPassword
+            + string RequestId
+            + ResetPasswordViewModel()
+        }
+    end
+
+    %% ------------------------ ACCOUNT SETTINGS ------------------------
+    subgraph VM_SETTINGS
+        class AccountSettingsViewModel {
+            + EditProfileViewModel Profile
+            + ChangePasswordViewModel Security
+            + AccountSettingsViewModel()
+        }
+        class EditProfileViewModel {
+            + string FullName
+            + string Email
+            + string Username
+            + string Role
+            + DateTime DateCreated
+            + EditProfileViewModel()
+        }
+        class ChangePasswordViewModel {
+            + string CurrentPassword
+            + string NewPassword
+            + string ConfirmPassword
+            + ChangePasswordViewModel()
+        }
+    end
+
+    %% ---------------------------- DASHBOARD --------------------------
+    subgraph VM_DASH
+        class DashboardViewModel {
+            + decimal TotalSales
+            + int TotalProducts
+            + decimal OutstandingAmount
+            + int OutstandingPlans
+            + int TotalCustomers
+            + int Month
+            + int Year
+            + int? CategoryId
+            + List~int~ Years
+            + List~DashboardCategoryViewModel~ Categories
+            + List~SalesChartItem~ SalesOverview
+            + List~WeeklySalesChartItem~ WeeklySalesOverview
+            + InventoryHealthViewModel InventoryHealth
+            + List~TopSellingProductViewModel~ TopSellingProducts
+            + List~CategorySalesViewModel~ SalesByCategory
+            + List~RecentTransactionViewModel~ RecentTransactions
+            + DashboardViewModel()
+            + PeriodLabel() : string
+            + PeriodSales() : decimal
+        }
+        class SalesChartItem {
+            + int Day
+            + decimal Revenue
+            + SalesChartItem()
+        }
+        class WeeklySalesChartItem {
+            + DateTime WeekStartDate
+            + DateTime WeekEndDate
+            + decimal Revenue
+            + WeeklySalesChartItem()
+            + Label() : string
+        }
+        class InventoryHealthViewModel {
+            + int Available
+            + int Unavailable
+            + int LowStock
+            + int OutOfStock
+            + InventoryHealthViewModel()
+            + Total() : int
+        }
+        class TopSellingProductViewModel {
+            + int ProductId
+            + string Product
+            + string Category
+            + int QuantitySold
+            + decimal Revenue
+            + TopSellingProductViewModel()
+            + ProductCode() : string
+        }
+        class DashboardCategoryViewModel {
+            + int Id
+            + string Name
+            + DashboardCategoryViewModel()
+        }
+        class CategorySalesViewModel {
+            + int CategoryId
+            + string Category
+            + decimal Revenue
+            + CategorySalesViewModel()
+        }
+        class RecentTransactionViewModel {
+            + int CheckoutId
+            + string Customer
+            + int Items
+            + string PaymentMethod
+            + decimal TotalAmount
+            + string Status
+            + DateTime DatePurchased
+            + RecentTransactionViewModel()
+            + CheckoutCode() : string
+        }
+    end
+
+    %% ---------------------------- PRODUCT ----------------------------
+    subgraph VM_PRODUCT
+        class ProductCreateViewModel {
+            + int category_ID
+            + string product_name
+            + string product_brand
+            + string? product_description
+            + int product_quantity
+            + int reorder_level
+            + decimal Product_price
+            + string product_status
+            + bool IsSerialized
+            + ProductCreateViewModel()
+        }
+        class BulkProductRowDto {
+            + int category_ID
+            + string? product_name
+            + string? product_brand
+            + string? product_description
+            + int reorder_level
+            + decimal Product_price
+            + bool IsSerialized
+            + BulkProductRowDto()
+        }
+        class BulkCreateProductsRequest {
+            + List~BulkProductRowDto~? products
+            + BulkCreateProductsRequest()
+        }
+    end
+
+    %% ------------------------- SALES / CHECKOUT ----------------------
+    subgraph VM_SALES
+        class CheckoutItemRequest {
+            + int ProductID
+            + int Quantity
+            + List~string~ SerialNumbers
+            + CheckoutItemRequest()
+        }
+        class SaveCheckoutRequest {
+            + int? CustomerID
+            + string CustomerFullName
+            + string CustomerEmail
+            + string CustomerPhone
+            + string CustomerAddress
+            + string PaymentType
+            + string PaymentMethod
+            + int? InstallmentMonths
+            + decimal? DownPayment
+            + decimal? InterestRate
+            + List~CheckoutItemRequest~ Items
+            + SaveCheckoutRequest()
+        }
+        class CheckoutFormItemViewModel {
+            + int ProductID
+            + string ProductName
+            + int Quantity
+            + List~string~ SerialNumbers
+            + decimal Price
+            + int AvailableStock
+            + bool IsSerialized
+            + CheckoutFormItemViewModel()
+        }
+        class CheckoutFormViewModel {
+            + int? CustomerID
+            + string CustomerFullName
+            + string CustomerEmail
+            + string CustomerPhone
+            + string CustomerAddress
+            + string PaymentType
+            + string PaymentMethod
+            + DateTime DatePurchased
+            + List~CheckoutFormItemViewModel~ Items
+            + List~CheckoutProductOptionViewModel~ AvailableProducts
+            + CheckoutFormViewModel()
+        }
+        class CheckoutProductOptionViewModel {
+            + int ProductId
+            + string Code
+            + string Name
+            + string Brand
+            + string Category
+            + int Stock
+            + decimal Price
+            + string ImageUrl
+            + bool IsSerialized
+            + CheckoutProductOptionViewModel()
+        }
+        class CheckoutDetailsViewModel {
+            + Checkout Checkout
+            + CheckoutDetailsViewModel()
+        }
+        class RecordInstallmentPaymentRequest {
+            + int CheckoutID
+            + decimal PaymentAmount
+            + string PaymentMethod
+            + RecordInstallmentPaymentRequest()
+        }
+    end
+
+    %% -------------------------- INSTALLMENTS -------------------------
+    subgraph VM_INST
+        class InstallmentManagementViewModel {
+            + IReadOnlyList~InstallmentListViewModel~ Installments
+            + InstallmentManagementViewModel()
+        }
+        class InstallmentListViewModel {
+            + int InstallmentID
+            + int CheckoutID
+            + string CustomerName
+            + string CustomerPhone
+            + string CustomerEmail
+            + decimal MonthlyPayment
+            + decimal Balance
+            + decimal TotalPaid
+            + int Months
+            + int MonthsPaid
+            + int MonthsRemaining
+            + DateTime? DisplayDate
+            + string Status
+            + decimal ProgressPercentage
+            + InstallmentListViewModel()
+            + FormattedInstallmentID() : string
+            + FormattedCheckoutID() : string
+        }
+        class InstallmentDetailsViewModel {
+            + Installment Installment
+            + Checkout Checkout
+            + Customer? Customer
+            + decimal TotalPaid
+            + decimal ProgressPercentage
+            + DateTime? DisplayDate
+            + DateTime? CompletionDate
+            + InstallmentDetailsViewModel()
+        }
+        class RecordInstallmentPaymentViewModel {
+            + int InstallmentID
+            + decimal PaymentAmount
+            + string PaymentMethod
+            + RecordInstallmentPaymentViewModel()
+        }
+    end
+
+    %% ---------------------------- DELIVERY ---------------------------
+    subgraph VM_DEL
+        class DeliveryItemRequest {
+            + int product_ID
+            + int quantity
+            + DeliveryItemRequest()
+        }
+        class DeliveryCompleteRequest {
+            + string? received_by
+            + DateTime? delivery_date
+            + List~DeliveryItemRequest~? items
+            + DeliveryCompleteRequest()
+        }
+    end
+
+    %% -------------------------- REPORTS PAGE -------------------------
+    subgraph VM_REPORTS
+        class ReportsViewModel {
+            + string ActiveTab
+            + string Period
+            + int Month
+            + int Year
+            + string? Search
+            + string? Status
+            + string? Sort
+            + List~int~ Years
+            + SalesOverviewViewModel Sales
+            + InventoryOverviewViewModel Inventory
+            + DeliveryOverviewViewModel Delivery
+            + ReportsViewModel()
+        }
+        class SalesOverviewViewModel {
+            + decimal TotalSales
+            + int TotalCheckouts
+            + int TotalSoldItems
+            + int TotalCustomers
+            + decimal TodaySales
+            + decimal WeeklySales
+            + decimal MonthlySales
+            + decimal YearlySales
+            + DateTime? LastSaleDate
+            + List~ReportChartPoint~ History
+            + ProductSalesReportRow? BestSellingProduct
+            + ProductSalesReportRow? LeastSellingProduct
+            + List~CategorySalesReportRow~ SalesByCategory
+            + List~TransactionReportRow~ RecentTransactions
+            + SalesOverviewViewModel()
+        }
+        class InventoryOverviewViewModel {
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableProducts
+            + int UnavailableProducts
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + List~ProductStockReportRow~ ProductStock
+            + List~CategoryInventoryReportRow~ ProductCategories
+            + StockExtremeReportRow? MostStockedProduct
+            + StockExtremeReportRow? LeastStockedProduct
+            + InventoryOverviewViewModel()
+        }
+        class DeliveryOverviewViewModel {
+            + int TotalDeliveries
+            + int TotalItemsDelivered
+            + int TotalProductsDelivered
+            + DateTime? LastDeliveryDate
+            + List~DeliverySummaryReportRow~ DeliverySummaries
+            + List~ProductDeliveryReportRow~ ProductDeliveries
+            + DeliveryOverviewViewModel()
+        }
+        class ReportChartPoint {
+            + string Label
+            + decimal Value
+            + int TotalTransactions
+            + int TotalItems
+            + ReportChartPoint()
+        }
+        class ProductSalesReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + ProductSalesReportRow()
+        }
+        class CategorySalesReportRow {
+            + int CategoryID
+            + string CategoryName
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + CategorySalesReportRow()
+        }
+        class TransactionReportRow {
+            + int CheckoutID
+            + string CustomerName
+            + string PaymentType
+            + string PaymentMethod
+            + decimal Amount
+            + DateTime TransactionDate
+            + string Status
+            + TransactionReportRow()
+            + CheckoutCode() : string
+        }
+        class ProductStockReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + string CategoryName
+            + int CurrentQuantity
+            + int ReorderLevel
+            + string StockStatus
+            + ProductStockReportRow()
+        }
+        class CategoryInventoryReportRow {
+            + string CategoryName
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableQuantity
+            + int UnavailableQuantity
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + CategoryInventoryReportRow()
+        }
+        class StockExtremeReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + int CurrentQuantity
+            + StockExtremeReportRow()
+        }
+        class DeliverySummaryReportRow {
+            + int DeliveryID
+            + int TotalItems
+            + int TotalProducts
+            + DeliverySummaryReportRow()
+            + DeliveryCode() : string
+        }
+        class ProductDeliveryReportRow {
+            + int ProductID
+            + string ProductCode
+            + string ProductName
+            + int TotalQuantityDelivered
+            + int TotalDeliveries
+            + DateTime? LastDeliveryDate
+            + ProductDeliveryReportRow()
+        }
+    end
+
+    %% ------------------- LEGACY REPORT DATA SETS ---------------------
+    subgraph VM_SET
+        class SalesOverviewReport {
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + int TotalCustomers
+            + decimal TodaySales
+            + decimal WeeklySales
+            + decimal MonthlySales
+            + decimal YearlySales
+            + DateTime? LastSaleDate
+            + SalesOverviewReport()
+        }
+        class WeeklySalesReport {
+            + int WeeklySalesID
+            + DateTime WeekStartDate
+            + DateTime WeekEndDate
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + WeeklySalesReport()
+        }
+        class MonthlySalesReport {
+            + int MonthlySalesID
+            + int Month
+            + int Year
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + MonthlySalesReport()
+        }
+        class YearlySalesReport {
+            + int YearlySalesID
+            + int Year
+            + decimal TotalSales
+            + int TotalTransactions
+            + int TotalItemsSold
+            + YearlySalesReport()
+        }
+        class BestSellingProductReport {
+            + int BestSellingID
+            + int ProductID
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + string Period
+            + DateTime DateGenerated
+            + BestSellingProductReport()
+        }
+        class LeastSellingProductReport {
+            + int LeastSellingID
+            + int ProductID
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + string Period
+            + DateTime DateGenerated
+            + LeastSellingProductReport()
+        }
+        class SalesByCategoryReport {
+            + int SalesCategoryID
+            + int CategoryID
+            + int TotalQuantitySold
+            + decimal TotalSalesAmount
+            + string Period
+            + DateTime DateGenerated
+            + SalesByCategoryReport()
+        }
+        class TransactionReport {
+            + int TransactionID
+            + int CheckoutID
+            + int CustomerID
+            + string PaymentType
+            + string PaymentMethod
+            + decimal Amount
+            + DateTime TransactionDate
+            + string Status
+            + TransactionReport()
+        }
+        class InventoryOverviewReport {
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableProducts
+            + int UnavailableProducts
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + InventoryOverviewReport()
+        }
+        class ProductStockSummaryReport {
+            + int ProductID
+            + int CurrentQuantity
+            + int ReorderLevel
+            + string StockStatus
+            + ProductStockSummaryReport()
+        }
+        class ProductCategoryOverviewReport {
+            + int CategoryID
+            + int TotalProducts
+            + int TotalQuantity
+            + int AvailableQuantity
+            + int UnavailableQuantity
+            + int LowStockProducts
+            + int OutOfStockProducts
+            + ProductCategoryOverviewReport()
+        }
+        class MostStockedProductReport {
+            + int ProductID
+            + int CurrentQuantity
+            + MostStockedProductReport()
+        }
+        class LeastStockedProductReport {
+            + int ProductID
+            + int CurrentQuantity
+            + LeastStockedProductReport()
+        }
+        class DeliveryOverviewReport {
+            + int TotalDeliveries
+            + int TotalItemsDelivered
+            + int TotalProductsDelivered
+            + DateTime? LastDeliveryDate
+            + DeliveryOverviewReport()
+        }
+        class DeliverySummaryReport {
+            + int DeliveryID
+            + int TotalItems
+            + int TotalProducts
+            + DeliverySummaryReport()
+        }
+        class ProductDeliverySummaryReport {
+            + int ProductID
+            + int TotalQuantityDelivered
+            + int TotalDeliveries
+            + DateTime? LastDeliveryDate
+            + ProductDeliverySummaryReport()
+        }
+    end
+
+    %% ====================================================================
+    %%  LAYER 2 — CONTROLLERS
+    %% ====================================================================
+
+    subgraph CTRL_AUTH
+        class AccountController <<sealed>> {
+            - ApplicationDbContext _db
+            - UserAuthenticationService _authenticationService
+            - PasswordResetService _passwordResetService
+            - PasswordHashService _passwordHasher
+            - ILogger~AccountController~ _logger
+            + AccountController(db: ApplicationDbContext, auth: UserAuthenticationService, reset: PasswordResetService, hasher: PasswordHashService, logger: ILogger~AccountController~)
+            + Login(returnUrl: string?) : IActionResult
+            + Login(model: LoginViewModel, returnUrl: string?) : Task~IActionResult~
+            + SignUp() : IActionResult
+            + SignUp(model: SignUpViewModel, returnUrl: string?) : Task~IActionResult~
+            + ForgotPassword() : IActionResult
+            + ForgotPassword(model: ForgotPasswordViewModel) : Task~IActionResult~
+            + ForgotPasswordVerify(id: string, ct: CancellationToken) : Task~IActionResult~
+            + ForgotPasswordVerify(model: VerifyOtpViewModel, ct: CancellationToken) : Task~IActionResult~
+            + ResetPassword(id: string, ct: CancellationToken) : Task~IActionResult~
+            + ResetPassword(model: ResetPasswordViewModel, ct: CancellationToken) : Task~IActionResult~
+            + PasswordUpdated() : IActionResult
+            + Logout() : Task~IActionResult~
+            + AccessDenied() : IActionResult
+            - $ SafeReturnUrl(returnUrl: string?) : string
+        }
+    end
+
+    subgraph CTRL_SETTINGS
+        class SettingController <<sealed>> {
+            - ApplicationDbContext _db
+            - UserAuthenticationService _authService
+            - PasswordHashService _passwordHasher
+            - ILogger~SettingController~ _logger
+            + SettingController(db: ApplicationDbContext, authService: UserAuthenticationService, passwordHasher: PasswordHashService, logger: ILogger~SettingController~)
+            + AccountMenu(ct: CancellationToken) : Task~IActionResult~
+            + UpdateProfile(model: EditProfileViewModel, ct: CancellationToken) : Task~IActionResult~
+            + ChangePassword(model: ChangePasswordViewModel, ct: CancellationToken) : Task~IActionResult~
+        }
+    end
+
+    subgraph CTRL_HOME
+        class HomeController {
+            + HomeController()
+            + Dashboard(month: int?, year: int?, categoryId: int?) : IActionResult
+            + Privacy() : IActionResult
+            + Archive() : IActionResult
+            + Error() : IActionResult
+        }
+        class DashboardController {
+            - ApplicationDbContext db
+            + DashboardController(db: ApplicationDbContext)
+            + Index(month: int?, year: int?, categoryId: int?, ct: CancellationToken) : Task~IActionResult~
+            + CategorySales(month: int?, year: int?, categoryId: int?, ct: CancellationToken) : Task~IActionResult~
+        }
+    end
+
+    subgraph CTRL_PRODUCT
+        class ProductController {
+            - ApplicationDbContext _db
+            - ILogger~ProductController~ _logger
+            + ProductController(db: ApplicationDbContext, logger: ILogger~ProductController~)
+            + Index() : IActionResult
+            + ProductManagement() : IActionResult
+            + Create() : IActionResult
+            + Details(id: int) : IActionResult
+            + CategoryManagement() : IActionResult
+            + GetNextCategoryCode(categoryId: int) : IActionResult
+            + Create(model: ProductCreateViewModel) : IActionResult
+            + UploadImage(id: int, image: IFormFile?) : Task~IActionResult~
+            + Image(id: int) : Task~IActionResult~
+            + BulkCreate(request: BulkCreateProductsRequest) : IActionResult
+            + GetDetails(id: int) : IActionResult
+            + UpdateProductDetails(product_ID: int, product_name: string, product_brand: string, product_price: decimal, product_description: string, product_status: string, reorder_level: int, is_serialized: bool) : IActionResult
+            + DeleteProduct(id: int) : IActionResult
+            + DeleteProducts(ids: int[]?) : IActionResult
+            + SearchProducts(query: string) : IActionResult
+            + CreateCategory(category: ProductCategory) : IActionResult
+            + EditCategory(category_ID: int, category_name: string) : IActionResult
+            + $ FormatProductCode(categoryName: string?, productId: int) : string
+        }
+    end
+
+    subgraph CTRL_SALES
+        class SalesController {
+            - $ HashSet~string~ PaymentMethods
+            - $ HashSet~string~ PaymentTypes
+            - ApplicationDbContext _db
+            - ILogger~SalesController~ _logger
+            - StockNotificationService _stockNotifications
+            - InstallmentService _installments
+            + SalesController(db: ApplicationDbContext, logger: ILogger~SalesController~, stockNotifications: StockNotificationService, installments: InstallmentService)
+            + Index() : IActionResult
+            + Customer() : IActionResult
+            + DeleteCustomers(ids: int[]?) : IActionResult
+            + SalesOrders() : IActionResult
+            + SalesHistory(ct: CancellationToken) : Task~IActionResult~
+            + Checkout() : IActionResult
+            + SelectedCheckoutDetails(id: int) : IActionResult
+            + InstallmentDetails(id: int) : IActionResult
+            + SearchCustomers(query: string?) : IActionResult
+            + SearchProducts(query: string?) : IActionResult
+            + CompleteCheckout(request: SaveCheckoutRequest?) : IActionResult
+            + CheckSerialNumber(serialNumber: string?) : IActionResult
+            + RefundCheckout(id: int) : IActionResult
+            + DeleteCheckout(id: int) : IActionResult
+            + DeleteCheckouts(ids: int[]?) : IActionResult
+            + RecordInstallmentPayment(request: RecordInstallmentPaymentRequest?) : Task~IActionResult~
+            + Refund() : IActionResult
+        }
+    end
+
+    subgraph CTRL_INST
+        class InstallmentController {
+            - InstallmentService _installments
+            - ApplicationDbContext _db
+            - ILogger~InstallmentController~ _logger
+            + InstallmentController(installments: InstallmentService, db: ApplicationDbContext, logger: ILogger~InstallmentController~)
+            + Index() : Task~IActionResult~
+            + Details(id: int) : Task~IActionResult~
+            + RecordPayment(request: RecordInstallmentPaymentViewModel) : Task~IActionResult~
+            + DeleteInstallments(ids: int[]?) : IActionResult
+        }
+    end
+
+    subgraph CTRL_DELIVERY
+        class DeliveryController {
+            - ApplicationDbContext _db
+            - ILogger~DeliveryController~ _logger
+            + DeliveryController(db: ApplicationDbContext, logger: ILogger~DeliveryController~)
+            + Index() : IActionResult
+            + DeliveryManagement() : IActionResult
+            + Receive() : IActionResult
+            + Details(id: int) : IActionResult
+            + GetDeliveries() : IActionResult
+            + CompleteDelivery(request: DeliveryCompleteRequest) : IActionResult
+            + DeleteDeliveryReceipt(delivery_ID: int) : IActionResult
+            + DeleteDeliveryReceipts(ids: int[]?) : IActionResult
+            + SearchProductForDelivery(query: string) : IActionResult
+        }
+    end
+
+    subgraph CTRL_NOTIF
+        class NotificationController {
+            - ApplicationDbContext _db
+            - StockNotificationService _stockNotifications
+            - InstallmentNotificationService _installmentNotifications
+            + NotificationController(db: ApplicationDbContext, stockNotifications: StockNotificationService, installmentNotifications: InstallmentNotificationService)
+            + Index() : IActionResult
+            + Notification() : IActionResult
+            + GetNotifications(limit: int = 6) : IActionResult
+            + MarkAsRead(id: int) : IActionResult
+            + MarkAllAsRead() : IActionResult
+        }
+    end
+
+    subgraph CTRL_REPORTS
+        class ReportsController <<sealed>> {
+            - $ string[] ReportStatuses
+            - $ string[] StockStatuses
+            - ApplicationDbContext db
+            - ReportComputationService reportComputation
+            - IExcelExportService excelExport
+            + ReportsController(db: ApplicationDbContext, reportComputation: ReportComputationService, excelExport: IExcelExportService)
+            + Index(tab: string?, period: string?, month: int?, year: int?, search: string?, status: string?, sort: string?, ct: CancellationToken) : Task~IActionResult~
+            + Export(tab: string?, period: string?, month: int?, year: int?, search: string?, status: string?, sort: string?, ct: CancellationToken) : Task~IActionResult~
+        }
+    end
+
+    subgraph CTRL_EXCEL
+        class ExcelExportController <<sealed>> {
+            - $ const string NoRecordsMessage
+            - ApplicationDbContext _db
+            - IExcelExportService _excel
+            - InstallmentService _installments
+            - ILogger~ExcelExportController~ _logger
+            + ExcelExportController(db: ApplicationDbContext, excel: IExcelExportService, installments: InstallmentService, logger: ILogger~ExcelExportController~)
+            + Inventory(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + Delivery(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + Customers(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + SalesSummary(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + Installments(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + SalesHistory(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+        }
+    end
+
+    subgraph CTRL_SCAN
+        class ScanSNController {
+            + ScanSNController()
+            + Index() : IActionResult
+            + ScanSerialNumber() : IActionResult
+        }
+    end
+
+    %% ====================================================================
+    %%  LAYER 3 — SERVICES
+    %% ====================================================================
+
+    subgraph SVC_AUTH
+        class UserAuthenticationService <<sealed>> {
+            + $ const string AuthScheme
+            - ApplicationDbContext _db
+            - PasswordHashService _passwordHasher
+            + UserAuthenticationService(db: ApplicationDbContext, passwordHasher: PasswordHashService)
+            + AuthenticateAsync(identifier: string, password: string, ct: CancellationToken) : Task~AppUser?~
+            + $ CreatePrincipal(user: AppUser) : ClaimsPrincipal
+        }
+        class PasswordHashService <<sealed>> {
+            + PasswordHashService()
+            + Hash(password: string) : string
+            + Verify(password: string, encodedHash: string) : bool
+        }
+        class PasswordResetService <<sealed>> {
+            - $ TimeSpan CodeLifetime
+            - ApplicationDbContext _db
+            - PasswordHashService _passwordHasher
+            - IEmailSender _emailSender
+            - ILogger~PasswordResetService~ _logger
+            + PasswordResetService(db: ApplicationDbContext, passwordHasher: PasswordHashService, emailSender: IEmailSender, logger: ILogger~PasswordResetService~)
+            + AccountExistsAsync(email: string, ct: CancellationToken) : Task~bool~
+            + CreateCodeAsync(email: string, ct: CancellationToken) : Task~PasswordResetCode?~
+            + GetPendingRequestAsync(id: string, ct: CancellationToken) : Task~PasswordResetCode?~
+            + VerifyCodeAsync(id: string, otp: string, ct: CancellationToken) : Task~PasswordResetCode?~
+            + GetVerifiedRequestAsync(id: string, ct: CancellationToken) : Task~PasswordResetCode?~
+            + ResetPasswordAsync(id: string, newPassword: string, ct: CancellationToken) : Task~bool~
+        }
+        class IEmailSender <<interface>> {
+            + SendAsync(recipient: string, subject: string, htmlBody: string, ct: CancellationToken) : Task
+        }
+        class SmtpEmailSender <<sealed>> {
+            - EmailOptions _options
+            - ILogger~SmtpEmailSender~ _logger
+            + SmtpEmailSender(options: IOptions~EmailOptions~, logger: ILogger~SmtpEmailSender~)
+            + SendAsync(recipient: string, subject: string, htmlBody: string, ct: CancellationToken) : Task
+        }
+        class EmailOptions <<config>> {
+            + $ const string SectionName
+            + string Host
+            + int Port
+            + string Username
+            + string Password
+            + string FromAddress
+            + string FromName
+            + bool EnableSsl
+            + EmailOptions()
+        }
+        class PasswordResetEmailTemplate <<static>> {
+            + $ const string Subject
+            + $ Build(email: string, otp: string, expiresInMinutes: int) : string
+        }
+        class SalesPeriod <<static>> {
+            + $ StartOfWeek(date: DateTime) : DateTime
+        }
+    end
+
+    subgraph SVC_INSTALLMENT
+        class InstallmentService {
+            + $ readonly int[] AllowedTerms
+            + $ readonly string[] PaymentMethods
+            + $ const decimal FixedDownPaymentRate
+            + $ const decimal FixedMonthlyInterestRate
+            - ApplicationDbContext _db
+            - ILogger~InstallmentService~ _logger
+            + InstallmentService(db: ApplicationDbContext, logger: ILogger~InstallmentService~)
+            + Calculate(originalAmount: decimal, months: int) : InstallmentCalculation
+            + GetInstallmentsAsync() : Task~InstallmentManagementViewModel~
+            + GetInstallmentDetailsAsync(installmentId: int) : Task~InstallmentDetailsViewModel?~
+            + RecordPaymentAsync(installmentId: int, amount: decimal, method: string) : Task~InstallmentPaymentResult~
+            + CalculateMonthsPaid(totalPayments: decimal, monthlyPayment: decimal, months: int) : int
+            + CalculateDisplayDate(installment: Installment) : DateTime?
+            + CalculateCompletionDate(installment: Installment) : DateTime?
+            + DetermineInstallmentStatus(installment: Installment, actualPaid: decimal, asOf: DateTime?) : string
+            + UpdateInstallmentStatusesAsync(asOf: DateTime?) : Task
+            + SynchronizeOverdueStatuses(asOf: DateTime?) : void
+        }
+        class InstallmentCalculation <<record>> {
+            + decimal OriginalAmount
+            + decimal DownPayment
+            + decimal RemainingPrincipal
+            + decimal InterestRate
+            + decimal InterestAmount
+            + decimal InstallmentTotal
+            + decimal MonthlyPayment
+            + int Months
+            + InstallmentCalculation()
+        }
+        class InstallmentPaymentResult <<record>> {
+            + bool Success
+            + string Message
+            + int? InstallmentID
+            + int? CheckoutID
+            + decimal? Balance
+            + int? PaymentID
+            + string? InstallmentCode
+            + decimal? PaymentAmount
+            + bool Completed
+            + int MonthsPaid
+            + int MonthsRemaining
+            + string? Status
+            + DateTime? NextDue
+            + decimal ProgressPercentage
+            + InstallmentPaymentResult()
+        }
+    end
+
+    subgraph SVC_NOTIF
+        class StockNotificationService {
+            - ApplicationDbContext _db
+            + StockNotificationService(db: ApplicationDbContext)
+            + Synchronize() : void
+        }
+        class InstallmentNotificationService {
+            + $ const string OverdueType
+            + $ const string DueSoonType
+            - ApplicationDbContext _db
+            + InstallmentNotificationService(db: ApplicationDbContext)
+            + Synchronize() : void
+        }
+    end
+
+    subgraph SVC_REPORTS
+        class ReportComputationService <<sealed>> {
+            - ApplicationDbContext db
+            + ReportComputationService(db: ApplicationDbContext)
+            + BuildAsync(ct: CancellationToken) : Task~ReportSnapshot~
+        }
+        class ReportSnapshot <<record>> {
+            + SalesOverviewReport SalesOverview
+            + List~WeeklySalesReport~ WeeklySales
+            + List~MonthlySalesReport~ MonthlySales
+            + List~YearlySalesReport~ YearlySales
+            + List~BestSellingProductReport~ BestSellingProducts
+            + List~LeastSellingProductReport~ LeastSellingProducts
+            + List~SalesByCategoryReport~ SalesByCategories
+            + List~TransactionReport~ Transactions
+            + InventoryOverviewReport InventoryOverview
+            + List~ProductStockSummaryReport~ ProductStock
+            + List~ProductCategoryOverviewReport~ CategoryOverviews
+            + List~MostStockedProductReport~ MostStockedProducts
+            + List~LeastStockedProductReport~ LeastStockedProducts
+            + DeliveryOverviewReport DeliveryOverview
+            + List~DeliverySummaryReport~ DeliverySummaries
+            + List~ProductDeliverySummaryReport~ ProductDeliverySummaries
+            + ReportSnapshot()
+        }
+        class IExcelExportService <<interface>> {
+            + ExportToExcel(title: string, columns: IReadOnlyList~ExcelExportColumn~, rows: IEnumerable~IReadOnlyList~object?~~) : byte[]
+        }
+        class ExcelExportService <<sealed>> {
+            - $ const int HeaderRow
+            - $ const int MaxDataRows
+            - $ const int WidthSampleRows
+            - ApplicationDbContext _db
+            - IWebHostEnvironment _environment
+            - ILogger~ExcelExportService~ _logger
+            + ExcelExportService(environment: IWebHostEnvironment, logger: ILogger~ExcelExportService~)
+            + ExportToExcel(title: string, columns: IReadOnlyList~ExcelExportColumn~, rows: IEnumerable~IReadOnlyList~object?~~) : byte[]
+        }
+        class ExcelExportColumn <<record>> {
+            + string Header
+            + ExcelColumnType Type
+            + double MinWidth
+            + double MaxWidth
+            + ExcelExportColumn()
+        }
+        class ExcelExportFile <<static>> {
+            + $ const string ContentType
+            + $ CreateFileName(module: string) : string
+        }
+        class ExcelColumnType <<enum>> {
+            + Text
+            + Integer
+            + Currency
+            + Date
+            + Percentage
+            + Status
+        }
+    end
+
+    %% ====================================================================
+    %%  LAYER 4 — MODELS (EF ENTITIES)
+    %% ====================================================================
+
+    subgraph MODEL_USERS
+        class AppUser <<entity>> {
+            - table tblUser
+            + string UserID
+            + string FullName
+            + string Email
+            + string Username
+            + string Password
+            + string Role
+            + DateTime DateCreated
+            + AppUser()
+        }
+        class PasswordResetCode <<entity>> {
+            - table tblPasswordResetCode
+            + string Id
+            + string Email
+            + string OtpHash
+            + DateTimeOffset ExpiresAt
+            + DateTimeOffset? VerifiedAt
+            + PasswordResetCode()
+        }
+    end
+
+    subgraph MODEL_INVENTORY
+        class ProductCategory <<entity>> {
+            - table tblProductCategory
+            + int category_ID
+            + string category_name
+            + ICollection~Product~ Products
+            + ProductCategory()
+        }
+        class Product <<entity>> {
+            - table tblProduct
+            + int product_ID
+            + string product_name
+            + string product_brand
+            + string? product_description
+            + byte[]? product_Image
+            + string? product_ImageContentType
+            + int product_quantity
+            + int reorder_level
+            + decimal Product_price
+            + bool is_serialized
+            + string product_status
+            + int category_ID
+            + ProductCategory? Category
+            + ICollection~DeliveryDetails~ DeliveryDetails
+            + ICollection~CheckoutItem~ CheckoutItems
+            + Product()
+            + formatted_code() : string
+            + product_code() : string
+        }
+        class Delivery <<entity>> {
+            - table tblDelivery
+            + int delivery_ID
+            + DateTime date_delivered
+            + string received_by
+            + string batch_ID
+            + bool is_archived
+            + ICollection~DeliveryDetails~ DeliveryDetails
+            + Delivery()
+            + FormattedDeliveryID() : string
+            + FormattedBatchID() : string
+        }
+        class DeliveryDetails <<entity>> {
+            - table tblDeliveryDetails
+            + int deldetails_ID
+            + int product_quantity
+            + int previous_quantity
+            + int new_quantity
+            + int product_ID
+            + int delivery_ID
+            + Product? Product
+            + Delivery? Delivery
+            + DeliveryDetails()
+        }
+    end
+
+    subgraph MODEL_SALES
+        class Customer <<entity>> {
+            - table tblCustomer
+            + int customer_ID
+            + string customer_FullName
+            + string customer_Email
+            + string customer_Phone
+            + string customer_Address
+            + ICollection~Checkout~ Checkouts
+            + Customer()
+        }
+        class Checkout <<entity>> {
+            - table tblCheckout
+            + int CheckoutID
+            + int CustomerID
+            + decimal TotalAmount
+            + string PaymentMethod
+            + string PaymentType
+            + DateTime DatePurchased
+            + string Status
+            + Customer? Customer
+            + ICollection~CheckoutItem~ CheckoutItems
+            + Installment? Installment
+            + Checkout()
+            + FormattedCheckoutID() : string
+        }
+        class CheckoutItem <<entity>> {
+            - table tblCheckoutItem
+            + int CheckoutItemID
+            + int CheckoutID
+            + int ProductID
+            + string? SerialNo
+            + int ItemQuantity
+            + decimal Price
+            + decimal SubTotal
+            + Checkout? Checkout
+            + Product? Product
+            + CheckoutItem()
+        }
+        class Installment <<entity>> {
+            - table tblInstallment
+            + int InstallmentID
+            + int CheckoutID
+            + int Months
+            + decimal DownPayment
+            + decimal InterestRate
+            + decimal TotalAmount
+            + decimal Balance
+            + decimal MonthlyPayment
+            + int MonthsPaid
+            + int MonthsRemaining
+            + DateTime StartDate
+            + string Status
+            + Checkout? Checkout
+            + ICollection~InstallmentPayment~ InstallmentPayments
+            + Installment()
+            + FormattedInstallmentID() : string
+        }
+        class InstallmentPayment <<entity>> {
+            - table tblInstallmentPayment
+            + int PaymentID
+            + int InstallmentID
+            + string PaymentMethod
+            + decimal PaymentAmount
+            + DateTime PaymentDate
+            + string Status
+            + Installment? Installment
+            + InstallmentPayment()
+        }
+        class CustomerPurchaseHistory <<entity>> {
+            - table tblCustomerPurchaseHistory
+            + int HistoryID
+            + int CustomerID
+            + int CheckoutID
+            + DateTime PurchaseDate
+            + decimal TotalAmount
+            + string PaymentMethod
+            + Customer? Customer
+            + Checkout? Checkout
+            + CustomerPurchaseHistory()
+            + FormattedHistoryID() : string
+        }
+    end
+
+    subgraph MODEL_EXTRA
+        class AppNotification <<entity>> {
+            - table tblNotification
+            + int notification_ID
+            + int? product_ID
+            + string title
+            + string message
+            + string notification_type
+            + string action_url
+            + DateTime created_at
+            + bool is_read
+            + AppNotification()
+        }
+        class ExcelExportSelection <<dto>> {
+            + int[]? RecordIds
+            + ExcelExportSelection()
+        }
+        class ErrorViewModel {
+            + string? RequestId
+            + ErrorViewModel()
+            + ShowRequestId() : bool
+        }
+    end
+
+    %% ====================================================================
+    %%  FRAMEWORK and DATA (stubs)
+    %% ====================================================================
+    subgraph INFRA
+        class Controller <<framework>> {
+            + Controller()
+        }
+        class ApplicationDbContext <<data>> {
+            + ApplicationDbContext()
+            + DbSet~Product~ Products
+            + DbSet~ProductCategory~ ProductCategories
+            + DbSet~Delivery~ Deliveries
+            + DbSet~DeliveryDetails~ DeliveryDetails
+            + DbSet~AppNotification~ Notifications
+            + DbSet~Customer~ Customers
+            + DbSet~Checkout~ Checkouts
+            + DbSet~CheckoutItem~ CheckoutItems
+            + DbSet~Installment~ Installments
+            + DbSet~InstallmentPayment~ InstallmentPayments
+            + DbSet~CustomerPurchaseHistory~ CustomerPurchaseHistories
+            + DbSet~AppUser~ Users
+            + DbSet~PasswordResetCode~ PasswordResetCodes
+        }
+    end
+
+    %% ====================================================================
+    %%  RELATIONSHIPS
+    %% ====================================================================
+
+    %% ---------- ViewModel composites ----------
+    AccountSettingsViewModel *-- EditProfileViewModel : Profile
+    AccountSettingsViewModel *-- ChangePasswordViewModel : Security
+    SaveCheckoutRequest *-- CheckoutItemRequest : Items (1..*)
+    CheckoutFormViewModel *-- CheckoutFormItemViewModel : Items
+    CheckoutFormViewModel *-- CheckoutProductOptionViewModel : AvailableProducts
+    BulkCreateProductsRequest *-- BulkProductRowDto : products (1..*)
+    DeliveryCompleteRequest *-- DeliveryItemRequest : items (1..*)
+    InstallmentManagementViewModel *-- InstallmentListViewModel : Installments
+    ReportsViewModel *-- SalesOverviewViewModel : Sales
+    ReportsViewModel *-- InventoryOverviewViewModel : Inventory
+    ReportsViewModel *-- DeliveryOverviewViewModel : Delivery
+    SalesOverviewViewModel *-- ReportChartPoint : History
+    SalesOverviewViewModel o-- ProductSalesReportRow : Best / Least seller
+    SalesOverviewViewModel *-- CategorySalesReportRow : SalesByCategory
+    SalesOverviewViewModel *-- TransactionReportRow : RecentTransactions
+    InventoryOverviewViewModel *-- ProductStockReportRow : ProductStock
+    InventoryOverviewViewModel *-- CategoryInventoryReportRow : ProductCategories
+    InventoryOverviewViewModel o-- StockExtremeReportRow : Most / Least stocked
+    DeliveryOverviewViewModel *-- DeliverySummaryReportRow : DeliverySummaries
+    DeliveryOverviewViewModel *-- ProductDeliveryReportRow : ProductDeliveries
+    DashboardViewModel *-- DashboardCategoryViewModel : Categories
+    DashboardViewModel *-- SalesChartItem : SalesOverview
+    DashboardViewModel *-- WeeklySalesChartItem : WeeklySalesOverview
+    DashboardViewModel *-- InventoryHealthViewModel : InventoryHealth
+    DashboardViewModel *-- TopSellingProductViewModel : TopSellingProducts
+    DashboardViewModel *-- CategorySalesViewModel : SalesByCategory
+    DashboardViewModel *-- RecentTransactionViewModel : RecentTransactions
+
+    %% ---------- ViewModel → Model references ----------
+    CheckoutDetailsViewModel --> Checkout : model
+    InstallmentDetailsViewModel --> Installment : model
+    InstallmentDetailsViewModel --> Checkout : model
+    InstallmentDetailsViewModel --> Customer : model
+
+    %% ---------- Controllers: inheritance ----------
+    Controller <|-- HomeController
+    Controller <|-- ScanSNController
+    Controller <|-- AccountController
+    Controller <|-- SettingController
+    Controller <|-- DashboardController
+    Controller <|-- ProductController
+    Controller <|-- SalesController
+    Controller <|-- InstallmentController
+    Controller <|-- DeliveryController
+    Controller <|-- NotificationController
+    Controller <|-- ReportsController
+    Controller <|-- ExcelExportController
+
+    %% ---------- Controllers: nested DTOs ----------
+    ProductController *-- BulkCreateProductsRequest : nested
+    DeliveryController *-- DeliveryItemRequest : nested
+    DeliveryController *-- DeliveryCompleteRequest : nested
+
+    %% ---------- Controllers → Services / Data ----------
+    AccountController --> ApplicationDbContext : injects
+    AccountController --> UserAuthenticationService : injects
+    AccountController --> PasswordResetService : injects
+    AccountController --> PasswordHashService : injects
+    SettingController --> ApplicationDbContext : injects
+    SettingController --> UserAuthenticationService : injects
+    SettingController --> PasswordHashService : injects
+    DashboardController --> ApplicationDbContext : injects
+    ProductController --> ApplicationDbContext : injects
+    SalesController --> ApplicationDbContext : injects
+    SalesController --> StockNotificationService : injects
+    SalesController --> InstallmentService : injects
+    InstallmentController --> InstallmentService : injects
+    InstallmentController --> ApplicationDbContext : injects
+    DeliveryController --> ApplicationDbContext : injects
+    NotificationController --> ApplicationDbContext : injects
+    NotificationController --> StockNotificationService : injects
+    NotificationController --> InstallmentNotificationService : injects
+    ReportsController --> ApplicationDbContext : injects
+    ReportsController --> ReportComputationService : injects
+    ReportsController --> IExcelExportService : injects
+    ExcelExportController --> ApplicationDbContext : injects
+    ExcelExportController --> IExcelExportService : injects
+    ExcelExportController --> InstallmentService : injects
+    ExcelExportController --> ExcelExportSelection : parameter type
+
+    %% ---------- Services: interfaces & helpers ----------
+    SmtpEmailSender ..|> IEmailSender : implements
+    ExcelExportService ..|> IExcelExportService : implements
+    UserAuthenticationService --> PasswordHashService : uses
+    PasswordResetService --> PasswordHashService : uses
+    PasswordResetService --> IEmailSender : sends OTP email
+    PasswordResetService --> PasswordResetEmailTemplate : body
+    SmtpEmailSender --> EmailOptions : reads
+    ExcelExportService --> ExcelExportColumn : column metadata
+    ExcelExportService --> ExcelExportFile : file naming
+    InstallmentService o-- InstallmentCalculation : returns
+    InstallmentService o-- InstallmentPaymentResult : returns
+    ReportComputationService o-- ReportSnapshot : returns
+    ReportSnapshot o-- SalesOverviewReport
+    ReportSnapshot o-- WeeklySalesReport
+    ReportSnapshot o-- MonthlySalesReport
+    ReportSnapshot o-- YearlySalesReport
+    ReportSnapshot o-- BestSellingProductReport
+    ReportSnapshot o-- LeastSellingProductReport
+    ReportSnapshot o-- SalesByCategoryReport
+    ReportSnapshot o-- TransactionReport
+    ReportSnapshot o-- InventoryOverviewReport
+    ReportSnapshot o-- ProductStockSummaryReport
+    ReportSnapshot o-- ProductCategoryOverviewReport
+    ReportSnapshot o-- MostStockedProductReport
+    ReportSnapshot o-- LeastStockedProductReport
+    ReportSnapshot o-- DeliveryOverviewReport
+    ReportSnapshot o-- DeliverySummaryReport
+    ReportSnapshot o-- ProductDeliverySummaryReport
+
+    %% ---------- Services → Models ----------
+    UserAuthenticationService --> AppUser : queries
+    PasswordResetService --> AppUser : verifies account
+    PasswordResetService --> PasswordResetCode : stores OTP hash
+    StockNotificationService --> Product : scans stock
+    StockNotificationService --> AppNotification : creates alerts
+    InstallmentNotificationService --> Installment : scans due dates
+    InstallmentNotificationService --> AppNotification : creates alerts
+    InstallmentService --> Installment : reads
+    InstallmentService --> InstallmentPayment : appends
+    InstallmentService --> Checkout : reads
+    ReportComputationService --> Checkout : aggregates
+    ReportComputationService --> Product : aggregates
+    ReportComputationService --> Delivery : aggregates
+    ReportComputationService --> Installment : aggregates
+
+    %% ---------- Models: entity relationships ----------
+    ProductCategory o-- Product : Products (1..*)
+    Product *-- DeliveryDetails : DeliveryDetails (1..*)
+    Product *-- CheckoutItem : CheckoutItems (1..*)
+    Delivery *-- DeliveryDetails : DeliveryDetails (1..*)
+    Customer o-- Checkout : Checkouts (1..*)
+    Checkout *-- CheckoutItem : CheckoutItems (1..*)
+    Checkout o-- Installment : Installment (0..1)
+    Installment *-- InstallmentPayment : InstallmentPayments (1..*)
+    CustomerPurchaseHistory --> Customer : nav
+    CustomerPurchaseHistory --> Checkout : nav
+    AppNotification o-- Product : product_ID (alerts)
+
+    %% ---------- Data context ----------
+    ApplicationDbContext --> AppUser : DbSet
+    ApplicationDbContext --> PasswordResetCode : DbSet
+    ApplicationDbContext --> ProductCategory : DbSet
+    ApplicationDbContext --> Product : DbSet
+    ApplicationDbContext --> Delivery : DbSet
+    ApplicationDbContext --> DeliveryDetails : DbSet
+    ApplicationDbContext --> Customer : DbSet
+    ApplicationDbContext --> Checkout : DbSet
+    ApplicationDbContext --> CheckoutItem : DbSet
+    ApplicationDbContext --> Installment : DbSet
+    ApplicationDbContext --> InstallmentPayment : DbSet
+    ApplicationDbContext --> CustomerPurchaseHistory : DbSet
+    ApplicationDbContext --> AppNotification : DbSet
+

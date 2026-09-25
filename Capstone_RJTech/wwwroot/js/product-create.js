@@ -35,9 +35,24 @@
         bulkErrors.classList.remove('d-none');
     }
 
-    function addBulkRow() {
-        bulkRows.appendChild(bulkRowTemplate.content.cloneNode(true));
+    function renumberBulkRows() {
+        [...bulkRows.querySelectorAll('.bulk-row')].forEach((row, index) => {
+            const number = row.querySelector('.bulk-row-number');
+            if (number) number.textContent = String(index + 1);
+        });
+    }
+
+    function addBulkRow(options = {}) {
+        const fragment = bulkRowTemplate.content.cloneNode(true);
+        const row = fragment.querySelector('.bulk-row');
+        if (options.after) {
+            options.after.after(fragment);
+        } else {
+            bulkRows.appendChild(fragment);
+        }
+        renumberBulkRows();
         markAsChanged();
+        return row;
     }
 
     function removeBulkRow(event) {
@@ -49,6 +64,42 @@
         removeButton.closest('tr').remove();
         if (!bulkRows.children.length) {
             addBulkRow();
+        } else {
+            renumberBulkRows();
+        }
+    }
+
+    function duplicateBulkRow(event) {
+        const duplicateButton = event.target.closest('.duplicate-bulk-row');
+        if (!duplicateButton) {
+            return;
+        }
+
+        const source = duplicateButton.closest('.bulk-row');
+        const newRow = addBulkRow({ after: source });
+        newRow.querySelector('.bulk-category').value = source.querySelector('.bulk-category').value;
+        newRow.querySelector('.bulk-brand').value = source.querySelector('.bulk-brand').value;
+        newRow.querySelector('.bulk-reorder').value = source.querySelector('.bulk-reorder').value;
+        newRow.querySelector('.bulk-name').focus();
+    }
+
+    function isLastFieldOfLastRow(target) {
+        const rows = [...bulkRows.querySelectorAll('.bulk-row')];
+        const row = target.closest('.bulk-row');
+        if (!row || rows[rows.length - 1] !== row) {
+            return false;
+        }
+        const fields = [...row.querySelectorAll('input, select')];
+        return fields[fields.length - 1] === target;
+    }
+
+    function advanceBulkRow(event) {
+        const isTab = event.key === 'Tab' && !event.shiftKey;
+        const isEnter = event.key === 'Enter';
+        if ((isTab || isEnter) && isLastFieldOfLastRow(event.target)) {
+            event.preventDefault();
+            const newRow = addBulkRow();
+            newRow.querySelector('.bulk-category').focus();
         }
     }
 
@@ -310,8 +361,17 @@
     createForm.addEventListener('submit', createProduct);
     bulkModal.addEventListener('input', markAsChanged);
     bulkModal.addEventListener('change', markAsChanged);
-    bulkRows.addEventListener('click', removeBulkRow);
-    document.getElementById('addBulkRow').addEventListener('click', addBulkRow);
+    bulkRows.addEventListener('click', event => {
+        if (event.target.closest('.remove-bulk-row')) {
+            removeBulkRow(event);
+        } else if (event.target.closest('.duplicate-bulk-row')) {
+            duplicateBulkRow(event);
+        }
+    });
+    bulkRows.addEventListener('keydown', advanceBulkRow);
+    document.getElementById('addBulkRow').addEventListener('click', () => {
+        addBulkRow().querySelector('.bulk-category').focus();
+    });
     bulkSaveButton.addEventListener('click', createBulkProducts);
 
     document.addEventListener('click', guardNavigation);

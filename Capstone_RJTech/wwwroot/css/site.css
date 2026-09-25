@@ -204,7 +204,8 @@
 }
 
 .search-control {
-    min-width: 300px;
+    width: 350px;
+    min-width: 350px;
 }
 
     .search-control .input-group-text {
@@ -576,4 +577,241 @@ table.standalone-data-table {
         flex-direction: column;
     }
 
+}
+
+/* ===== Logout confirmation modal ===== */
+#logoutConfirmationModal .modal-dialog {
+    max-width: 390px;
+}
+
+#logoutConfirmationModal .logout-modal-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -12px rgba(16, 24, 40, 0.28),
+                0 10px 24px -10px rgba(16, 24, 40, 0.14);
+}
+
+.logout-modal-body {
+    padding: 2rem 1.5rem 0;
+}
+
+.logout-modal-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1rem;
+    border-radius: 50%;
+    background: var(--theme-blue-soft, #edf4ff);
+    color: var(--theme-blue, #0d6efd);
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.logout-modal-title {
+    margin-bottom: 0.4rem;
+    font-weight: 700;
+}
+
+.logout-modal-message {
+    margin-bottom: 1.15rem;
+    color: var(--theme-muted, #667085);
+}
+
+.logout-account-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 1.25rem;
+    padding: 0.32rem 0.85rem;
+    border: 1px solid var(--theme-border, #e6ebf2);
+    border-radius: 999px;
+    background: var(--theme-surface-soft, #f2f4f7);
+    color: var(--theme-strong, #344054);
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.logout-account-chip .fa-user,
+.logout-account-sep {
+    color: var(--theme-muted, #98a2b3);
+    font-size: 0.72rem;
+}
+
+.logout-account-role {
+    color: var(--theme-muted, #667085);
+    font-weight: 500;
+}
+
+.logout-unsaved-warning {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid #f3d27a;
+    border-radius: 10px;
+    background: #fff4d6;
+    color: #92600a;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+}
+
+.logout-modal-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding: 0 1.5rem 1.5rem;
+    border-top: 0;
+    background: transparent;
+}
+
+.logout-modal-footer .btn {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 8px;
+}
+
+.logout-modal-form {
+    display: flex;
+    margin: 0;
+}
+
+.logout-modal-form .btn {
+    flex: 1;
+}
+
+/* Dim + slightly blur the page behind this modal only. */
+body.logout-modal-open > .modal-backdrop.show {
+    opacity: 0.45;
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+}
+
+/* Entrance: fade in with a slight scale-up (skipped for reduced motion). */
+@media (prefers-reduced-motion: no-preference) {
+    #logoutConfirmationModal .logout-modal-content {
+        animation: logout-modal-in 150ms ease-out;
+        transform-origin: center;
+    }
+}
+
+@keyframes logout-modal-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* Dark mode: slightly blue-tinted surface so the card reads as its own layer. */
+:root[data-theme="dark"] #logoutConfirmationModal .logout-modal-content {
+    background-color: #1e2530;
+    color: var(--theme-text, #dedede);
+    border: 1px solid #2c3644;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme="dark"] #logoutConfirmationModal .logout-account-chip {
+    background-color: #232c39;
+    border-color: #323d4d;
+    color: #e8edf3;
+}
+
+:root[data-theme="dark"] #logoutConfirmationModal .logout-unsaved-warning {
+    border-color: #685532;
+    background-color: #45371f;
+    color: #ffd178;
+}
+
+/* ===== Confirm exit modal (unsaved changes) =====
+   Shared by New Product, Receive Delivery, and Checkout.
+   Aligned with the category / bulk modal design language. */
+.confirm-exit-dialog {
+    max-width: 440px;
+}
+
+.confirm-exit-modal .modal-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px -12px rgba(16, 24, 40, 0.28),
+                0 10px 24px -10px rgba(16, 24, 40, 0.14);
+}
+
+.confirm-exit-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 1.35rem 1.5rem 0.4rem;
+}
+
+.confirm-exit-icon {
+    display: grid;
+    place-items: center;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--theme-amber-soft, #fff4d6);
+    color: var(--theme-amber, #a16207);
+    font-size: 1.05rem;
+}
+
+.confirm-exit-title {
+    margin-bottom: 0.2rem;
+    color: var(--theme-strong, #101828);
+    font-weight: 700;
+}
+
+.confirm-exit-subtitle {
+    margin: 0;
+    color: var(--theme-muted, #667085);
+    font-size: 0.78rem;
+}
+
+.confirm-exit-modal .modal-body {
+    padding: 0.9rem 1.5rem 1.2rem;
+}
+
+.confirm-exit-message {
+    color: var(--theme-text, #475467);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.confirm-exit-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--theme-border, #eaecf0);
+    background: var(--theme-surface-soft, #fafbfc);
+}
+
+.confirm-exit-footer .btn {
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+}
+
+.confirm-exit-leave {
+    min-width: 9rem;
+}
+
+:root[data-theme="dark"] .confirm-exit-modal .modal-content {
+    background: var(--theme-surface, #14171c);
+}
+
+:root[data-theme="dark"] .confirm-exit-title {
+    color: var(--theme-strong, #f2f4f7);
+}
+
+:root[data-theme="dark"] .confirm-exit-message {
+    color: var(--theme-text, #d0d5dd);
+}
+
+:root[data-theme="dark"] .confirm-exit-footer {
+    background: rgba(255, 255, 255, 0.03);
 }

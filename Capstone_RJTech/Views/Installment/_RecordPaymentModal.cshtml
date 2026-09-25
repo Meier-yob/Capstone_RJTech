@@ -1,53 +1,206 @@
-<div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-labelledby="recordPaymentTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content installment-payment-modal">
-            <div class="modal-header">
+<div class="modal fade" id="recordPaymentModal" tabindex="-1" role="dialog"
+     aria-labelledby="recordPaymentTitle" aria-describedby="recordPaymentSubtitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered record-payment-dialog">
+        <div class="modal-content record-payment-modal">
+            <div class="modal-header record-payment-header">
                 <div>
                     <h2 class="modal-title fs-5" id="recordPaymentTitle">Record Installment Payment</h2>
-                    <p class="small text-muted mb-0">Enter the payment received from the customer.</p>
+                    <p class="small text-muted mb-0" id="recordPaymentSubtitle">Enter the payment received from the customer.</p>
                 </div>
-                <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body">
                 <form id="recordPaymentForm" novalidate>
                     @Html.AntiForgeryToken()
                     <input id="modalInstallmentId" name="InstallmentID" type="hidden" />
 
-                    <div class="payment-readonly-grid" aria-label="Installment payment information">
-                        <div><span>Installment ID</span><strong id="modalInstallmentCode">—</strong></div>
-                        <div><span>Customer</span><strong id="modalCustomer">—</strong></div>
-                        <div><span>Monthly Payment</span><strong id="modalMonthlyPayment">₱0.00</strong></div>
-                        <div><span>Current Balance</span><strong id="modalCurrentBalance">₱0.00</strong></div>
-                        <div><span>Next Due</span><strong id="modalNextDue">—</strong></div>
+                    <div class="modal-summary-card" aria-label="Installment payment summary">
+                        <div class="summary-balance-block">
+                            <span class="summary-balance-label">Current Balance</span>
+                            <strong class="summary-balance-figure" id="modalCurrentBalance">₱0.00</strong>
+                        </div>
+
+                        <div class="summary-meta-row">
+                            <div class="summary-meta-item">
+                                <span>Installment</span>
+                                <strong id="modalInstallmentCode">—</strong>
+                            </div>
+                            <div class="summary-meta-item">
+                                <span>Customer</span>
+                                <strong id="modalCustomer">—</strong>
+                            </div>
+                            <div class="summary-meta-item">
+                                <span>Monthly</span>
+                                <strong id="modalMonthlyPayment">₱0.00</strong>
+                            </div>
+                            <div class="summary-meta-item">
+                                <span id="modalNextDueLabel">Next Due</span>
+                                <strong id="modalNextDue">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="summary-bottom-row">
+                            <span class="installment-status pay-modal-status status-active d-none" id="modalStatusChip">Active</span>
+                            <div class="summary-progress-col">
+                                <div class="summary-progress-copy">
+                                    <span id="modalProgressText">0 of 6 paid · 6 remaining</span>
+                                </div>
+                                <div class="progress installment-progress" role="progressbar"
+                                     aria-label="Repayment progress" aria-valuemin="0" aria-valuemax="100"
+                                     aria-valuenow="0" aria-valuetext="0 of 0 months paid">
+                                    <div class="progress-bar" id="modalProgressFill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="row g-3 mt-1">
-                        <div class="col-sm-7">
-                            <label class="form-label" for="modalPaymentAmount">Payment Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text">₱</span>
-                                <input id="modalPaymentAmount" name="PaymentAmount" class="form-control"
-                                       type="number" min="0.01" step="0.01" required />
-                            </div>
-                            <div class="invalid-feedback">Enter an amount greater than zero that does not exceed the balance.</div>
+                    <div class="amount-field-group">
+                        <label class="form-label" for="modalPaymentAmount">Payment Amount</label>
+                        <div class="input-group amount-input-group">
+                            <span class="input-group-text">₱</span>
+                            <input id="modalPaymentAmount" name="PaymentAmount" class="form-control amount-input"
+                                   type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"
+                                   aria-describedby="modalBalanceAfter modalAmountError" required />
                         </div>
-                        <div class="col-sm-5">
-                            <label class="form-label" for="modalPaymentMethod">Payment Method</label>
-                            <select id="modalPaymentMethod" name="PaymentMethod" class="form-select" required>
-                                <option value="Cash">Cash</option>
-                                <option value="E-Wallet">E-Wallet</option>
-                                <option value="Bank Transfer">Bank Transfer</option>
-                            </select>
+
+                        <div class="amount-feedback-row">
+                            <span class="amount-balance-after" id="modalBalanceAfter">Balance after this payment: ₱0.00</span>
+                            <span class="amount-error" id="modalAmountError" role="alert"></span>
+                        </div>
+                        <div class="amount-partial-note d-none" id="modalPartialNote">
+                            <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>
+                            Less than the monthly amount — counted as a partial payment.
+                        </div>
+
+                        <div class="quick-fill-row" role="group" aria-label="Quick fill amount">
+                            <button type="button" class="quick-fill-chip" id="quickFillMonthly">
+                                <i class="bi bi-calendar3 me-1" aria-hidden="true"></i>Monthly ₱0.00
+                            </button>
+                            <button type="button" class="quick-fill-chip" id="quickFillFull">
+                                <i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Full balance ₱0.00
+                            </button>
                         </div>
                     </div>
+
+                    <fieldset class="method-fieldset">
+                        <legend class="form-label mb-2">Payment Method</legend>
+                        <div class="method-pill-group" role="radiogroup" aria-label="Payment method">
+                            <input class="btn-check" type="radio" name="PaymentMethod" id="methodCash" value="Cash" checked />
+                            <label class="btn method-pill" for="methodCash">
+                                <i class="bi bi-cash-coin" aria-hidden="true"></i>Cash
+                            </label>
+                            <input class="btn-check" type="radio" name="PaymentMethod" id="methodEWallet" value="E-Wallet" />
+                            <label class="btn method-pill" for="methodEWallet">
+                                <i class="bi bi-wallet2" aria-hidden="true"></i>E-Wallet
+                            </label>
+                            <input class="btn-check" type="radio" name="PaymentMethod" id="methodBank" value="Bank Transfer" />
+                            <label class="btn method-pill" for="methodBank">
+                                <i class="bi bi-bank2" aria-hidden="true"></i>Bank Transfer
+                            </label>
+                        </div>
+                    </fieldset>
                 </form>
             </div>
-            <div class="modal-footer">
+
+            <div class="modal-footer record-payment-footer">
                 <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" type="submit" form="recordPaymentForm" id="recordInstallmentPayment">
+                <button class="btn btn-primary" type="submit" form="recordPaymentForm" id="recordInstallmentPayment" disabled>
                     <span class="spinner-border spinner-border-sm d-none me-1" aria-hidden="true"></span>
-                    Record Payment
+                    <span id="recordButtonLabel">Record Payment</span>
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment confirmation ---------------------------------------------------- -->
+<div class="modal fade payment-confirmation-modal" id="completeInstallmentModal" tabindex="-1" role="dialog"
+     aria-labelledby="paymentConfirmationTitle" aria-describedby="paymentConfirmationIntro" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered payment-confirmation-dialog">
+        <div class="modal-content payment-confirmation-content">
+            <div class="modal-body payment-confirmation-body">
+                <div class="payment-confirmation-icon" aria-hidden="true">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <h2 class="modal-title payment-confirmation-title" id="paymentConfirmationTitle">Complete Installment Plan?</h2>
+                <p class="payment-confirmation-intro" id="paymentConfirmationIntro">
+                    <span id="paymentConfirmationLead">You are about to pay the remaining balance of</span>
+                    <strong id="paymentConfirmationAmount">₱0.00</strong>.
+                </p>
+
+                <div class="payment-confirmation-effects" id="paymentConfirmationEffects">
+                    <p class="payment-confirmation-effects-title">This payment will:</p>
+                    <ul class="payment-confirmation-list">
+                        <li>
+                            <i class="bi bi-check2" aria-hidden="true"></i>
+                            <span>Set the remaining balance to <strong id="paymentConfirmationBalance">₱0.00</strong></span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check2" aria-hidden="true"></i>
+                            <span id="paymentConfirmationStatusEffect">Mark the installment plan as Completed</span>
+                        </li>
+                        <li>
+                            <i class="bi bi-check2" aria-hidden="true"></i>
+                            <span id="paymentConfirmationCheckoutEffect">Mark the associated checkout as Paid</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <p class="payment-confirmation-warning" id="paymentConfirmationWarning">
+                    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                    This action cannot be undone.
+                </p>
+                <p class="payment-confirmation-partial-note d-none" id="paymentConfirmationPartialNote">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    This is less than the monthly payment. It will be counted as a partial payment.
+                </p>
+            </div>
+            <div class="modal-footer payment-confirmation-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal" id="paymentConfirmationCancel">Cancel</button>
+                <button class="btn btn-primary" type="button" id="confirmInstallmentPayment">
+                    <span class="spinner-border spinner-border-sm d-none me-1" aria-hidden="true"></span>
+                    <span id="confirmPaymentButtonLabel">Confirm Payment</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment success --------------------------------------------------------- -->
+<div class="modal fade payment-success-modal" id="paymentSuccessModal" tabindex="-1" role="dialog"
+     aria-labelledby="paymentSuccessTitle" aria-describedby="paymentSuccessMessage" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered payment-success-dialog">
+        <div class="modal-content payment-success-content">
+            <div class="modal-body payment-success-body">
+                <div class="payment-success-icon" aria-hidden="true">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <h2 class="modal-title payment-success-title" id="paymentSuccessTitle" tabindex="-1">
+                    Payment Recorded Successfully <span aria-hidden="true">✓</span>
+                </h2>
+                <p class="payment-success-message" id="paymentSuccessMessage">
+                    The installment plan <strong id="paymentSuccessInstallmentCode">—</strong> has been fully paid.
+                </p>
+                <dl class="payment-success-summary" aria-label="Payment summary">
+                    <div>
+                        <dt>Payment</dt>
+                        <dd id="paymentSuccessAmount">₱0.00</dd>
+                    </div>
+                    <div>
+                        <dt>Remaining Balance</dt>
+                        <dd id="paymentSuccessBalance">₱0.00</dd>
+                    </div>
+                    <div>
+                        <dt>Status</dt>
+                        <dd><span class="payment-success-status" id="paymentSuccessStatus">Completed</span></dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="modal-footer payment-success-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Done</button>
+                <a class="btn btn-primary" id="viewInstallmentButton" href="#">
+                    View Installment <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </a>
             </div>
         </div>
     </div>

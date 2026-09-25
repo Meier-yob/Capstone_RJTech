@@ -27,7 +27,6 @@ public sealed class SalesOverviewViewModel
     public decimal MonthlySales { get; set; }
     public decimal YearlySales { get; set; }
     public DateTime? LastSaleDate { get; set; }
-    public DateTime? LastUpdated { get; set; }
     public List<ReportChartPoint> History { get; set; } = [];
     public ProductSalesReportRow? BestSellingProduct { get; set; }
     public ProductSalesReportRow? LeastSellingProduct { get; set; }
@@ -43,7 +42,6 @@ public sealed class InventoryOverviewViewModel
     public int UnavailableProducts { get; set; }
     public int LowStockProducts { get; set; }
     public int OutOfStockProducts { get; set; }
-    public DateTime? LastUpdated { get; set; }
     public List<ProductStockReportRow> ProductStock { get; set; } = [];
     public List<CategoryInventoryReportRow> ProductCategories { get; set; } = [];
     public StockExtremeReportRow? MostStockedProduct { get; set; }
@@ -56,7 +54,6 @@ public sealed class DeliveryOverviewViewModel
     public int TotalItemsDelivered { get; set; }
     public int TotalProductsDelivered { get; set; }
     public DateTime? LastDeliveryDate { get; set; }
-    public DateTime? LastUpdated { get; set; }
     public List<DeliverySummaryReportRow> DeliverySummaries { get; set; } = [];
     public List<ProductDeliveryReportRow> ProductDeliveries { get; set; } = [];
 }
@@ -107,7 +104,6 @@ public sealed class ProductStockReportRow
     public int CurrentQuantity { get; set; }
     public int ReorderLevel { get; set; }
     public string StockStatus { get; set; } = string.Empty;
-    public DateTime LastUpdated { get; set; }
 }
 
 public sealed class CategoryInventoryReportRow
@@ -117,7 +113,8 @@ public sealed class CategoryInventoryReportRow
     public int TotalQuantity { get; set; }
     public int AvailableQuantity { get; set; }
     public int UnavailableQuantity { get; set; }
-    public DateTime LastUpdated { get; set; }
+    public int LowStockProducts { get; set; }
+    public int OutOfStockProducts { get; set; }
 }
 
 public sealed class StockExtremeReportRow
@@ -126,7 +123,6 @@ public sealed class StockExtremeReportRow
     public string ProductCode { get; set; } = string.Empty;
     public string ProductName { get; set; } = string.Empty;
     public int CurrentQuantity { get; set; }
-    public DateTime LastUpdated { get; set; }
 }
 
 public sealed class DeliverySummaryReportRow
@@ -135,7 +131,6 @@ public sealed class DeliverySummaryReportRow
     public string DeliveryCode => $"DEL-{DeliveryID:D3}";
     public int TotalItems { get; set; }
     public int TotalProducts { get; set; }
-    public DateTime LastUpdated { get; set; }
 }
 
 public sealed class ProductDeliveryReportRow
@@ -146,5 +141,4 @@ public sealed class ProductDeliveryReportRow
     public int TotalQuantityDelivered { get; set; }
     public int TotalDeliveries { get; set; }
     public DateTime? LastDeliveryDate { get; set; }
-    public DateTime LastUpdated { get; set; }
 }

@@ -50,14 +50,24 @@ namespace Capstone_RJTech.Controllers
                 request.PaymentAmount,
                 request.PaymentMethod);
 
+            if (!result.Success)
+                return Json(new { success = false, message = result.Message });
+
             return Json(new
             {
-                success = result.Success,
+                success = true,
                 message = result.Message,
+                paymentID = result.PaymentID,
+                installmentID = result.InstallmentID,
+                installmentCode = result.InstallmentCode,
+                amount = result.PaymentAmount,
                 balance = result.Balance,
-                redirectUrl = result.Success
-                    ? Url.Action(nameof(Details), new { id = result.InstallmentID })
-                    : null
+                completed = result.Completed,
+                monthsPaid = result.MonthsPaid,
+                monthsRemaining = result.MonthsRemaining,
+                status = result.Status,
+                nextDue = result.NextDue?.ToString("yyyy-MM-dd"),
+                progressPercentage = result.ProgressPercentage
             });
         }
 

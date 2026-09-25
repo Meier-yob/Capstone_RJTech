@@ -7,6 +7,7 @@
     var customer = Model.Customer;
     decimal suggestedPayment = Math.Min(installment.MonthlyPayment, installment.Balance);
     string displayDate = Model.DisplayDate?.ToString("MMMM d, yyyy") ?? "—";
+    string? displayDateIso = Model.DisplayDate?.ToString("yyyy-MM-dd");
     string dateLabel = installment.Status == "Completed" ? "Completed On" : "Next Due";
     string statusClass = installment.Status.ToLowerInvariant();
     string progressValue = Model.ProgressPercentage.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
@@ -14,6 +15,7 @@
 
 <div class="app-page installment-page installment-details-page" id="installmentPage"
      data-record-url="@Url.Action("RecordPayment")"
+     data-details-url="@Url.Action("Details", "Installment")"
      data-return-url="@Url.Action("Details", new { id = installment.InstallmentID })">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -40,7 +42,12 @@
                         data-monthly="@installment.MonthlyPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                         data-balance="@installment.Balance.ToString(System.Globalization.CultureInfo.InvariantCulture)"
                         data-next-due="@displayDate"
-                        data-suggested="@suggestedPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                        data-next-due-iso="@displayDateIso"
+                        data-suggested="@suggestedPayment.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                        data-status="@installment.Status"
+                        data-months="@installment.Months"
+                        data-months-paid="@installment.MonthsPaid"
+                        data-months-remaining="@installment.MonthsRemaining">
                     <i class="bi bi-cash-coin me-1"></i> Record Payment
                 </button>
             }
@@ -85,7 +92,6 @@
                     <span><i class="bi bi-cash-stack" aria-hidden="true"></i></span>
                     <div>
                         <h2 id="installmentPaymentsTitle">Installment Payments</h2>
-                        
                     </div>
                 </div>
                 <div class="table-responsive installment-payment-table-wrap">
@@ -150,7 +156,7 @@
                     <span>Repayment Progress</span>
                     <strong>@Model.ProgressPercentage.ToString("0.#")%</strong>
                 </div>
-                <div class="progress summary-progress" role="progressbar" aria-label="Installment repayment progress" aria-valuenow="@progressValue" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress summary-progress" role="progressbar" aria-label="Installment repayment progress" aria-valuenow="@progressValue" aria-valuemin="0" aria-valuemax="100" aria-valuetext="@installment.MonthsPaid of @installment.Months months paid">
                     <div class="progress-bar" style="width: @(progressValue)%"></div>
                 </div>
                 <p class="installment-progress-caption">@installment.MonthsPaid of @installment.Months months paid</p>

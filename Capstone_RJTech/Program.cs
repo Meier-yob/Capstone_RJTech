@@ -45,16 +45,23 @@ builder.Services.AddScoped<StockNotificationService>();
 builder.Services.AddScoped<InstallmentNotificationService>();
 builder.Services.AddScoped<InstallmentService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
-builder.Services.AddSingleton<ReportUpdateTracker>();
-builder.Services.AddScoped<ReportRefreshService>();
+builder.Services.AddScoped<ReportComputationService>();
 
 var app = builder.Build();
+var seedAdmin = builder.Configuration.GetSection("SeedAdmin");
 
 using (var scope = app.Services.CreateScope())
 {
     var database = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     database.Database.Migrate();
-    SeedDefaultAdmin(database, scope.ServiceProvider.GetRequiredService<PasswordHashService>());
+    SeedDefaultAdmin(
+        database,
+        scope.ServiceProvider.GetRequiredService<PasswordHashService>(),
+        seedAdmin["Username"] ?? "admin",
+        seedAdmin["Email"] ?? "admin@rjtech.ph",
+        seedAdmin["FullName"] ?? "RJTech Administrator",
+        seedAdmin["Password"],
+        app.Environment.IsDevelopment());
 }
 
 // Configure the HTTP request pipeline.
@@ -79,22 +86,49 @@ app.MapControllerRoute(
 
 app.Run();
 
-// Creates the initial administrator account (username "admin" / password "Admin123!")
-// when the user table is empty. Every account in the system is an Owner — the RJTech
-// business is shared by all signed-in users.
-static void SeedDefaultAdmin(ApplicationDbContext database, PasswordHashService passwordHasher)
+// Creates the initial administrator account when the user table is empty. The
+// development fallback keeps a fresh clone easy to run; non-development environments
+// must provide SeedAdmin:Password through user secrets or environment configuration.
+static void SeedDefaultAdmin(
+    ApplicationDbContext database,
+    PasswordHashService passwordHasher,
+    string username,
+    string email,
+    string fullName,
+    string? configuredPassword,
+    bool allowDevelopmentDefault)
 {
-    if (!database.Users.Any())
+    if (database.Users.Any())
+        return;
+
+    if (string.IsNullOrWhiteSpace(username) ||
+        string.IsNullOrWhiteSpace(email) ||
+        string.IsNullOrWhiteSpace(fullName))
     {
-        database.Users.Add(new AppUser
-        {
-            FullName = "RJTech Administrator",
-            Email = "admin@rjtech.ph",
-            Username = "admin",
-            Password = passwordHasher.Hash("Admin123!"),
-            Role = "Owner",
-            DateCreated = DateTime.UtcNow
-        });
-        database.SaveChanges();
+        throw new InvalidOperationException(
+            "Configure SeedAdmin:Username, SeedAdmin:Email, and SeedAdmin:FullName before starting with an empty database.");
     }
+
+    var password = configuredPassword;
+    if (string.IsNullOrWhiteSpace(password))
+    {
+        if (!allowDevelopmentDefault)
+        {
+            throw new InvalidOperationException(
+                "Configure SeedAdmin:Password through user secrets or environment variables before starting Production with an empty database.");
+        }
+
+        password = "Admin123!";
+    }
+
+    database.Users.Add(new AppUser
+    {
+        FullName = fullName,
+        Email = email,
+        Username = username,
+        Password = passwordHasher.Hash(password),
+        Role = "Owner",
+        DateCreated = DateTime.UtcNow
+    });
+    database.SaveChanges();
 }

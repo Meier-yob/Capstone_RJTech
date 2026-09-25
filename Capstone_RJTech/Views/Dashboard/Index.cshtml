@@ -23,13 +23,14 @@
         "Cancelled" => "cancelled",
         _ => "other"
     };
+    var _userFullName = User.FindFirstValue("FullName") ?? User.Identity?.Name ?? "User";
 }
 
 <div class="app-page dashboard-page" id="dashboardPage" data-category-url="@Url.Action("CategorySales")">
     <div class="dashboard-heading">
         <div>
             <h1>Dashboard</h1>
-            <p>Welcome back, RJTech Admin! Here's what's happening with your store.</p>
+            <p>Welcome back, <strong>@_userFullName</strong> Here's what's happening with your store.</p>
         </div>
         <form asp-controller="Dashboard" asp-action="Index" method="get" id="dashboardFilters" class="dashboard-filters">
             <div class="dashboard-month">

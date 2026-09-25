@@ -1,0 +1,206 @@
+CREATE DATABASE RJTechInventory;
+GO
+
+USE RJTechInventory;
+GO
+
+
+
+CREATE TABLE tblUser (
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    FullName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(150) NOT NULL,
+    Username NVARCHAR(50) NOT NULL,
+    Password NVARCHAR(255) NOT NULL,
+    Role NVARCHAR(50) NOT NULL,
+    DateCreated DATETIME DEFAULT GETDATE()
+);
+
+
+
+
+CREATE TABLE ProductCategories (
+    category_ID INT IDENTITY(1,1) PRIMARY KEY,
+    category_name NVARCHAR(100) NOT NULL
+);
+
+
+
+CREATE TABLE Products (
+    product_ID INT IDENTITY(1,1) PRIMARY KEY,
+    product_name NVARCHAR(150) NOT NULL,
+    product_brand NVARCHAR(100),
+    product_description NVARCHAR(MAX),
+    product_Image NVARCHAR(255),
+    product_ImageContentType NVARCHAR(100),
+    product_quantity INT NOT NULL DEFAULT 0,
+    reorder_level INT NOT NULL DEFAULT 0,
+    product_price DECIMAL(18,2) NOT NULL,
+    is_serialized BIT NOT NULL DEFAULT 0,
+    product_status NVARCHAR(50),
+    category_ID INT NOT NULL,
+
+    CONSTRAINT FK_Products_ProductCategories
+        FOREIGN KEY (category_ID)
+        REFERENCES ProductCategories(category_ID)
+);
+
+
+
+
+CREATE TABLE Deliveries (
+    delivery_ID INT IDENTITY(1,1) PRIMARY KEY,
+    date_delivered DATETIME NOT NULL,
+    received_by NVARCHAR(100),
+    batch_ID NVARCHAR(100),
+    is_archived BIT NOT NULL DEFAULT 0
+);
+
+
+
+CREATE TABLE DeliveryDetails (
+    deldetails_ID INT IDENTITY(1,1) PRIMARY KEY,
+    product_quantity INT NOT NULL,
+    previous_quantity INT NOT NULL,
+    new_quantity INT NOT NULL,
+    product_ID INT NOT NULL,
+    delivery_ID INT NOT NULL,
+
+    CONSTRAINT FK_DeliveryDetails_Products
+        FOREIGN KEY (product_ID)
+        REFERENCES Products(product_ID),
+
+    CONSTRAINT FK_DeliveryDetails_Deliveries
+        FOREIGN KEY (delivery_ID)
+        REFERENCES Deliveries(delivery_ID)
+);
+
+
+
+
+CREATE TABLE Notifications (
+    notification_ID INT IDENTITY(1,1) PRIMARY KEY,
+    product_ID INT NOT NULL,
+    title NVARCHAR(150) NOT NULL,
+    message NVARCHAR(MAX),
+    notification_type NVARCHAR(50),
+    action_url NVARCHAR(255),
+    created_at DATETIME DEFAULT GETDATE(),
+    is_read BIT NOT NULL DEFAULT 0,
+
+    CONSTRAINT FK_Notifications_Products
+        FOREIGN KEY (product_ID)
+        REFERENCES Products(product_ID)
+);
+
+
+
+CREATE TABLE tblCustomer (
+    customer_ID INT IDENTITY(1,1) PRIMARY KEY,
+    customer_FullName NVARCHAR(100) NOT NULL,
+    customer_Email NVARCHAR(150),
+    customer_Phone NVARCHAR(30),
+    customer_Address NVARCHAR(255)
+);
+
+
+
+CREATE TABLE tblCheckout (
+    CheckoutID INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    TotalAmount DECIMAL(18,2) NOT NULL,
+    PaymentMethod NVARCHAR(50) NOT NULL,
+    PaymentType NVARCHAR(50),
+    DatePurchased DATETIME DEFAULT GETDATE(),
+    Status NVARCHAR(50),
+
+    CONSTRAINT FK_tblCheckout_tblCustomer
+        FOREIGN KEY (CustomerID)
+        REFERENCES tblCustomer(customer_ID)
+);
+
+
+
+CREATE TABLE tblCheckoutItem (
+    CheckoutItemID INT IDENTITY(1,1) PRIMARY KEY,
+    CheckoutID INT NOT NULL,
+    ProductID INT NOT NULL,
+    SerialNo NVARCHAR(100),
+    ItemQuantity INT NOT NULL,
+    Price DECIMAL(18,2) NOT NULL,
+    SubTotal DECIMAL(18,2) NOT NULL,
+
+    CONSTRAINT FK_tblCheckoutItem_tblCheckout
+        FOREIGN KEY (CheckoutID)
+        REFERENCES tblCheckout(CheckoutID),
+
+    CONSTRAINT FK_tblCheckoutItem_Products
+        FOREIGN KEY (ProductID)
+        REFERENCES Products(product_ID)
+);
+
+
+CREATE TABLE tblInstallment (
+    InstallmentID INT IDENTITY(1,1) PRIMARY KEY,
+    CheckoutID INT NOT NULL,
+    Months INT NOT NULL,
+    DownPayment DECIMAL(18,2) NOT NULL,
+    InterestRate DECIMAL(5,2) NOT NULL,
+    TotalAmount DECIMAL(18,2) NOT NULL,
+    Balance DECIMAL(18,2) NOT NULL,
+    MonthlyPayment DECIMAL(18,2) NOT NULL,
+    MonthsPaid INT NOT NULL DEFAULT 0,
+    MonthsRemaining INT NOT NULL,
+    StartDate DATE NOT NULL,
+    Status NVARCHAR(50),
+
+    CONSTRAINT FK_tblInstallment_tblCheckout
+        FOREIGN KEY (CheckoutID)
+        REFERENCES tblCheckout(CheckoutID)
+);
+
+
+
+
+CREATE TABLE tblInstallmentPayment (
+    PaymentID INT IDENTITY(1,1) PRIMARY KEY,
+    InstallmentID INT NOT NULL,
+    PaymentMethod NVARCHAR(50),
+    PaymentAmount DECIMAL(18,2) NOT NULL,
+    PaymentDate DATETIME DEFAULT GETDATE(),
+    Status NVARCHAR(50),
+
+    CONSTRAINT FK_tblInstallmentPayment_tblInstallment
+        FOREIGN KEY (InstallmentID)
+        REFERENCES tblInstallment(InstallmentID)
+);
+
+
+
+
+CREATE TABLE tblCustomerPurchaseHistory (
+    HistoryID INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    CheckoutID INT NOT NULL,
+    PurchaseDate DATETIME NOT NULL,
+    TotalAmount DECIMAL(18,2) NOT NULL,
+    PaymentMethod NVARCHAR(50),
+
+    CONSTRAINT FK_tblCustomerPurchaseHistory_tblCustomer
+        FOREIGN KEY (CustomerID)
+        REFERENCES tblCustomer(customer_ID),
+
+    CONSTRAINT FK_tblCustomerPurchaseHistory_tblCheckout
+        FOREIGN KEY (CheckoutID)
+        REFERENCES tblCheckout(CheckoutID)
+);
+
+
+
+CREATE TABLE tblPasswordResetCode (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Email NVARCHAR(150) NOT NULL,
+    OtpHash NVARCHAR(255) NOT NULL,
+    ExpiresAt DATETIME NOT NULL,
+    VerifiedAt DATETIME NULL
+);

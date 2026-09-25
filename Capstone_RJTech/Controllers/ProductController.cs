@@ -448,32 +448,64 @@ namespace Capstone_RJTech.Controllers
         [HttpPost]
         public IActionResult CreateCategory([FromForm] ProductCategory category)
         {
-            string normalizedName = NormalizeProductIdentity(category.category_name);
+            string normalizedName = TidyCategoryName(NormalizeProductIdentity(category.category_name));
             if (string.IsNullOrWhiteSpace(normalizedName))
-                return Json(new { success = false, message = "Invalid category name." });
-            if (_db.ProductCategories.Any(existing => existing.category_name == normalizedName))
-                return Json(new { success = false, message = "Category already exists" });
+                return Json(new { success = false, message = "Enter a category name." });
+            if (normalizedName.Length > 50)
+                return Json(new { success = false, message = "Category name can't exceed 50 characters." });
 
-            category.category_ID = 0;
-            category.category_name = normalizedName;
-            _db.ProductCategories.Add(category);
+            var duplicate = _db.ProductCategories.AsNoTracking()
+                .FirstOrDefault(existing => existing.category_name == normalizedName);
+            if (duplicate != null)
+                return Json(new { success = false, message = $"A category named '{duplicate.category_name}' already exists." });
+
+            var created = new ProductCategory { category_name = normalizedName };
+            _db.ProductCategories.Add(created);
             _db.SaveChanges();
-            return Json(new { success = true, message = "Category created successfully!" });
+            return Json(new
+            {
+                success = true,
+                message = $"Category \"{created.category_name}\" added!",
+                categoryId = created.category_ID,
+                categoryName = created.category_name,
+                code = $"CAT-{created.category_ID:D3}"
+            });
         }
 
         [HttpPost]
         public IActionResult EditCategory(int category_ID, string category_name)
         {
             var category = _db.ProductCategories.Find(category_ID);
-            string normalizedName = NormalizeProductIdentity(category_name);
-            if (category == null || string.IsNullOrWhiteSpace(normalizedName))
-                return Json(new { success = false, message = "Category not found or invalid input." });
+            string normalizedName = TidyCategoryName(NormalizeProductIdentity(category_name));
+            if (category == null)
+                return Json(new { success = false, message = "Category not found." });
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return Json(new { success = false, message = "Enter a category name." });
+            if (normalizedName.Length > 50)
+                return Json(new { success = false, message = "Category name can't exceed 50 characters." });
             if (_db.ProductCategories.Any(existing => existing.category_ID != category_ID && existing.category_name == normalizedName))
-                return Json(new { success = false, message = "Category already exists" });
+                return Json(new { success = false, message = $"A category named '{normalizedName}' already exists." });
 
             category.category_name = normalizedName;
             _db.SaveChanges();
-            return Json(new { success = true, message = "Category updated successfully!" });
+            return Json(new { success = true, message = $"Category \"{normalizedName}\" updated!" });
+        }
+
+        /// <summary>
+        /// Capitalizes the first letter of each word and lowercases the rest
+        /// ("wireless mice  " -> "Wireless Mice"), preserving existing acronyms like "SSD".
+        /// </summary>
+        private static string TidyCategoryName(string value)
+        {
+            var words = value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < words.Length; i++)
+            {
+                string word = words[i];
+                if (word.Length > 1 && word.All(char.IsUpper))
+                    continue; // keep acronyms (USB, SSD, RGB) as-is
+                words[i] = char.ToUpperInvariant(word[0]) + word.Substring(1).ToLowerInvariant();
+            }
+            return string.Join(" ", words);
         }
 
         private static object ToProductResponse(Product product, ProductCategory? category) => new

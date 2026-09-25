@@ -1,0 +1,345 @@
+%% ============================================================================
+%%  RJTech Capstone — Controllers UML Class Diagram  (Mermaid)
+%%  Paste into https://mermaid.live to render / export as PNG, SVG, or PDF.
+%%
+%%  Convention used (3 sections per class):
+%%    Section 1 – Name        : class identifier (header)
+%%    Section 2 – Attributes  : injected dependencies & helpers
+%%                              -  = private        $  = static
+%%    Section 3 – Operations  : constructor + action methods
+%%                              (+ name(params) : return type)
+%%  HTTP verb annotations were omitted from class bodies because Mermaid's
+%%  class-diagram parser rejects %% comment lines inside a class definition.
+%%  Nested DTO request classes are modeled with a `*--` (composition)
+%%  link; their attributes live in the companion ViewModels diagram.
+%%  View model types referenced in signatures are documented in
+%%  docs/ViewModels-UML.mmd.
+%% ============================================================================
+
+classDiagram
+    direction TB
+
+    %% ------------------------------------------------------------------
+    %% AUTH — /Account/*
+    %% ------------------------------------------------------------------
+    subgraph AuthCtrl
+        class AccountController <<sealed>> {
+            - ApplicationDbContext _db
+            - UserAuthenticationService _authenticationService
+            - PasswordResetService _passwordResetService
+            - PasswordHashService _passwordHasher
+            - ILogger~AccountController~ _logger
+            + AccountController(db: ApplicationDbContext, auth: UserAuthenticationService, reset: PasswordResetService, hasher: PasswordHashService, logger: ILogger~AccountController~)
+            + Login(returnUrl: string?) : IActionResult
+            + Login(model: LoginViewModel, returnUrl: string?) : Task~IActionResult~
+            + SignUp() : IActionResult
+            + SignUp(model: SignUpViewModel, returnUrl: string?) : Task~IActionResult~
+            + ForgotPassword() : IActionResult
+            + ForgotPassword(model: ForgotPasswordViewModel) : Task~IActionResult~
+            + ForgotPasswordVerify(id: string, ct: CancellationToken) : Task~IActionResult~
+            + ForgotPasswordVerify(model: VerifyOtpViewModel, ct: CancellationToken) : Task~IActionResult~
+            + ResetPassword(id: string, ct: CancellationToken) : Task~IActionResult~
+            + ResetPassword(model: ResetPasswordViewModel, ct: CancellationToken) : Task~IActionResult~
+            + PasswordUpdated() : IActionResult
+            + Logout() : Task~IActionResult~
+            + AccessDenied() : IActionResult
+            - $ SafeReturnUrl(returnUrl: string?) : string
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% SETTINGS — /Setting/*
+    %% ------------------------------------------------------------------
+    subgraph SettingsCtrl
+        class SettingController <<sealed>> {
+            - ApplicationDbContext _db
+            - UserAuthenticationService _authService
+            - PasswordHashService _passwordHasher
+            - ILogger~SettingController~ _logger
+            + SettingController(db: ApplicationDbContext, authService: UserAuthenticationService, passwordHasher: PasswordHashService, logger: ILogger~SettingController~)
+            + AccountMenu(ct: CancellationToken) : Task~IActionResult~
+            + UpdateProfile(model: EditProfileViewModel, ct: CancellationToken) : Task~IActionResult~
+            + ChangePassword(model: ChangePasswordViewModel, ct: CancellationToken) : Task~IActionResult~
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% HOME & DASHBOARD
+    %% ------------------------------------------------------------------
+    subgraph DashboardCtrl
+        class HomeController {
+            + HomeController()
+            + Dashboard(month: int?, year: int?, categoryId: int?) : IActionResult
+            + Privacy() : IActionResult
+            + Archive() : IActionResult
+            + Error() : IActionResult
+        }
+        class DashboardController {
+            - ApplicationDbContext db
+            + DashboardController(db: ApplicationDbContext)
+            + Index(month: int?, year: int?, categoryId: int?, ct: CancellationToken) : Task~IActionResult~
+            + CategorySales(month: int?, year: int?, categoryId: int?, ct: CancellationToken) : Task~IActionResult~
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% PRODUCT — /Product/*
+    %% ------------------------------------------------------------------
+    subgraph ProductCtrl
+        class ProductController {
+            - ApplicationDbContext _db
+            - ILogger~ProductController~ _logger
+            + ProductController(db: ApplicationDbContext, logger: ILogger~ProductController~)
+            + Index() : IActionResult
+            + ProductManagement() : IActionResult
+            + Create() : IActionResult
+            + Details(id: int) : IActionResult
+            + CategoryManagement() : IActionResult
+            + GetNextCategoryCode(categoryId: int) : IActionResult
+            + Create(model: ProductCreateViewModel) : IActionResult
+            + UploadImage(id: int, image: IFormFile?) : Task~IActionResult~
+            + Image(id: int) : Task~IActionResult~
+            + BulkCreate(request: BulkCreateProductsRequest) : IActionResult
+            + GetDetails(id: int) : IActionResult
+            + UpdateProductDetails(product_ID: int, product_name: string, product_brand: string, product_price: decimal, product_description: string, product_status: string, reorder_level: int, is_serialized: bool) : IActionResult
+            + DeleteProduct(id: int) : IActionResult
+            + DeleteProducts(ids: int[]?) : IActionResult
+            + SearchProducts(query: string) : IActionResult
+            + CreateCategory(category: ProductCategory) : IActionResult
+            + EditCategory(category_ID: int, category_name: string) : IActionResult
+            + $ FormatProductCode(categoryName: string?, productId: int) : string
+        }
+        class BulkCreateProductsRequest <<dto>> {
+            + BulkCreateProductsRequest()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% SALES — /Sales/*
+    %% ------------------------------------------------------------------
+    subgraph SalesCtrl
+        class SalesController {
+            - $ HashSet~string~ PaymentMethods
+            - $ HashSet~string~ PaymentTypes
+            - ApplicationDbContext _db
+            - ILogger~SalesController~ _logger
+            - StockNotificationService _stockNotifications
+            - InstallmentService _installments
+            + SalesController(db: ApplicationDbContext, logger: ILogger~SalesController~, stockNotifications: StockNotificationService, installments: InstallmentService)
+            + Index() : IActionResult
+            + Customer() : IActionResult
+            + DeleteCustomers(ids: int[]?) : IActionResult
+            + SalesOrders() : IActionResult
+            + SalesHistory(ct: CancellationToken) : Task~IActionResult~
+            + Checkout() : IActionResult
+            + SelectedCheckoutDetails(id: int) : IActionResult
+            + InstallmentDetails(id: int) : IActionResult
+            + SearchCustomers(query: string?) : IActionResult
+            + SearchProducts(query: string?) : IActionResult
+            + CompleteCheckout(request: SaveCheckoutRequest?) : IActionResult
+            + CheckSerialNumber(serialNumber: string?) : IActionResult
+            + RefundCheckout(id: int) : IActionResult
+            + DeleteCheckout(id: int) : IActionResult
+            + DeleteCheckouts(ids: int[]?) : IActionResult
+            + RecordInstallmentPayment(request: RecordInstallmentPaymentRequest?) : Task~IActionResult~
+            + Refund() : IActionResult
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% INSTALLMENTS
+    %% ------------------------------------------------------------------
+    subgraph InstallmentCtrl
+        class InstallmentController {
+            - InstallmentService _installments
+            - ApplicationDbContext _db
+            - ILogger~InstallmentController~ _logger
+            + InstallmentController(installments: InstallmentService, db: ApplicationDbContext, logger: ILogger~InstallmentController~)
+            + Index() : Task~IActionResult~
+            + Details(id: int) : Task~IActionResult~
+            + RecordPayment(request: RecordInstallmentPaymentViewModel) : Task~IActionResult~
+            + DeleteInstallments(ids: int[]?) : IActionResult
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% DELIVERY — /Delivery/*
+    %% ------------------------------------------------------------------
+    subgraph DeliveryCtrl
+        class DeliveryController {
+            - ApplicationDbContext _db
+            - ILogger~DeliveryController~ _logger
+            + DeliveryController(db: ApplicationDbContext, logger: ILogger~DeliveryController~)
+            + Index() : IActionResult
+            + DeliveryManagement() : IActionResult
+            + Receive() : IActionResult
+            + Details(id: int) : IActionResult
+            + GetDeliveries() : IActionResult
+            + CompleteDelivery(request: DeliveryCompleteRequest) : IActionResult
+            + DeleteDeliveryReceipt(delivery_ID: int) : IActionResult
+            + DeleteDeliveryReceipts(ids: int[]?) : IActionResult
+            + SearchProductForDelivery(query: string) : IActionResult
+        }
+        class DeliveryItemRequest <<dto>> {
+            + DeliveryItemRequest()
+        }
+        class DeliveryCompleteRequest <<dto>> {
+            + DeliveryCompleteRequest()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% NOTIFICATIONS
+    %% ------------------------------------------------------------------
+    subgraph NotificationCtrl
+        class NotificationController {
+            - ApplicationDbContext _db
+            - StockNotificationService _stockNotifications
+            - InstallmentNotificationService _installmentNotifications
+            + NotificationController(db: ApplicationDbContext, stockNotifications: StockNotificationService, installmentNotifications: InstallmentNotificationService)
+            + Index() : IActionResult
+            + Notification() : IActionResult
+            + GetNotifications(limit: int = 6) : IActionResult
+            + MarkAsRead(id: int) : IActionResult
+            + MarkAllAsRead() : IActionResult
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% REPORTS — /Reports*
+    %% ------------------------------------------------------------------
+    subgraph ReportsCtrl
+        class ReportsController <<sealed>> {
+            - $ string[] ReportStatuses
+            - $ string[] StockStatuses
+            - ApplicationDbContext db
+            - ReportComputationService reportComputation
+            - IExcelExportService excelExport
+            + ReportsController(db: ApplicationDbContext, reportComputation: ReportComputationService, excelExport: IExcelExportService)
+            + Index(tab: string?, period: string?, month: int?, year: int?, search: string?, status: string?, sort: string?, ct: CancellationToken) : Task~IActionResult~
+            + Export(tab: string?, period: string?, month: int?, year: int?, search: string?, status: string?, sort: string?, ct: CancellationToken) : Task~IActionResult~
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% EXCEL EXPORT
+    %% ------------------------------------------------------------------
+    subgraph ExcelCtrl
+        class ExcelExportController <<sealed>> {
+            - $ const string NoRecordsMessage
+            - ApplicationDbContext _db
+            - IExcelExportService _excel
+            - InstallmentService _installments
+            - ILogger~ExcelExportController~ _logger
+            + ExcelExportController(db: ApplicationDbContext, excel: IExcelExportService, installments: InstallmentService, logger: ILogger~ExcelExportController~)
+            + Inventory(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + Delivery(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + Customers(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + SalesSummary(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + Installments(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+            + SalesHistory(selection: ExcelExportSelection?, ct: CancellationToken) : Task~IActionResult~
+        }
+        class ExcelExportSelection <<dto>> {
+            + ExcelExportSelection()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% SCAN SERIAL NUMBER
+    %% ------------------------------------------------------------------
+    subgraph ScanCtrl
+        class ScanSNController {
+            + ScanSNController()
+            + Index() : IActionResult
+            + ScanSerialNumber() : IActionResult
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% BASE CLASS & SERVICES / FRAMEWORK
+    %% ------------------------------------------------------------------
+    subgraph Infrastructure
+        class Controller <<framework>> {
+            + Controller()
+        }
+        class ApplicationDbContext <<service>> {
+            + ApplicationDbContext()
+        }
+        class UserAuthenticationService <<service>> {
+            + UserAuthenticationService()
+        }
+        class PasswordResetService <<service>> {
+            + PasswordResetService()
+        }
+        class PasswordHashService <<service>> {
+            + PasswordHashService()
+        }
+        class InstallmentService <<service>> {
+            + InstallmentService()
+        }
+        class StockNotificationService <<service>> {
+            + StockNotificationService()
+        }
+        class InstallmentNotificationService <<service>> {
+            + InstallmentNotificationService()
+        }
+        class ReportComputationService <<service>> {
+            + ReportComputationService()
+        }
+        class IExcelExportService <<service>> {
+            + IExcelExportService()
+        }
+    end
+
+    %% ------------------------------------------------------------------
+    %% RELATIONSHIPS — inheritance
+    %% ------------------------------------------------------------------
+    Controller <|-- HomeController : inherits
+    Controller <|-- ScanSNController : inherits
+    Controller <|-- AccountController : inherits
+    Controller <|-- SettingController : inherits
+    Controller <|-- DashboardController : inherits
+    Controller <|-- ProductController : inherits
+    Controller <|-- SalesController : inherits
+    Controller <|-- InstallmentController : inherits
+    Controller <|-- DeliveryController : inherits
+    Controller <|-- NotificationController : inherits
+    Controller <|-- ReportsController : inherits
+    Controller <|-- ExcelExportController : inherits
+
+    %% ------------------------------------------------------------------
+    %% RELATIONSHIPS — nested DTOs (attributes in ViewModels diagram)
+    %% ------------------------------------------------------------------
+    ProductController *-- BulkCreateProductsRequest : nested
+    DeliveryController *-- DeliveryItemRequest : nested
+    DeliveryController *-- DeliveryCompleteRequest : nested
+
+    %% ------------------------------------------------------------------
+    %% RELATIONSHIPS — injected service dependencies
+    %% ------------------------------------------------------------------
+    AccountController --> ApplicationDbContext : uses
+    AccountController --> UserAuthenticationService : uses
+    AccountController --> PasswordResetService : uses
+    AccountController --> PasswordHashService : uses
+    SettingController --> ApplicationDbContext : uses
+    SettingController --> UserAuthenticationService : uses
+    SettingController --> PasswordHashService : uses
+    DashboardController --> ApplicationDbContext : uses
+    ProductController --> ApplicationDbContext : uses
+    SalesController --> ApplicationDbContext : uses
+    SalesController --> StockNotificationService : uses
+    SalesController --> InstallmentService : uses
+    InstallmentController --> InstallmentService : uses
+    InstallmentController --> ApplicationDbContext : uses
+    DeliveryController --> ApplicationDbContext : uses
+    NotificationController --> ApplicationDbContext : uses
+    NotificationController --> StockNotificationService : uses
+    NotificationController --> InstallmentNotificationService : uses
+    ReportsController --> ApplicationDbContext : uses
+    ReportsController --> ReportComputationService : uses
+    ReportsController --> IExcelExportService : uses
+    ExcelExportController --> ApplicationDbContext : uses
+    ExcelExportController --> IExcelExportService : uses
+    ExcelExportController --> InstallmentService : uses
+    ExcelExportController --> ExcelExportSelection : parameter type
+

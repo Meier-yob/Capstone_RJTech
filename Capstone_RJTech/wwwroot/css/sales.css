@@ -3,16 +3,21 @@
 .sales-history-toolbar {
     flex-wrap: wrap;
     flex-direction: row;
+    justify-content: flex-start;
 }
 
 .sales-history-toolbar .search-control {
-    flex: 1 1 300px;
-    max-width: none;
+    flex: 0 1 350px;
+    max-width: 350px;
 }
 
 .sales-history-toolbar .history-filter {
     flex: 0 1 170px;
     width: auto;
+}
+
+.sales-history-toolbar > .btn {
+    margin-left: auto;
 }
 
 .history-date-range {

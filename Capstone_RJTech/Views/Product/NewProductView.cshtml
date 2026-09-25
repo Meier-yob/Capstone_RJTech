@@ -469,7 +469,7 @@
 
                                 <i class="bi bi-plus-circle me-1"></i>
 
-                                Create Product
+                                Add Product
 
                             </button>
 
@@ -498,13 +498,13 @@
      aria-labelledby="bulkAddTitle"
      aria-hidden="true">
 
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable bulk-add-dialog">
 
         <div class="modal-content">
 
 
             <!-- Modal Header -->
-            <div class="modal-header">
+            <div class="modal-header bulk-add-header">
 
                 <div>
 
@@ -513,8 +513,13 @@
                         Bulk Add Products
                     </h2>
 
-                    <p class="small text-muted mb-0">
-                        Create multiple unavailable catalog items. Stock starts at zero.
+                    <p class="small text-muted mb-0 bulk-add-subtitle">
+                        Create multiple catalog items.
+
+                        <span class="stock-note-chip">
+                            Stock starts at 0 &middot; updated through Delivery
+                        </span>
+
                     </p>
 
                 </div>
@@ -530,7 +535,7 @@
 
 
             <!-- Modal Body -->
-            <div class="modal-body">
+            <div class="modal-body bulk-add-body">
 
 
                 <!-- Bulk Error -->
@@ -540,46 +545,54 @@
 
 
                 <!-- Products Table -->
-                <div class="table-responsive">
+                <div class="bulk-table-scroll">
 
-                    <table class="table table-sm align-middle bulk-product-table" data-no-selection="true">
+                    <table class="table align-middle bulk-product-table"
+                           data-no-selection="true"
+                           data-sortable="false">
 
                         <thead>
                             <tr>
-                                <th>Category</th>
-                                <th>Product Name</th>
-                                <th>Brand</th>
-                                <th>Serialized</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                                <th>Reorder</th>
-                                <th></th>
+                                <th scope="col" class="bulk-col-row text-center">#</th>
+                                <th scope="col">Category</th>
+                                <th scope="col">Product Name</th>
+                                <th scope="col">Brand</th>
+                                <th scope="col" class="text-center">Serialized</th>
+                                <th scope="col">Price</th>
+                                <th scope="col">Reorder</th>
+                                <th scope="col" class="text-end">Actions</th>
                             </tr>
                         </thead>
 
                         <tbody id="bulkRows">
                         </tbody>
 
+                        <tfoot>
+                            <tr>
+                                <td colspan="8">
+
+                                    <button id="addBulkRow"
+                                            class="bulk-add-row-button"
+                                            type="button">
+
+                                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                                        Add another product
+
+                                    </button>
+
+                                </td>
+                            </tr>
+                        </tfoot>
+
                     </table>
 
                 </div>
-
-
-                <!-- Add Row -->
-                <button id="addBulkRow"
-                        class="btn btn-sm btn-primary"
-                        type="button">
-
-                    <i class="bi bi-plus-lg me-1"></i>
-                    Add Row
-
-                </button>
 
             </div>
 
 
             <!-- Modal Footer -->
-            <div class="modal-footer">
+            <div class="modal-footer bulk-add-footer">
 
                 <button class="btn btn-outline-secondary"
                         type="button"
@@ -619,14 +632,22 @@
     <tr class="bulk-row">
 
 
+        <!-- Row Number -->
+        <td class="bulk-row-number-cell text-center">
+
+            <span class="bulk-row-number">1</span>
+
+        </td>
+
+
         <!-- Category -->
         <td>
 
-            <select class="form-select form-select-sm bulk-category"
+            <select class="form-select bulk-category"
                     required>
 
                 <option value="">
-                    Category
+                    Select category
                 </option>
 
                 @foreach (var category in categories)
@@ -644,7 +665,8 @@
         <!-- Product Name -->
         <td>
 
-            <input class="form-control form-control-sm bulk-name"
+            <input class="form-control bulk-name"
+                   placeholder="e.g. Mechanical Keyboard"
                    required />
 
         </td>
@@ -653,7 +675,8 @@
         <!-- Brand -->
         <td>
 
-            <input class="form-control form-control-sm bulk-brand"
+            <input class="form-control bulk-brand"
+                   placeholder="e.g. Logitech"
                    required />
 
         </td>
@@ -664,7 +687,7 @@
 
             <div class="form-check form-switch bulk-serialized-switch">
 
-                <input class="form-check-input bulk-serialized form-check-input-sm"
+                <input class="form-check-input bulk-serialized"
                        type="checkbox"
                        role="switch"
                        aria-label="Serialized" />
@@ -677,22 +700,12 @@
         <!-- Price -->
         <td>
 
-            <input class="form-control form-control-sm bulk-price"
+            <input class="form-control bulk-price"
                    type="number"
                    min="0.01"
                    step="0.01"
+                   placeholder="0.00"
                    required />
-
-        </td>
-
-
-        <!-- Stock -->
-        <td>
-
-            <input class="form-control form-control-sm bulk-qty"
-                   type="number"
-                   value="0"
-                   disabled />
 
         </td>
 
@@ -700,7 +713,7 @@
         <!-- Reorder Level -->
         <td>
 
-            <input class="form-control form-control-sm bulk-reorder"
+            <input class="form-control bulk-reorder"
                    type="number"
                    min="0"
                    step="1"
@@ -710,16 +723,30 @@
         </td>
 
 
-        <!-- Remove -->
-        <td>
+        <!-- Actions -->
+        <td class="text-end">
 
-            <button class="btn btn-sm btn-outline-danger remove-bulk-row"
-                    type="button"
-                    aria-label="Remove row">
+            <div class="bulk-row-actions">
 
-                <i class="bi bi-x-lg"></i>
+                <button class="btn duplicate-bulk-row"
+                        type="button"
+                        title="Duplicate row (copies category, brand, reorder)"
+                        aria-label="Duplicate row">
 
-            </button>
+                    <i class="bi bi-files" aria-hidden="true"></i>
+
+                </button>
+
+                <button class="btn btn-outline-danger remove-bulk-row"
+                        type="button"
+                        title="Remove row"
+                        aria-label="Remove row">
+
+                    <i class="bi bi-trash3" aria-hidden="true"></i>
+
+                </button>
+
+            </div>
 
         </td>
 
@@ -732,31 +759,34 @@
 <!-- =============================================================
      CONFIRM EXIT MODAL
      ============================================================= -->
-<div class="modal fade"
+<div class="modal fade confirm-exit-modal"
      id="confirmExitModal"
      tabindex="-1"
      aria-labelledby="confirmExitTitle"
      aria-hidden="true">
 
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered confirm-exit-dialog">
 
         <div class="modal-content">
 
 
             <!-- Header -->
-            <div class="modal-header">
+            <div class="confirm-exit-head">
 
-                <h2 class="modal-title fs-5"
-                    id="confirmExitTitle">
-                    Unsaved changes
-                </h2>
+                <span class="confirm-exit-icon" aria-hidden="true">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </span>
 
+                <div>
+                    <h2 class="modal-title fs-5 confirm-exit-title"
+                        id="confirmExitTitle">
+                        Unsaved changes
+                    </h2>
 
-                <button class="btn-close"
-                        type="button"
-                        data-bs-dismiss="modal"
-                        aria-label="Close">
-                </button>
+                    <p class="confirm-exit-subtitle">
+                        This action can&apos;t be undone.
+                    </p>
+                </div>
 
             </div>
 
@@ -764,15 +794,17 @@
             <!-- Body -->
             <div class="modal-body">
 
-                You have unsaved changes. Are you sure you want to leave?
+                <p class="mb-0 confirm-exit-message">
+                    You have unsaved changes. Are you sure you want to leave?
+                </p>
 
             </div>
 
 
             <!-- Footer -->
-            <div class="modal-footer">
+            <div class="modal-footer confirm-exit-footer">
 
-                <button class="btn btn-outline-secondary"
+                <button class="btn btn-outline-secondary confirm-exit-cancel"
                         type="button"
                         data-bs-dismiss="modal">
 
@@ -782,7 +814,7 @@
 
 
                 <button id="discardAndLeave"
-                        class="btn btn-danger"
+                        class="btn btn-danger confirm-exit-leave"
                         type="button">
 
                     Discard &amp; Leave

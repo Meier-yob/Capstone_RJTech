@@ -262,9 +262,13 @@ public sealed class AccountController : Controller
             return RedirectToAction(nameof(ForgotPassword));
         }
 
-        TempData["AccountMessage"] = "Your password has been reset. You can now sign in with your new password.";
-        return RedirectToAction(nameof(Login));
+        return RedirectToAction(nameof(PasswordUpdated));
     }
+
+    [HttpGet("PasswordUpdated")]
+    [AllowAnonymous]
+    public IActionResult PasswordUpdated()
+        => View();
 
     [HttpPost("Logout")]
     [Authorize(AuthenticationSchemes = UserAuthenticationService.AuthScheme)]

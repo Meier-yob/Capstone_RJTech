@@ -250,12 +250,25 @@
     </div>
 </div>
 
-<div class="modal fade" id="checkoutExitModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade confirm-exit-modal" id="checkoutExitModal" tabindex="-1" aria-labelledby="checkoutExitTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered confirm-exit-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Unsaved changes</h5><button class="btn-close" type="button" data-bs-dismiss="modal"></button></div>
-            <div class="modal-body">You have unsaved changes. Are you sure you want to leave?</div>
-            <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Cancel</button><button id="discardCheckout" class="btn btn-danger" type="button">Discard &amp; Leave</button></div>
+            <div class="confirm-exit-head">
+                <span class="confirm-exit-icon" aria-hidden="true">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </span>
+                <div>
+                    <h2 class="modal-title fs-5 confirm-exit-title" id="checkoutExitTitle">Unsaved changes</h2>
+                    <p class="confirm-exit-subtitle">This action can&apos;t be undone.</p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0 confirm-exit-message">You have unsaved changes. Are you sure you want to leave?</p>
+            </div>
+            <div class="modal-footer confirm-exit-footer">
+                <button class="btn btn-outline-secondary confirm-exit-cancel" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button id="discardCheckout" class="btn btn-danger confirm-exit-leave" type="button">Discard &amp; Leave</button>
+            </div>
         </div>
     </div>
 </div>
