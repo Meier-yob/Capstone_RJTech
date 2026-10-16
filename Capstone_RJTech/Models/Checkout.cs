@@ -26,6 +26,12 @@ namespace Capstone_RJTech.Models
         [Required, StringLength(30)]
         public string Status { get; set; } = "Paid";
 
+        /// <summary>
+        /// Soft-delete flag. Deactivated checkouts are hidden from the active
+        /// sales list and shown on the Deactivated tab instead.
+        /// </summary>
+        public bool is_deactivated { get; set; }
+
         [ForeignKey(nameof(CustomerID))]
         public virtual Customer? Customer { get; set; }
 

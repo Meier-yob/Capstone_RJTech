@@ -10,3 +10,12 @@
     background: var(--theme-surface-soft, #e9ecef);
     color: var(--theme-text, #495057);
 }
+
+.status-deactivated {
+    background: var(--theme-surface-soft, #e9ecef);
+    color: var(--theme-text, #495057);
+}
+
+.delivery-row.deactivated-row {
+    background: var(--theme-surface-soft, #fafafa);
+}

@@ -149,22 +149,22 @@ const defs = [
     '+ product_ID : int (FK)', '+ delivery_ID : int (FK)'
   ], ops: []}},
   { id: 'delivery', cfg: { x: 800, w: 500, title: 'Delivery', stereo: '«entity» Deliveries', attrs: [
-    '+ delivery_ID : int (PK)', '+ date_delivered : DateTime', '+ received_by : string', '+ batch_ID : string (UQ)', '+ is_archived : bool'
+    '+ delivery_ID : int (PK)', '+ date_delivered : DateTime', '+ received_by : string', '+ batch_ID : string (UQ)', '+ is_archived : bool', '+ is_deactivated : bool'
   ], ops: []}},
   { id: 'deliverySvc', cfg: { x: 800, w: 500, title: 'DeliveryService', stereo: '«service» · DeliveryController', attrs: [], ops: [
-    '+ Receive()', '+ CompleteDelivery(request) : void', '+ GetDeliveries() : List<Delivery>', '+ DeleteDeliveryReceipt(id) : void', '+ SearchProductForDelivery(query)'
+    '+ Receive()', '+ CompleteDelivery(request) : void', '+ GetDeliveries() : List<Delivery>', '+ DeactivateDeliveryReceipt(id) : void', '+ ReactivateDeliveryReceipt(id) : void', '+ SearchProductForDelivery(query)'
   ]}},
   // COLUMN 3 — SALES & PERSISTENCE
   { id: 'salesSvc', cfg: { x: 1440, w: 520, title: 'SalesService', stereo: '«service» · SalesController', attrs: [], ops: [
     '+ SearchCustomers(query)', '+ SearchProducts(query)', '+ CheckSerialNumber(serial) : bool', '+ CompleteCheckout(request) : void',
-    '+ RefundCheckout(id) : void', '+ DeleteCheckout(id) : void', '+ DeleteCustomers(ids) : void', '+ RecordInstallmentPayment(request)'
+    '+ RefundCheckout(id) : void', '+ DeactivateCheckout(id) : void', '+ ReactivateCheckout(id) : void', '+ DeleteCustomers(ids) : void', '+ RecordInstallmentPayment(request)'
   ]}},
   { id: 'customer', cfg: { x: 1440, w: 520, title: 'Customer', stereo: '«entity» tblCustomer', attrs: [
     '+ customer_ID : int (PK)', '+ customer_FullName : string', '+ customer_Email : string (UQ · @gmail.com)', '+ customer_Phone : string (11 digits)', '+ customer_Address : string'
   ], ops: []}},
   { id: 'checkout', cfg: { x: 1440, w: 520, title: 'Checkout', stereo: '«entity» tblCheckout', attrs: [
     '+ CheckoutID : int (PK)', '+ CustomerID : int (FK)', '+ TotalAmount : decimal(18,2)', '+ PaymentMethod : string',
-    '+ PaymentType : string', '+ DatePurchased : DateTime', '+ Status : string'
+    '+ PaymentType : string', '+ DatePurchased : DateTime', '+ Status : string', '+ is_deactivated : bool'
   ], ops: []}},
   { id: 'checkoutItem', cfg: { x: 1440, w: 520, title: 'CheckoutItem', stereo: '«entity» tblCheckoutItem', attrs: [
     '+ CheckoutItemID : int (PK)', '+ CheckoutID : int (FK)', '+ ProductID : int (FK)', '+ SerialNo : string?',

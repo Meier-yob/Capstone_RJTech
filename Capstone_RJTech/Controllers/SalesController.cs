@@ -265,33 +265,34 @@ namespace Capstone_RJTech.Controllers
             => TransitionCheckout(id, "Refunded");
 
         [HttpPost]
-        public IActionResult DeleteCheckout(int id)
+        public IActionResult DeactivateCheckout(int id)
         {
-            using var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable);
             try
             {
                 var checkout = _db.Checkouts.Find(id);
                 if (checkout == null)
                     return Json(new { success = false, message = "Sales details not found." });
 
-                if (_db.CustomerPurchaseHistories.Any(payment => payment.CheckoutID == id))
-                    return Json(new { success = false, message = "This checkout has payment history and cannot be deleted." });
+                if (checkout.is_deactivated)
+                    return Json(new { success = true, message = "Sales details are already deactivated." });
 
-                _db.Checkouts.Remove(checkout);
+                checkout.is_deactivated = true;
                 _db.SaveChanges();
-                transaction.Commit();
-                return Json(new { success = true, message = "Sales details deleted. Product inventory was not changed." });
+                return Json(new
+                {
+                    success = true,
+                    message = "Sales details deactivated. You can restore them from the Deactivated tab."
+                });
             }
             catch (Exception exception)
             {
-                transaction.Rollback();
-                _logger.LogError(exception, "Unable to delete sales details for checkout {CheckoutId}.", id);
-                return Json(new { success = false, message = "Unable to delete the sales details." });
+                _logger.LogError(exception, "Unable to deactivate sales details for checkout {CheckoutId}.", id);
+                return Json(new { success = false, message = "Unable to deactivate the sales details." });
             }
         }
 
         [HttpPost]
-        public IActionResult DeleteCheckouts([FromBody] int[]? ids)
+        public IActionResult DeactivateCheckouts([FromBody] int[]? ids)
         {
             int[] selectedIds = ids?
                 .Where(id => id > 0)
@@ -299,9 +300,8 @@ namespace Capstone_RJTech.Controllers
                 .ToArray() ?? Array.Empty<int>();
 
             if (selectedIds.Length == 0)
-                return Json(new { success = false, message = "Select at least one sales record to delete." });
+                return Json(new { success = false, message = "Select at least one sales record to deactivate." });
 
-            using var transaction = _db.Database.BeginTransaction(IsolationLevel.Serializable);
             try
             {
                 var checkouts = _db.Checkouts
@@ -310,23 +310,43 @@ namespace Capstone_RJTech.Controllers
                 if (checkouts.Count != selectedIds.Length)
                     return Json(new { success = false, message = "One or more selected sales records could not be found." });
 
-                if (_db.CustomerPurchaseHistories.Any(payment => selectedIds.Contains(payment.CheckoutID)))
-                    return Json(new { success = false, message = "One or more selected checkouts have payment history and cannot be deleted." });
+                foreach (var checkout in checkouts)
+                    checkout.is_deactivated = true;
 
-                _db.Checkouts.RemoveRange(checkouts);
                 _db.SaveChanges();
-                transaction.Commit();
                 return Json(new
                 {
                     success = true,
-                    message = $"{checkouts.Count} sales details deleted. Product inventory was not changed."
+                    message = $"{checkouts.Count} sales details deactivated. You can restore them from the Deactivated tab."
                 });
             }
             catch (Exception exception)
             {
-                transaction.Rollback();
-                _logger.LogError(exception, "Unable to delete selected sales details.");
-                return Json(new { success = false, message = "Unable to delete the selected sales details." });
+                _logger.LogError(exception, "Unable to deactivate selected sales details.");
+                return Json(new { success = false, message = "Unable to deactivate the selected sales details." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ReactivateCheckout(int id)
+        {
+            try
+            {
+                var checkout = _db.Checkouts.Find(id);
+                if (checkout == null)
+                    return Json(new { success = false, message = "Sales details not found." });
+
+                if (!checkout.is_deactivated)
+                    return Json(new { success = true, message = "Sales details are already active." });
+
+                checkout.is_deactivated = false;
+                _db.SaveChanges();
+                return Json(new { success = true, message = "Sales details restored to the active list." });
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Unable to restore sales details for checkout {CheckoutId}.", id);
+                return Json(new { success = false, message = "Unable to restore the sales details." });
             }
         }
 

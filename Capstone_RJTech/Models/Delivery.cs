@@ -22,6 +22,12 @@ namespace Capstone_RJTech.Models
 
         public bool is_archived { get; set; }
 
+        /// <summary>
+        /// Soft-delete flag. Deactivated deliveries are hidden from the active
+        /// deliveries list and shown on the Deactivated tab instead.
+        /// </summary>
+        public bool is_deactivated { get; set; }
+
         [NotMapped]
         public string FormattedDeliveryID => $"DEL-{delivery_ID:D3}";
 

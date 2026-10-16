@@ -6,11 +6,18 @@
     const pageSize = document.getElementById('deliveryPageSize');
     const pagination = document.getElementById('deliveryPagination');
     const emptyRow = document.getElementById('deliveryEmpty');
+    const statusTabs = [...document.querySelectorAll('.delivery-status-tabs [data-status]')];
+    let selectedStatus = 'active';
     let currentPage = 1;
 
     function filteredRows() {
         const term = search.value.trim().toLowerCase();
-        return rows.filter(row => !term || row.dataset.search.includes(term));
+        return rows.filter(row => {
+            const matchesSearch = !term || row.dataset.search.includes(term);
+            const deactivated = row.dataset.deactivated === 'true';
+            const matchesStatus = selectedStatus === 'deactivated' ? deactivated : !deactivated;
+            return matchesSearch && matchesStatus;
+        });
     }
 
     function pageButton(label, target, options = {}) {
@@ -44,39 +51,38 @@
         pageButton('<i class="bi bi-chevron-right"></i>', currentPage + 1, { disabled: currentPage === pages });
     }
 
-    async function deleteDelivery(button) {
-        if (!confirm(`Delete the details for ${button.dataset.code}? Received product quantities will remain unchanged.`)) return;
-        const response = await fetch(page.dataset.deleteUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ delivery_ID: button.dataset.id })
-        });
-        const result = await response.json();
-        if (result.success) window.reloadWithToast(result.message || 'Delivery details deleted.');
-        else window.showToast(result.message || 'Unable to delete delivery details.', 'error');
-    }
-
     async function deleteSelectedDeliveries(event) {
         event.preventDefault();
         const ids = event.detail?.ids ?? [];
-        if (!ids.length || !confirm(`Delete ${ids.length} selected delivery details? Received product quantities will remain unchanged.`)) return;
+        if (!ids.length || !confirm(`Deactivate ${ids.length} selected delivery details? You can restore them from the Deactivated tab.`)) return;
 
-        const response = await fetch(page.dataset.bulkDeleteUrl, {
+        const response = await fetch(page.dataset.bulkDeactivateUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ids)
         });
         const result = await response.json();
-        if (result.success) window.reloadWithToast(result.message || 'Selected delivery details deleted.');
-        else window.showToast(result.message || 'Unable to delete the selected delivery details.', 'error');
+        if (result.success) window.reloadWithToast(result.message || 'Selected delivery details deactivated.');
+        else window.showToast(result.message || 'Unable to deactivate the selected delivery details.', 'error');
     }
 
     search.addEventListener('input', () => { currentPage = 1; render(); });
     pageSize.addEventListener('change', () => { currentPage = 1; render(); });
+    statusTabs.forEach(tab => tab.addEventListener('click', () => {
+        selectedStatus = tab.dataset.status;
+        currentPage = 1;
+
+        statusTabs.forEach(item => {
+            const isActive = item === tab;
+            item.classList.toggle('active', isActive);
+            item.setAttribute('aria-pressed', String(isActive));
+        });
+
+        render();
+    }));
     rows.forEach(row => row.addEventListener('click', event => {
         if (!event.target.closest('a, button, input, label, .dropdown-menu')) window.location.href = row.dataset.href;
     }));
-    document.querySelectorAll('.delete-delivery').forEach(button => button.addEventListener('click', () => deleteDelivery(button)));
     table?.addEventListener('table:bulk-delete', deleteSelectedDeliveries);
     table?.addEventListener('table:sorted', () => {
         rows = [...document.querySelectorAll('.delivery-row')];
@@ -84,7 +90,8 @@
         render();
     });
     document.getElementById('exportDeliveries')?.addEventListener('click', event => {
-        window.rjtechExcelExport.download(event.currentTarget, filteredRows(), Boolean(search.value.trim()));
+        const hasFilters = Boolean(search.value.trim()) || selectedStatus !== 'active';
+        window.rjtechExcelExport.download(event.currentTarget, filteredRows(), hasFilters);
     });
     render();
 })();

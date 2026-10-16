@@ -5,8 +5,9 @@
 }
 
 <div class="app-page" id="deliveryManagementPage"
-     data-delete-url="@Url.Action("DeleteDeliveryReceipt")"
-     data-bulk-delete-url="@Url.Action("DeleteDeliveryReceipts")">
+     data-deactivate-url="@Url.Action("DeactivateDeliveryReceipt")"
+     data-bulk-deactivate-url="@Url.Action("DeactivateDeliveryReceipts")"
+     data-reactivate-url="@Url.Action("ReactivateDeliveryReceipt")">
     @Html.AntiForgeryToken()
 
     <nav aria-label="breadcrumb">
@@ -24,6 +25,17 @@
         <a asp-action="Receive" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i>Receive products
         </a>
+    </div>
+
+    <div class="filter-tabs compact-filter-tabs delivery-status-tabs"
+         role="group"
+         aria-label="Delivery status filters">
+        <button class="btn active" type="button" data-status="active" aria-pressed="true">
+            Active
+        </button>
+        <button class="btn" type="button" data-status="deactivated" aria-pressed="false">
+            Deactivated
+        </button>
     </div>
 
     <div class="toolbar del-toolbar">
@@ -59,17 +71,27 @@
                         string batchCode = delivery.FormattedBatchID;
                         int units = delivery.DeliveryDetails.Sum(detail => detail.product_quantity);
 
-                        <tr class="delivery-row clickable-row"
+                        <tr class="delivery-row clickable-row@(delivery.is_deactivated ? " deactivated-row" : string.Empty)"
                             data-record-id="@delivery.delivery_ID"
                             data-href="@Url.Action("Details", new { id = delivery.delivery_ID })"
-                            data-search="@($"{code} {batchCode} {delivery.received_by}".ToLowerInvariant())">
+                            data-deactivated="@(delivery.is_deactivated ? "true" : "false")"
+                            data-search="@($"{code} {batchCode} {delivery.received_by}{(delivery.is_deactivated ? " deactivated" : string.Empty)}".ToLowerInvariant())">
                             <td class="fw-bold">@code</td>
                             <td class="fw-bold">@batchCode</td>
                             <td class="fw-semibold">@delivery.received_by</td>
                             <td class="fw-semibold">@delivery.date_delivered.ToString("MMM d, yyyy")</td>
                             <td class="text-end fw-semibold">@delivery.DeliveryDetails.Count</td>
                             <td class="text-end fw-semibold">@units</td>
-                            <td><span class="status-badge status-completed">Completed</span></td>
+                            <td>
+                                @if (delivery.is_deactivated)
+                                {
+                                    <span class="status-badge status-deactivated">Deactivated</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-completed">Completed</span>
+                                }
+                            </td>
                             <td class="text-end action-cell">
                                 <div class="dropdown table-action-dropdown">
                                     <button class="btn btn-sm btn-light no-caret dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-label="Actions for @code">
@@ -83,9 +105,34 @@
                                         </li>
                                         <li><hr class="dropdown-divider" /></li>
                                         <li>
-                                            <button class="dropdown-item text-danger delete-delivery" type="button" data-id="@delivery.delivery_ID" data-code="@code">
-                                                <i class="bi bi-trash me-2"></i>Delete details
-                                            </button>
+                                            @if (delivery.is_deactivated)
+                                            {
+                                                <button class="dropdown-item js-reactivate" type="button"
+                                                        data-id="@delivery.delivery_ID"
+                                                        data-code="@code"
+                                                        data-confirm-url="@Url.Action("ReactivateDeliveryReceipt")"
+                                                        data-confirm-field="delivery_ID"
+                                                        data-confirm-title="Reactivate delivery?"
+                                                        data-confirm-message="Reactivate @code? It will be moved back to the active deliveries list."
+                                                        data-confirm-label="Reactivate"
+                                                        data-confirm-variant="success">
+                                                    <i class="bi bi-arrow-clockwise me-2"></i>Reactivate
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="dropdown-item js-deactivate" type="button"
+                                                        data-id="@delivery.delivery_ID"
+                                                        data-code="@code"
+                                                        data-confirm-url="@Url.Action("DeactivateDeliveryReceipt")"
+                                                        data-confirm-field="delivery_ID"
+                                                        data-confirm-title="Deactivate delivery?"
+                                                        data-confirm-message="Deactivate @code? It will be moved to the Deactivated tab. Received product quantities will not be changed."
+                                                        data-confirm-label="Deactivate"
+                                                        data-confirm-variant="warning">
+                                                    <i class="bi bi-slash-circle me-2"></i>Deactivate
+                                                </button>
+                                            }
                                         </li>
                                     </ul>
                                 </div>
@@ -125,6 +172,8 @@
             </nav>
         </div>
     </div>
+
+    <partial name="_DeactivateConfirmModal" />
 </div>
 
 @section Styles {
@@ -134,4 +183,5 @@
 @section Scripts {
     <script src="~/js/excel-export.js" asp-append-version="true"></script>
     <script src="~/js/delivery-management.js" asp-append-version="true"></script>
+    <script src="~/js/deactivate-confirm.js" asp-append-version="true"></script>
 }

@@ -1,0 +1,26 @@
+@* Shared confirmation dialog for deactivating and reactivating records on the
+   Sales and Delivery pages. Trigger buttons supply their own copy through
+   data attributes, so a single dialog serves every record on the page. *@
+<div class="modal fade confirm-exit-modal" id="deactivateConfirmModal" tabindex="-1"
+     aria-labelledby="deactivateConfirmTitle" aria-describedby="deactivateConfirmMessage" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered confirm-exit-dialog">
+        <div class="modal-content">
+            <div class="confirm-exit-head">
+                <span class="confirm-exit-icon" id="deactivateConfirmIconWrap" aria-hidden="true">
+                    <i class="bi bi-slash-circle" id="deactivateConfirmIcon"></i>
+                </span>
+                <div>
+                    <h2 class="modal-title fs-5 confirm-exit-title" id="deactivateConfirmTitle">Deactivate record?</h2>
+                    <p class="confirm-exit-subtitle" id="deactivateConfirmSubtitle">You can restore this record later.</p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0 confirm-exit-message" id="deactivateConfirmMessage"></p>
+            </div>
+            <div class="modal-footer confirm-exit-footer">
+                <button class="btn btn-outline-secondary confirm-exit-cancel" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button id="deactivateConfirmButton" class="btn btn-warning confirm-exit-leave" type="button">Deactivate</button>
+            </div>
+        </div>
+    </div>
+</div>

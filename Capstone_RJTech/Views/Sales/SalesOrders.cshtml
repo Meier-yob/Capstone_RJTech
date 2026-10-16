@@ -6,8 +6,9 @@
 }
 
 <div class="app-page sales-page" id="salesOrdersPage"
-     data-delete-url="@Url.Action("DeleteCheckout")"
-     data-bulk-delete-url="@Url.Action("DeleteCheckouts")"
+     data-deactivate-url="@Url.Action("DeactivateCheckout")"
+     data-bulk-deactivate-url="@Url.Action("DeactivateCheckouts")"
+     data-reactivate-url="@Url.Action("ReactivateCheckout")"
      data-refund-url="@Url.Action("RefundCheckout")">
     @Html.AntiForgeryToken()
     <nav aria-label="breadcrumb">
@@ -41,6 +42,9 @@
         </button>
         <button class="btn" type="button" data-status="refunded" aria-pressed="false">
             Refunded
+        </button>
+        <button class="btn" type="button" data-status="deactivated" aria-pressed="false">
+            Deactivated
         </button>
     </div>
 
@@ -79,12 +83,13 @@
                             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                             .Take(2)
                             .Select(part => char.ToUpperInvariant(part[0])));
-                        var search = $"{checkout.FormattedCheckoutID} {customer?.customer_FullName} {customer?.customer_Email} {checkout.PaymentType} {checkout.PaymentMethod} {checkout.Status}".ToLowerInvariant();
+                        var search = $"{checkout.FormattedCheckoutID} {customer?.customer_FullName} {customer?.customer_Email} {checkout.PaymentType} {checkout.PaymentMethod} {checkout.Status}{(checkout.is_deactivated ? " deactivated" : string.Empty)}".ToLowerInvariant();
 
-                        <tr class="sales-order-row clickable-row"
+                        <tr class="sales-order-row clickable-row@(checkout.is_deactivated ? " deactivated-row" : string.Empty)"
                             data-id="@checkout.CheckoutID"
                             data-href="@Url.Action("SelectedCheckoutDetails", new { id = checkout.CheckoutID })"
                             data-status="@checkout.Status.ToLowerInvariant()"
+                            data-deactivated="@(checkout.is_deactivated ? "true" : "false")"
                             data-search="@search">
                             <td class="fw-bold">@checkout.FormattedCheckoutID</td>
                             <td>
@@ -99,7 +104,16 @@
                             <td class="fw-semibold">@checkout.PaymentType</td>
                             <td class="fw-semibold">@checkout.PaymentMethod</td>
                             <td class="fw-semibold">@checkout.DatePurchased.ToString("MMM d, yyyy h:mm tt")</td>
-                            <td><span class="sales-status status-@StatusClass(checkout.Status)">@checkout.Status</span></td>
+                            <td>
+                                @if (checkout.is_deactivated)
+                                {
+                                    <span class="sales-status status-deactivated">Deactivated</span>
+                                }
+                                else
+                                {
+                                    <span class="sales-status status-@StatusClass(checkout.Status)">@checkout.Status</span>
+                                }
+                            </td>
                             <td class="text-end fw-bold">₱@checkout.TotalAmount.ToString("N2")</td>
                             <td class="text-end action-cell">
                                     <div class="dropdown table-action-dropdown">
@@ -115,13 +129,45 @@
                                             <li><a class="dropdown-item" asp-controller="Installment" asp-action="Details" asp-route-id="@checkout.Installment!.InstallmentID"><i class="bi bi-calendar-check me-2"></i>View Installment</a></li>
                                         }
                                         <li><a class="dropdown-item" asp-action="SelectedCheckoutDetails" asp-route-id="@checkout.CheckoutID" asp-route-print="true"><i class="bi bi-printer me-2"></i>Print Receipt</a></li>
-                                        @if (checkout.Status is "Paid" or "Ongoing")
+                                        @if (checkout.is_deactivated)
                                         {
                                             <li><hr class="dropdown-divider" /></li>
-                                            <li><button class="dropdown-item refund-checkout" type="button" data-id="@checkout.CheckoutID" data-code="@checkout.FormattedCheckoutID"><i class="bi bi-arrow-counterclockwise me-2"></i>Refund</button></li>
+                                            <li>
+                                                <button class="dropdown-item js-reactivate" type="button"
+                                                        data-id="@checkout.CheckoutID"
+                                                        data-code="@checkout.FormattedCheckoutID"
+                                                        data-confirm-url="@Url.Action("ReactivateCheckout")"
+                                                        data-confirm-field="id"
+                                                        data-confirm-title="Reactivate sales order?"
+                                                        data-confirm-message="Reactivate @checkout.FormattedCheckoutID? It will be moved back to the active sales list."
+                                                        data-confirm-label="Reactivate"
+                                                        data-confirm-variant="success">
+                                                    <i class="bi bi-arrow-clockwise me-2"></i>Reactivate
+                                                </button>
+                                            </li>
                                         }
-                                        <li><hr class="dropdown-divider" /></li>
-                                        <li><button class="dropdown-item text-danger delete-checkout" type="button" data-id="@checkout.CheckoutID" data-code="@checkout.FormattedCheckoutID"><i class="bi bi-trash me-2"></i>Delete details</button></li>
+                                        else
+                                        {
+                                            @if (checkout.Status is "Paid" or "Ongoing")
+                                            {
+                                                <li><hr class="dropdown-divider" /></li>
+                                                <li><button class="dropdown-item refund-checkout" type="button" data-id="@checkout.CheckoutID" data-code="@checkout.FormattedCheckoutID"><i class="bi bi-arrow-counterclockwise me-2"></i>Refund</button></li>
+                                            }
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li>
+                                                <button class="dropdown-item js-deactivate" type="button"
+                                                        data-id="@checkout.CheckoutID"
+                                                        data-code="@checkout.FormattedCheckoutID"
+                                                        data-confirm-url="@Url.Action("DeactivateCheckout")"
+                                                        data-confirm-field="id"
+                                                        data-confirm-title="Deactivate sales order?"
+                                                        data-confirm-message="Deactivate @checkout.FormattedCheckoutID? It will be moved to the Deactivated tab. Product inventory will not be changed."
+                                                        data-confirm-label="Deactivate"
+                                                        data-confirm-variant="warning">
+                                                    <i class="bi bi-slash-circle me-2"></i>Deactivate
+                                                </button>
+                                            </li>
+                                        }
                                     </ul>
                                 </div>
                             </td>
@@ -145,6 +191,8 @@
             <nav aria-label="Sales order pages"><ul id="salesOrderPagination" class="pagination pagination-sm mb-0"></ul></nav>
         </div>
     </div>
+
+    <partial name="_DeactivateConfirmModal" />
 </div>
 
 @section Styles {
@@ -154,4 +202,5 @@
 @section Scripts {
     <script src="~/js/excel-export.js" asp-append-version="true"></script>
     <script src="~/js/sales-orders.js" asp-append-version="true"></script>
+    <script src="~/js/deactivate-confirm.js" asp-append-version="true"></script>
 }

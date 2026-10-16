@@ -815,3 +815,9 @@ body.logout-modal-open > .modal-backdrop.show {
 :root[data-theme="dark"] .confirm-exit-footer {
     background: rgba(255, 255, 255, 0.03);
 }
+
+/* Positive variant used by the shared deactivate / reactivate dialog. */
+.confirm-exit-icon.is-success {
+    background: var(--theme-green-soft, #e9f7ef);
+    color: var(--theme-green, #147a45);
+}
