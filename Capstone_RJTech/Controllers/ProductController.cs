@@ -102,7 +102,18 @@ namespace Capstone_RJTech.Controllers
 
         internal static string EvaluateProductStatus(Product product)
         {
+            if (!product.is_active) return "Unavailable";
             if (product.product_status == "Unavailable") return "Unavailable";
+            return GetStockStatus(product);
+        }
+
+        /// <summary>
+        /// Status implied purely by the current stock level, ignoring the deactivated
+        /// ("Unavailable") state. Used when activating a product so it returns to
+        /// "Available", "Low Stock", or "Out of Stock" based on its current quantity.
+        /// </summary>
+        internal static string GetStockStatus(Product product)
+        {
             if (product.product_quantity <= 0) return "Out of Stock";
             if (product.product_quantity <= product.reorder_level) return "Low Stock";
             return "Available";
@@ -120,7 +131,7 @@ namespace Capstone_RJTech.Controllers
             int nextProductId = (_db.Products.Max(product => (int?)product.product_ID) ?? 0) + 1;
             return Json(new { success = true, formattedCode = FormatProductCode(category.category_name, nextProductId) });
         }
-
+        //Add Product with validation and error handling
         [HttpPost]
         public IActionResult Create([FromForm] ProductCreateViewModel model)
         {
@@ -231,7 +242,7 @@ namespace Capstone_RJTech.Controllers
         {
             public List<BulkProductRowDto>? products { get; set; }
         }
-
+        //Bulk create products with validation and error handling
         [HttpPost]
         public IActionResult BulkCreate([FromBody] BulkCreateProductsRequest request)
         {
@@ -357,30 +368,54 @@ namespace Capstone_RJTech.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteProduct(int id)
+        public IActionResult DeactivateProduct(int id)
         {
             try
             {
                 var product = _db.Products.Find(id);
                 if (product == null) return Json(new { success = false, message = "Product not found." });
-                if (_db.DeliveryDetails.Any(detail => detail.product_ID == id))
-                    return Json(new { success = false, message = "Products with delivery history cannot be deleted." });
-                if (_db.CheckoutItems.Any(item => item.ProductID == id))
-                    return Json(new { success = false, message = "Products with sales history cannot be deleted." });
+                if (!product.is_active)
+                    return Json(new { success = true, message = $"{product.product_name} is already deactivated." });
 
-                _db.Products.Remove(product);
+                product.is_active = false;
+                product.product_status = "Unavailable";
                 _db.SaveChanges();
-                return Json(new { success = true, message = "Product deleted successfully!" });
+                return Json(new { success = true, message = $"{product.product_name} deactivated. It is now unavailable for sales." });
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Error deleting product.");
-                return Json(new { success = false, message = "An error occurred while deleting the product." });
+                _logger.LogError(exception, "Error deactivating product.");
+                return Json(new { success = false, message = "An error occurred while deactivating the product." });
             }
         }
 
         [HttpPost]
-        public IActionResult DeleteProducts([FromBody] int[]? ids)
+        public IActionResult ActivateProduct(int id)
+        {
+            try
+            {
+                var product = _db.Products.Find(id);
+                if (product == null) return Json(new { success = false, message = "Product not found." });
+                if (product.is_active)
+                    return Json(new { success = true, message = $"{product.product_name} is already active." });
+
+                // Reactivating restores availability based on the product's current
+                // stock, so its previous status (Available/Low Stock/Out of Stock)
+                // is reflected again.
+                product.is_active = true;
+                product.product_status = GetStockStatus(product);
+                _db.SaveChanges();
+                return Json(new { success = true, message = $"{product.product_name} activated and is now {product.product_status.ToLowerInvariant()}." });
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Error activating product.");
+                return Json(new { success = false, message = "An error occurred while activating the product." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult DeactivateProducts([FromBody] int[]? ids)
         {
             int[] selectedIds = ids?
                 .Where(id => id > 0)
@@ -388,29 +423,29 @@ namespace Capstone_RJTech.Controllers
                 .ToArray() ?? Array.Empty<int>();
 
             if (selectedIds.Length == 0)
-                return Json(new { success = false, message = "Select at least one product to delete." });
+                return Json(new { success = false, message = "Select at least one product to deactivate." });
 
             try
             {
-                bool hasDeliveryHistory = _db.DeliveryDetails.Any(detail => selectedIds.Contains(detail.product_ID));
-                bool hasSalesHistory = _db.CheckoutItems.Any(item => selectedIds.Contains(item.ProductID));
-                if (hasDeliveryHistory || hasSalesHistory)
-                    return Json(new { success = false, message = "One or more selected products have delivery or sales history and cannot be deleted." });
-
                 var products = _db.Products
                     .Where(product => selectedIds.Contains(product.product_ID))
                     .ToList();
                 if (products.Count != selectedIds.Length)
                     return Json(new { success = false, message = "One or more selected products could not be found." });
 
-                _db.Products.RemoveRange(products);
+                foreach (var product in products)
+                {
+                    product.is_active = false;
+                    product.product_status = "Unavailable";
+                }
+
                 _db.SaveChanges();
-                return Json(new { success = true, message = $"{products.Count} products deleted successfully." });
+                return Json(new { success = true, message = $"{products.Count} products deactivated." });
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception, "Error deleting selected products.");
-                return Json(new { success = false, message = "An error occurred while deleting the selected products." });
+                _logger.LogError(exception, "Error deactivating selected products.");
+                return Json(new { success = false, message = "An error occurred while deactivating the selected products." });
             }
         }
 
@@ -519,7 +554,8 @@ namespace Capstone_RJTech.Controllers
             product_quantity = product.product_quantity,
             reorder_level = product.reorder_level,
             product_price = product.Product_price,
-            product_status = product.product_status
+            product_status = product.product_status,
+            is_active = product.is_active
         };
 
         private static async Task<(byte[]? Data, string? ContentType, string? Error)> ReadProductImageAsync(

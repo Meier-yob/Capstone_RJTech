@@ -88,7 +88,7 @@
     .detail-card-heading h2 {
         color: var(--theme-strong, #111827);
         font-size: 1rem;
-        font-weight: 650;
+        font-weight: 600;
         margin: 0;
     }
 
@@ -148,7 +148,7 @@
     .detail-list dd {
         color: var(--theme-strong, #111827);
         font-size: 0.82rem;
-        font-weight: 650;
+        font-weight: 600;
         margin: 0;
         max-width: 68%;
         overflow-wrap: anywhere;
@@ -330,7 +330,7 @@
     border-radius: 999px;
     display: inline-flex;
     font-size: 0.75rem;
-    font-weight: 650;
+    font-weight: 600;
     padding: 0.32rem 0.62rem;
 }
 

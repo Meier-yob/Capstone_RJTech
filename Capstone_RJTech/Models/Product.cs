@@ -51,6 +51,13 @@ namespace Capstone_RJTech.Models
         [StringLength(50)]
         public string product_status { get; set; } = "Unavailable";
 
+        /// <summary>
+        /// Availability flag. When false the product is deactivated: it stays in the
+        /// catalog (shown as "Unavailable") but is hidden from sales until it is
+        /// activated again. Existing products default to active.
+        /// </summary>
+        public bool is_active { get; set; } = true;
+
         // Foreign Key
         [Required]
         public int category_ID { get; set; }

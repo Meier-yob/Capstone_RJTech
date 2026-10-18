@@ -25,7 +25,7 @@
 .installment-card-heading h2 {
     color: var(--theme-strong, #101828);
     font-size: 1rem;
-    font-weight: 650;
+    font-weight: 600;
     margin: 0;
 }
 
@@ -105,11 +105,11 @@
 }
 .installment-code {
     color: var(--theme-text, #475467);
-    font-weight: 650;
+    font-weight: 600;
 }
 .checkout-code {
     color: var(--theme-text, #475467);
-    font-weight: 650;
+    font-weight: 600;
 }
 
 .installment-code:hover,
@@ -119,7 +119,7 @@
 
 .installment-customer-name {
     color: var(--theme-strong, #101828);
-    font-weight: 650;
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -130,7 +130,7 @@
 }
 
 .amount-cell {
-    font-weight: 650;
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -167,7 +167,7 @@
     border-radius: 999px;
     display: inline-flex;
     font-size: 0.72rem;
-    font-weight: 650;
+    font-weight: 600;
     padding: 0.3rem 0.58rem;
 }
 
@@ -260,7 +260,7 @@
     border-radius: 999px;
     display: inline-flex;
     font-size: 0.72rem;
-    font-weight: 650;
+    font-weight: 600;
     padding: 0.3rem 0.58rem;
 }
 
@@ -329,7 +329,7 @@
 .installment-information-grid dd {
     color: var(--theme-strong, #111827);
     font-size: 0.84rem;
-    font-weight: 650;
+    font-weight: 600;
     margin: 0;
     overflow-wrap: anywhere;
 }
@@ -366,7 +366,7 @@
 .installment-detail-list dd {
     color: var(--theme-strong, #111827);
     font-size: 0.82rem;
-    font-weight: 650;
+    font-weight: 600;
     margin: 0;
     max-width: 68%;
     overflow-wrap: anywhere;
@@ -596,7 +596,7 @@
 .summary-balance-figure {
     color: var(--theme-strong, #101828);
     font-size: 1.9rem;
-    font-weight: 750;
+    font-weight: 700;
     letter-spacing: -0.01em;
     line-height: 1.1;
 }
@@ -626,13 +626,13 @@
 .summary-meta-item strong {
     color: var(--theme-strong, #101828);
     font-size: 0.8rem;
-    font-weight: 650;
+    font-weight: 600;
     overflow-wrap: anywhere;
 }
 
 .summary-meta-item strong.is-late {
     color: #b42338;
-    font-weight: 750;
+    font-weight: 700;
 }
 
 .summary-bottom-row {
@@ -685,13 +685,13 @@
     background: var(--theme-surface, #fff);
     border-right: 0;
     color: var(--theme-muted, #98a2b3);
-    font-weight: 650;
+    font-weight: 600;
 }
 
 .amount-input-group .amount-input {
     border-left: 0;
     font-size: 1.05rem;
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: 0.01em;
 }
 
@@ -719,7 +719,7 @@
 
 .amount-balance-after.is-payoff {
     color: var(--theme-green, #15803d);
-    font-weight: 650;
+    font-weight: 600;
 }
 
 .amount-error {
@@ -878,7 +878,7 @@
 .payment-success-title {
     color: var(--theme-strong, #101828);
     font-size: 1.2rem;
-    font-weight: 750;
+    font-weight: 700;
     line-height: 1.3;
     margin: 0;
 }
@@ -895,7 +895,7 @@
 .payment-confirmation-intro strong,
 .payment-success-message strong {
     color: var(--theme-strong, #101828);
-    font-weight: 750;
+    font-weight: 700;
 }
 
 .payment-confirmation-effects {
@@ -1012,7 +1012,7 @@
 .payment-success-summary dt {
     color: var(--theme-muted, #667085);
     font-size: 0.69rem;
-    font-weight: 650;
+    font-weight: 600;
     letter-spacing: 0.02em;
     margin-bottom: 0.18rem;
     text-transform: uppercase;

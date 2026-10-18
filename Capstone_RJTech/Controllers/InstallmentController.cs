@@ -31,7 +31,7 @@ namespace Capstone_RJTech.Controllers
             var model = await _installments.GetInstallmentDetailsAsync(id);
             return model == null ? NotFound() : View(model);
         }
-
+        //Record instalment Payment
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RecordPayment(RecordInstallmentPaymentViewModel request)

@@ -111,7 +111,7 @@ namespace Capstone_RJTech.Controllers
             var products = _db.Products
                 .Include(product => product.Category)
                 .AsNoTracking()
-                .Where(product => product.product_quantity > 0 && product.product_status != "Unavailable")
+                .Where(product => product.product_quantity > 0 && product.is_active && product.product_status != "Unavailable")
                 .OrderBy(product => product.product_name)
                 .Take(6)
                 .ToList();
@@ -208,7 +208,7 @@ namespace Capstone_RJTech.Controllers
                     Product = product,
                     AvailableStock = product.product_quantity
                 })
-                .Where(item => item.AvailableStock > 0 && item.Product.product_status != "Unavailable");
+                .Where(item => item.AvailableStock > 0 && item.Product.is_active && item.Product.product_status != "Unavailable");
 
             if (!string.IsNullOrWhiteSpace(term))
             {
@@ -237,7 +237,7 @@ namespace Capstone_RJTech.Controllers
 
             return Json(new { success = true, products = result });
         }
-
+        //Create Sales Transaction
         [HttpPost]
         public IActionResult CompleteCheckout([FromBody] SaveCheckoutRequest? request)
             => request == null
@@ -384,6 +384,9 @@ namespace Capstone_RJTech.Controllers
                 if (request.Items.Any(item => !products.ContainsKey(item.ProductID)))
                     return Json(new { success = false, message = "One or more selected products no longer exist." });
 
+                if (request.Items.Any(item => !products[item.ProductID].is_active))
+                    return Json(new { success = false, message = "One or more selected products are unavailable for sale." });
+
                 var validationError = ValidateRequest(request, products);
                 if (validationError != null)
                     return Json(new { success = false, message = validationError });
@@ -501,6 +504,17 @@ namespace Capstone_RJTech.Controllers
                     message = paymentType == "Installment"
                         ? "Installment created successfully."
                         : "Full payment completed successfully.",
+                    checkoutId = checkout.CheckoutID,
+                    installmentId = installmentCalculation == null ? (int?)null : checkout.Installment!.InstallmentID,
+                    customerName = customer.customer_FullName,
+                    paymentType = checkout.PaymentType,
+                    totalAmount = totalAmount,
+                    paymentMethod = checkout.PaymentMethod,
+                    downPayment = installmentCalculation?.DownPayment,
+                    monthlyPayment = installmentCalculation?.MonthlyPayment,
+                    remainingBalance = installmentCalculation?.InstallmentTotal,
+                    interestRate = installmentCalculation?.InterestRate,
+                    installmentStatus = installmentCalculation == null ? null : checkout.Installment!.Status,
                     redirectUrl = paymentType == "Installment"
                         ? Url.Action("Details", "Installment", new { id = checkout.Installment!.InstallmentID })
                         : Url.Action(nameof(SelectedCheckoutDetails), new { id = checkout.CheckoutID })

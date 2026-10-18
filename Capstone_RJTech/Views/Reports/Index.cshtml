@@ -188,7 +188,7 @@
 
             <div class="reports-grid reports-grid-2-3">
                 <section class="reports-panel" aria-labelledby="salesHistoryHeading">
-                    <div class="reports-panel-header"><div><h2 id="salesHistoryHeading">@CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Model.Period) Sales</h2><p>Sales performance for the selected period</p></div></div>
+                    <div class="reports-panel-header"><div><h2 id="salesHistoryHeading">@CultureInfo.InvariantCulture.TextInfo.ToTitleCase(Model.Period) Sales</h2></div></div>
                     <div class="report-chart report-chart-large">
                         @if (Model.Sales.History.Count > 0)
                         {
@@ -205,7 +205,7 @@
                     }
                 </section>
                 <section class="reports-panel" aria-labelledby="salesCategoryHeading">
-                    <div class="reports-panel-header"><div><h2 id="salesCategoryHeading">Sales by Category</h2><p>Revenue distribution by category name</p></div></div>
+                    <div class="reports-panel-header"><div><h2 id="salesCategoryHeading">Sales by Category</h2></div></div>
                     <div class="report-chart report-chart-large">
                         @if (Model.Sales.SalesByCategory.Count > 0)
                         {
@@ -239,7 +239,7 @@
             </div>
 
             <section class="reports-panel" aria-labelledby="recentTransactionsHeading">
-                <div class="reports-panel-header"><div><h2 id="recentTransactionsHeading">Recent Transactions</h2><p>Latest Paid, Ongoing, and Refunded checkouts</p></div><span class="reports-count">@Model.Sales.RecentTransactions.Count records</span></div>
+                <div class="reports-panel-header"><div><h2 id="recentTransactionsHeading">Recent Transactions</h2></div><span class="reports-count">@Model.Sales.RecentTransactions.Count records</span></div>
                 <div class="table-responsive"><table class="table reports-table reports-table-wide" data-report-paginate="true"><thead><tr><th>Checkout code</th><th>Customer name</th><th>Payment type</th><th>Payment method</th><th class="text-end">Amount</th><th>Transaction date</th><th>Status</th></tr></thead><tbody>
                     @foreach (var row in Model.Sales.RecentTransactions)
                     {
@@ -263,14 +263,14 @@
 
             <div class="reports-grid inventory-chart-grid">
                 <section class="reports-panel inventory-chart-panel" aria-labelledby="stockStatusHeading">
-                    <div class="reports-panel-header"><div><h2 id="stockStatusHeading">Product Stock Status</h2><p>Current inventory snapshot</p></div></div>
+                    <div class="reports-panel-header"><div><h2 id="stockStatusHeading">Product Stock Status</h2></div></div>
                     <div class="inventory-chart-layout">
                         <div class="inventory-doughnut"><canvas id="inventoryStatusChart" role="img" aria-label="Inventory status chart"></canvas><div><strong>@Model.Inventory.TotalProducts</strong><span>Products</span></div></div>
                         <ul class="report-legend"><li><i class="available"></i><span>Available</span><strong>@Model.Inventory.AvailableProducts</strong></li><li><i class="unavailable"></i><span>Unavailable</span><strong>@Model.Inventory.UnavailableProducts</strong></li><li><i class="low-stock"></i><span>Low Stock</span><strong>@Model.Inventory.LowStockProducts</strong></li><li><i class="out-of-stock"></i><span>Out of Stock</span><strong>@Model.Inventory.OutOfStockProducts</strong></li></ul>
                     </div>
                 </section>
                 <section class="reports-panel inventory-chart-panel" aria-labelledby="categoryQuantityHeading">
-                    <div class="reports-panel-header"><div><h2 id="categoryQuantityHeading">Quantity by Category</h2><p>@stockedCount of @categoryRows.Count categories have stock · @Model.Inventory.TotalQuantity.ToString("N0") units total</p></div></div>
+                    <div class="reports-panel-header"><div><h2 id="categoryQuantityHeading">Quantity by Category</h2></div></div>
                     @if (stockedCategories.Count > 0)
                     {
                         <div class="category-stock">

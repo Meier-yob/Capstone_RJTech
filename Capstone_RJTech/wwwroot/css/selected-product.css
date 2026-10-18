@@ -126,7 +126,7 @@
 .product-details-page .form-label {
     color: var(--theme-text, #344054);
     font-size: 0.75rem;
-    font-weight: 650;
+    font-weight: 600;
     margin-bottom: 0.35rem;
 }
 
@@ -190,7 +190,7 @@
 .product-information-value {
     color: var(--theme-strong, #111827);
     font-size: 0.84rem;
-    font-weight: 650;
+    font-weight: 600;
 }
 
 

@@ -1,0 +1,10 @@
+@* Single source of truth for the application typeface.
+   Referenced by the shared layout and by the Account views, which set
+   Layout = null and therefore render their own <head>.
+
+   fonts.css carries the font stack and the weight contract; the Google Fonts link
+   supplies the webfont itself. Adding this partial to a view brings both. *@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+<link rel="stylesheet" href="~/css/fonts.css" asp-append-version="true" />

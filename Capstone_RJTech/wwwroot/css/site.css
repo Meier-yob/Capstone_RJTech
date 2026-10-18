@@ -12,41 +12,263 @@
     background: var(--theme-surface-soft, #f8fafc);
 }
 
+/* ===== Toast notifications =====
+   Reusable alert component. site.js clones #appToastTemplate into the container
+   below for every message, so the markup stays in one place and several alerts
+   can stack without stepping on each other.
+
+   Placement is a fixed top-right stack (24px inset) so feedback never covers the
+   top navigation, the global search field, or the notification flyout.
+
+   Layer ladder - the toast stays last and must win every overlay:
+     1000  sticky header / sidebar          1080  in-page popovers
+     1055  modals                            1100  notification flyout
+     2000  global search overlay          2147483000  toasts (this file) */
 #appToastContainer {
-    left: 50% !important;
-    margin: 0;
-    max-width: calc(100vw - 2rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
     pointer-events: none;
-    right: auto !important;
-    top: 1.25rem !important;
-    transform: translateX(-50%);
-    z-index: 2147483647 !important;
+    position: fixed;
+    right: 24px;
+    top: 24px;
+    width: min(400px, calc(100vw - 2rem));
+    z-index: 2147483000;
 }
 
-#appToastContainer .toast {
-    border: 1px solid rgba(255, 255, 255, 0.32) !important;
-    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.3), 0 4px 12px rgba(15, 23, 42, 0.2) !important;
-    font-weight: 600;
-    max-width: 100%;
+.app-toast {
+    /* Per-variant tokens; every modifier below only redefines these. */
+    --toast-accent: #22c55e;
+    --toast-accent-soft: rgba(34, 197, 94, 0.14);
+    --toast-background: #f0fdf4;
+    --toast-border: rgba(34, 197, 94, 0.32);
+    --toast-text: #15803d;
+    --toast-action-background: rgba(34, 197, 94, 0.16);
+    --toast-action-text: #15803d;
+    align-items: flex-start;
+    background: var(--toast-background);
+    border: 1px solid var(--toast-border);
+    border-left: 4px solid var(--toast-accent);
+    border-radius: 12px;
+    box-shadow: 0 18px 40px -14px rgba(15, 23, 42, 0.3),
+                0 6px 16px -10px rgba(15, 23, 42, 0.18);
+    color: var(--toast-text);
+    display: flex;
+    gap: 0.7rem;
+    opacity: 0;
+    padding: 0.85rem 0.9rem;
     pointer-events: auto;
-    width: 400px;
+    transform: translateY(-8px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    width: 100%;
 }
 
-#appToast.text-bg-success { background-color: #087f5b !important; color: #fff !important; }
-#appToast.text-bg-danger { background-color: #c92a2a !important; color: #fff !important; }
-#appToast.text-bg-warning { background-color: #b45309 !important; color: #fff !important; }
-#appToast.text-bg-info { background-color: #0b5ed7 !important; color: #fff !important; }
-#appToast .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
+.app-toast.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.app-toast.is-leaving {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+}
+
+.app-toast-icon {
+    align-items: center;
+    background: var(--toast-accent-soft);
+    border-radius: 50%;
+    color: var(--toast-accent);
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.9rem;
+    height: 26px;
+    justify-content: center;
+    margin-top: 0.05rem;
+    width: 26px;
+}
+
+.app-toast-content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.app-toast-title {
+    color: var(--toast-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.app-toast-detail {
+    color: var(--toast-text);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    margin: 0.15rem 0 0;
+    opacity: 0.82;
+    overflow-wrap: anywhere;
+}
+
+.app-toast-action {
+    background: var(--toast-action-background);
+    border: 0;
+    border-radius: 999px;
+    color: var(--toast-action-text);
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+}
+
+.app-toast-action:hover,
+.app-toast-action:focus-visible {
+    background: var(--toast-accent);
+    color: #fff;
+}
+
+.app-toast-close {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    color: currentColor;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    height: 22px;
+    justify-content: center;
+    margin: -0.1rem -0.15rem 0 0;
+    opacity: 0.55;
+    padding: 0;
+    width: 22px;
+}
+
+.app-toast-close:hover,
+.app-toast-close:focus-visible {
+    opacity: 1;
+}
+
+/* Variants keep the same anatomy and contrast ratio, only the hue changes.
+   #15803D on #F0FDF4 clears WCAG AA for body text. */
+.app-toast--success {
+    --toast-accent: #22c55e;
+    --toast-accent-soft: rgba(34, 197, 94, 0.14);
+    --toast-background: #f0fdf4;
+    --toast-border: rgba(34, 197, 94, 0.32);
+    --toast-text: #15803d;
+    --toast-action-background: rgba(34, 197, 94, 0.16);
+    --toast-action-text: #15803d;
+}
+
+.app-toast--error {
+    --toast-accent: #ef4444;
+    --toast-accent-soft: rgba(239, 68, 68, 0.14);
+    --toast-background: #fef2f2;
+    --toast-border: rgba(239, 68, 68, 0.3);
+    --toast-text: #b42318;
+    --toast-action-background: rgba(239, 68, 68, 0.14);
+    --toast-action-text: #b42318;
+}
+
+.app-toast--warning {
+    --toast-accent: #f59e0b;
+    --toast-accent-soft: rgba(245, 158, 11, 0.18);
+    --toast-background: #fffbeb;
+    --toast-border: rgba(245, 158, 11, 0.34);
+    --toast-text: #92400e;
+    --toast-action-background: rgba(245, 158, 11, 0.2);
+    --toast-action-text: #92400e;
+}
+
+.app-toast--info {
+    --toast-accent: #3b82f6;
+    --toast-accent-soft: rgba(59, 130, 246, 0.14);
+    --toast-background: #eff6ff;
+    --toast-border: rgba(59, 130, 246, 0.3);
+    --toast-text: #1d4ed8;
+    --toast-action-background: rgba(59, 130, 246, 0.14);
+    --toast-action-text: #1d4ed8;
+}
+
+/* Dark tokens are screen-only, so printed output keeps the light palette. */
+@media screen {
+    :root[data-theme="dark"] .app-toast--success {
+        --toast-accent: var(--theme-green, #70dfb0);
+        --toast-accent-soft: rgba(112, 223, 176, 0.16);
+        --toast-background: var(--theme-green-soft, #183e35);
+        --toast-border: rgba(112, 223, 176, 0.32);
+        --toast-text: #d5f5e6;
+        --toast-action-background: rgba(112, 223, 176, 0.18);
+        --toast-action-text: #d5f5e6;
+    }
+
+    :root[data-theme="dark"] .app-toast--error {
+        --toast-accent: var(--theme-red, #ff939b);
+        --toast-accent-soft: rgba(255, 147, 155, 0.16);
+        --toast-background: var(--theme-red-soft, #472934);
+        --toast-border: rgba(255, 147, 155, 0.32);
+        --toast-text: #ffd7db;
+        --toast-action-background: rgba(255, 147, 155, 0.18);
+        --toast-action-text: #ffd7db;
+    }
+
+    :root[data-theme="dark"] .app-toast--warning {
+        --toast-accent: var(--theme-amber, #ffd178);
+        --toast-accent-soft: rgba(255, 209, 120, 0.18);
+        --toast-background: var(--theme-amber-soft, #45371f);
+        --toast-border: rgba(255, 209, 120, 0.32);
+        --toast-text: #ffe4b5;
+        --toast-action-background: rgba(255, 209, 120, 0.2);
+        --toast-action-text: #ffe4b5;
+    }
+
+    :root[data-theme="dark"] .app-toast--info {
+        --toast-accent: var(--theme-blue, #7cb2ff);
+        --toast-accent-soft: rgba(124, 178, 255, 0.18);
+        --toast-background: var(--theme-blue-soft, #1d3556);
+        --toast-border: rgba(124, 178, 255, 0.32);
+        --toast-text: #d6e7ff;
+        --toast-action-background: rgba(124, 178, 255, 0.18);
+        --toast-action-text: #d6e7ff;
+    }
+}
 
 @media (max-width: 575.98px) {
     #appToastContainer {
-        left: 1rem !important;
-        right: 1rem !important;
-        transform: none;
+        left: 12px;
+        right: 12px;
+        top: 12px;
+        width: auto;
     }
 
-    #appToastContainer .toast {
-        width: 100%;
+    .app-toast {
+        flex-wrap: wrap;
+    }
+
+    .app-toast-content {
+        flex: 1 1 100%;
+        order: 2;
+        margin-left: 2.4rem;
+    }
+
+    .app-toast-icon {
+        order: 1;
+    }
+
+    .app-toast-close {
+        order: 3;
+    }
+
+    .app-toast-action {
+        margin-left: 2.4rem;
+        order: 4;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-toast {
+        transition: none;
     }
 }
 

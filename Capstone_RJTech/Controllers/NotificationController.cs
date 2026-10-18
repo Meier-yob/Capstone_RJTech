@@ -30,7 +30,7 @@ namespace Capstone_RJTech.Controllers
             _installmentNotifications.Synchronize();
             return View(_db.Notifications.AsNoTracking().OrderByDescending(item => item.created_at).ToList());
         }
-
+        //get Product Notifications Alerts
         [HttpGet]
         public IActionResult GetNotifications(int limit = 6)
         {

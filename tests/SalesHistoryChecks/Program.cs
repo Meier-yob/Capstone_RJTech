@@ -29,6 +29,8 @@ void Check(bool condition, string description)
 }
 bool Success(IActionResult action)
     => JsonSerializer.SerializeToElement(((JsonResult)action).Value).GetProperty("success").GetBoolean();
+JsonElement Result(IActionResult action)
+    => JsonSerializer.SerializeToElement(((JsonResult)action).Value);
 
 try
 {
@@ -174,6 +176,44 @@ try
     Check(visible.Count == 8 && !db.ChangeTracker.Entries().Any() &&
         visible.SequenceEqual(visible.OrderByDescending(row => row.PurchaseDate).ThenByDescending(row => row.HistoryID)),
         "Sales History reads all receipts newest first without modifying records.");
+
+    // The checkout completion modal is populated from the response, so it has to describe
+    // exactly the record the server committed, and one Confirm call may save one sale only.
+    var fullResult = Result(sales.CompleteCheckout(Request("HISTORY-RESULT-FULL")));
+    var fullResultCheckout = await db.Checkouts.OrderByDescending(row => row.CheckoutID).FirstAsync();
+    Check(fullResult.GetProperty("success").GetBoolean() &&
+        fullResult.GetProperty("checkoutId").GetInt32() == fullResultCheckout.CheckoutID &&
+        fullResult.GetProperty("customerName").GetString() == "Juan Dela Cruz" &&
+        fullResult.GetProperty("paymentType").GetString() == "Full Payment" &&
+        fullResult.GetProperty("paymentMethod").GetString() == "Cash" &&
+        fullResult.GetProperty("totalAmount").GetDecimal() == 18000 &&
+        fullResult.GetProperty("installmentId").ValueKind == JsonValueKind.Null &&
+        fullResult.GetProperty("downPayment").ValueKind == JsonValueKind.Null,
+        "Full payment response reports the saved checkout for the completion modal.");
+
+    var planResult = Result(sales.CompleteCheckout(Request("HISTORY-RESULT-PLAN", "Installment")));
+    var planResultCheckout = await db.Checkouts.OrderByDescending(row => row.CheckoutID).FirstAsync();
+    var planResultInstallment = await db.Installments
+        .SingleAsync(row => row.CheckoutID == planResultCheckout.CheckoutID);
+    Check(planResult.GetProperty("success").GetBoolean() &&
+        planResult.GetProperty("checkoutId").GetInt32() == planResultCheckout.CheckoutID &&
+        planResult.GetProperty("installmentId").GetInt32() == planResultInstallment.InstallmentID &&
+        planResult.GetProperty("totalAmount").GetDecimal() == 18000 &&
+        planResult.GetProperty("downPayment").GetDecimal() == planResultInstallment.DownPayment &&
+        planResult.GetProperty("monthlyPayment").GetDecimal() == planResultInstallment.MonthlyPayment &&
+        planResult.GetProperty("remainingBalance").GetDecimal() == planResultInstallment.Balance &&
+        planResult.GetProperty("interestRate").GetDecimal() == 5 &&
+        planResult.GetProperty("installmentStatus").GetString() == "Active",
+        "Instalment response reports the saved plan figures for the completion modal.");
+
+    int checkoutsBefore = await db.Checkouts.CountAsync();
+    var repeatResult = Result(sales.CompleteCheckout(Request("HISTORY-RESULT-REPEAT")));
+    Check(repeatResult.GetProperty("success").GetBoolean() &&
+        await db.Checkouts.CountAsync() == checkoutsBefore + 1 &&
+        await db.CustomerPurchaseHistories.CountAsync(row =>
+            row.CheckoutID == repeatResult.GetProperty("checkoutId").GetInt32()) == 1,
+        "Each confirmed checkout saves exactly one record and one receipt.");
+
     Console.WriteLine("All Sales History SQL Server integration checks passed.");
     keepPreview = args.Contains("--keep-preview");
     if (keepPreview) Console.WriteLine("PREVIEW_DATABASE=" + databaseName);

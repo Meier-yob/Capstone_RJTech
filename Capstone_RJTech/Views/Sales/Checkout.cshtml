@@ -51,7 +51,7 @@
                                    placeholder="Search existing customer by name, phone, or email..."
                                    autocomplete="off" />
                         </div>
-                        <div id="customerSearchResults" class="live-search-results app-card d-none"></div>
+                        <div id="customerSearchResults" class="live-search-results customer-search-results app-card d-none"></div>
                     </div>
                     <div class="col-lg-4">
                         <label class="form-label" for="customerFullName">Full Name</label>
@@ -172,10 +172,7 @@
                                    value="@Model.DatePurchased.ToString("MMM d, yyyy")" readonly />
                         </div>
                     </div>
-                    <div>
-                        <label class="form-label">Status</label>
-                        <div><span id="checkoutStatus" class="sales-status status-paid">Paid</span></div>
-                    </div>
+                    
                 </div>
 
                 <div class="checkout-summary-totals">
@@ -240,9 +237,7 @@
                 <div class="checkout-summary-actions">
                     <a asp-action="SalesOrders" class="btn btn-outline-secondary" id="cancelCheckout">Cancel</a>
                     <button class="btn btn-primary" type="button" id="completeCheckout" disabled>
-                        <span class="spinner-border spinner-border-sm d-none me-1" aria-hidden="true"></span>
-                        <i class="bi bi-check2-circle me-1"></i>
-                        <span id="checkoutSubmitLabel">Complete Checkout</span>
+                        <span id="checkoutSubmitLabel">Checkout</span>
                     </button>
                 </div>
             </section>
@@ -268,6 +263,138 @@
             <div class="modal-footer confirm-exit-footer">
                 <button class="btn btn-outline-secondary confirm-exit-cancel" type="button" data-bs-dismiss="modal">Cancel</button>
                 <button id="discardCheckout" class="btn btn-danger confirm-exit-leave" type="button">Discard &amp; Leave</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Checkout confirmation ------------------------------------------------ -->
+<div class="modal fade checkout-flow-modal" id="checkoutConfirmModal" tabindex="-1" role="dialog"
+     aria-labelledby="checkoutConfirmTitle" aria-describedby="checkoutConfirmIntro" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered checkout-flow-dialog">
+        <div class="modal-content checkout-flow-content">
+            <div class="modal-body checkout-flow-body">
+                <div class="checkout-flow-icon" aria-hidden="true">
+                    <i class="bi bi-receipt"></i>
+                </div>
+                <h2 class="modal-title checkout-flow-title" id="checkoutConfirmTitle">Confirm Checkout</h2>
+                <p class="checkout-flow-intro" id="checkoutConfirmIntro">
+                    Are you sure you want to complete this checkout?
+                </p>
+
+                <dl class="checkout-flow-summary" aria-label="Checkout summary">
+                    <div>
+                        <dt>Payment Type</dt>
+                        <dd id="confirmPaymentType">Full Payment</dd>
+                    </div>
+                    <div>
+                        <dt>Customer</dt>
+                        <dd id="confirmCustomerName">—</dd>
+                    </div>
+                    <div>
+                        <dt>Items</dt>
+                        <dd id="confirmItemCount">0 items</dd>
+                    </div>
+                    <div>
+                        <dt>Total Amount</dt>
+                        <dd class="checkout-flow-amount" id="confirmTotalAmount">₱0.00</dd>
+                    </div>
+                    <div class="d-none" data-confirm-row="downPayment">
+                        <dt>Down Payment</dt>
+                        <dd id="confirmDownPayment">₱0.00</dd>
+                    </div>
+                    <div class="d-none" data-confirm-row="monthlyPayment">
+                        <dt>Monthly Payment</dt>
+                        <dd id="confirmMonthlyPayment">₱0.00</dd>
+                    </div>
+                    <div class="d-none" data-confirm-row="interestRate">
+                        <dt>Interest Rate</dt>
+                        <dd id="confirmInterestRate">5.00%</dd>
+                    </div>
+                    <div class="d-none" data-confirm-row="remainingBalance">
+                        <dt>Remaining Balance</dt>
+                        <dd id="confirmRemainingBalance">₱0.00</dd>
+                    </div>
+                    <div>
+                        <dt>Payment Method</dt>
+                        <dd id="confirmPaymentMethod">Cash</dd>
+                    </div>
+                </dl>
+
+                <p class="checkout-flow-note">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    Confirming saves this checkout together with the payment shown above.
+                </p>
+            </div>
+            <div class="modal-footer checkout-flow-footer">
+                <button class="btn btn-outline-secondary checkout-flow-cancel" type="button" data-bs-dismiss="modal">Cancel</button>
+                <button id="confirmCheckoutButton" class="btn btn-primary" type="button">
+                    <span class="spinner-border spinner-border-sm d-none me-1" aria-hidden="true"></span>
+                    <span id="confirmCheckoutLabel">Confirm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Checkout completed ---------------------------------------------------- -->
+<div class="modal fade checkout-flow-modal" id="checkoutCompletedModal" tabindex="-1" role="dialog"
+     aria-labelledby="checkoutCompletedTitle" aria-describedby="checkoutCompletedIntro" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered checkout-flow-dialog">
+        <div class="modal-content checkout-flow-content">
+            <div class="modal-body checkout-flow-body">
+                <div class="checkout-flow-icon checkout-flow-icon-success" aria-hidden="true">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <h2 class="modal-title checkout-flow-title" id="checkoutCompletedTitle">Checkout Completed</h2>
+                <p class="checkout-flow-intro" id="checkoutCompletedIntro">
+                    Your checkout has been completed successfully.
+                </p>
+
+                <dl class="checkout-flow-summary" aria-label="Saved checkout summary">
+                    <div class="checkout-flow-summary-lead">
+                        <dt>Checkout ID</dt>
+                        <dd class="checkout-flow-code" id="completedCheckoutId">—</dd>
+                    </div>
+                    <div>
+                        <dt>Customer</dt>
+                        <dd id="completedCustomerName">—</dd>
+                    </div>
+                    <div>
+                        <dt>Payment Type</dt>
+                        <dd id="completedPaymentType">—</dd>
+                    </div>
+                    <div>
+                        <dt>Total Amount</dt>
+                        <dd class="checkout-flow-amount" id="completedTotalAmount">₱0.00</dd>
+                    </div>
+                    <div class="d-none" data-completed-row="downPayment">
+                        <dt>Down Payment</dt>
+                        <dd id="completedDownPayment">₱0.00</dd>
+                    </div>
+                    <div class="d-none" data-completed-row="monthlyPayment">
+                        <dt>Monthly Payment</dt>
+                        <dd id="completedMonthlyPayment">₱0.00</dd>
+                    </div>
+                    <div class="d-none" data-completed-row="remainingBalance">
+                        <dt>Remaining Balance</dt>
+                        <dd id="completedRemainingBalance">₱0.00</dd>
+                    </div>
+                    <div class="d-none" data-completed-row="installmentStatus">
+                        <dt>Installment Status</dt>
+                        <dd><span class="checkout-flow-status" id="completedInstallmentStatus">—</span></dd>
+                    </div>
+                    <div>
+                        <dt>Payment Method</dt>
+                        <dd id="completedPaymentMethod">—</dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="modal-footer checkout-flow-footer">
+                <button id="checkoutCompletedContinue" class="btn btn-outline-secondary checkout-flow-cancel" type="button" data-bs-dismiss="modal">Continue</button>
+                <button id="checkoutCompletedDetails" class="btn btn-primary" type="button">
+                    <span>View Details</span><i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </button>
             </div>
         </div>
     </div>

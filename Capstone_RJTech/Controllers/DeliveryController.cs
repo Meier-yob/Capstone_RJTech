@@ -167,8 +167,9 @@ namespace Capstone_RJTech.Controllers
                 foreach (var requestedItem in request.items)
                 {
                     var product = products[requestedItem.product_ID];
-                    bool isInitialReceipt = product.product_status == "Unavailable";
-                    int previousQuantity = isInitialReceipt ? 0 : product.product_quantity;
+                    // Use the product's real on-hand quantity so a deactivated product
+                    // that still holds stock is not reset to the delivered amount.
+                    int previousQuantity = product.product_quantity;
                     int newQuantity = checked(previousQuantity + requestedItem.quantity);
 
                     delivery.DeliveryDetails.Add(new DeliveryDetails
@@ -181,8 +182,11 @@ namespace Capstone_RJTech.Controllers
                     });
 
                     product.product_quantity = newQuantity;
-                    product.product_status = "Available";
-                    product.product_status = ProductController.EvaluateProductStatus(product);
+                    // A deactivated product stays "Unavailable" even after receiving
+                    // stock; it only becomes available again when explicitly activated.
+                    product.product_status = product.is_active
+                        ? ProductController.GetStockStatus(product)
+                        : "Unavailable";
                 }
 
                 _db.SaveChanges();

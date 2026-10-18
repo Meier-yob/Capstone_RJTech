@@ -1,0 +1,76 @@
+<!-- =============================================================
+     PRODUCT AVAILABILITY CONFIRMATION MODAL
+     Shared by All Products and Product Details. Reuses the app's
+     standard confirmation modal styling.
+     ============================================================= -->
+<div class="modal fade confirm-exit-modal"
+     id="productAvailabilityModal"
+     tabindex="-1"
+     aria-labelledby="productAvailabilityTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered confirm-exit-dialog">
+
+        <div class="modal-content">
+
+
+            <!-- Header -->
+            <div class="confirm-exit-head">
+
+                <span class="confirm-exit-icon" aria-hidden="true">
+                    <i id="productAvailabilityIcon" class="bi bi-exclamation-triangle"></i>
+                </span>
+
+                <div>
+                    <h2 class="modal-title fs-5 confirm-exit-title"
+                        id="productAvailabilityTitle">
+                        Deactivate product
+                    </h2>
+
+                    <p class="confirm-exit-subtitle"
+                       id="productAvailabilitySubtitle">
+                        This product will be hidden from sales.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- Body -->
+            <div class="modal-body">
+
+                <p class="mb-0 confirm-exit-message"
+                   id="productAvailabilityMessage">
+                    Are you sure you want to deactivate this product?
+                </p>
+
+            </div>
+
+
+            <!-- Footer -->
+            <div class="modal-footer confirm-exit-footer">
+
+                <button class="btn btn-outline-secondary confirm-exit-cancel"
+                        type="button"
+                        data-bs-dismiss="modal">
+
+                    Cancel
+
+                </button>
+
+
+                <button id="confirmProductAvailability"
+                        class="btn btn-danger confirm-exit-leave"
+                        type="button">
+
+                    Deactivate
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

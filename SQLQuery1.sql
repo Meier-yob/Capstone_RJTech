@@ -1,10 +1,4 @@
-CREATE DATABASE RJTechInventory;
-GO
-
-USE RJTechInventory;
-GO
-
-
+﻿
 
 CREATE TABLE tblUser (
     UserID INT IDENTITY(1,1) PRIMARY KEY,

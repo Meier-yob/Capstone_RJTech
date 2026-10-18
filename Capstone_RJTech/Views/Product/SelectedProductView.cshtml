@@ -18,7 +18,8 @@
 <div class="app-page product-details-page"
      id="productDetailsPage"
      data-product-id="@Model.product_ID"
-     data-delete-url="@Url.Action("DeleteProduct")"
+     data-deactivate-url="@Url.Action("DeactivateProduct")"
+     data-activate-url="@Url.Action("ActivateProduct")"
      data-products-url="@Url.Action("ProductManagement")">
 
     <!-- =====================================================
@@ -76,14 +77,30 @@
             </button>
 
 
-            <button id="deleteProduct"
-                    class="btn btn-outline-danger"
-                    type="button">
+            @if (Model.is_active)
+            {
+                <button id="deactivateProduct"
+                        class="btn btn-outline-danger"
+                        type="button"
+                        data-action="deactivate">
 
-                <i class="bi bi-trash me-1"></i>
-                Delete
+                    <i class="bi bi-slash-circle me-1"></i>
+                    Deactivate
 
-            </button>
+                </button>
+            }
+            else
+            {
+                <button id="activateProduct"
+                        class="btn btn-outline-success"
+                        type="button"
+                        data-action="activate">
+
+                    <i class="bi bi-check-circle me-1"></i>
+                    Activate
+
+                </button>
+            }
 
         </div>
 
@@ -739,6 +756,9 @@
     </div>
 
 </div>
+
+
+<partial name="_ProductAvailabilityModal" />
 
 
 @section Styles {

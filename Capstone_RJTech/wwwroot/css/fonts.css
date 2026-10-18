@@ -1,0 +1,34 @@
+/* ===== Typography =====
+   Inter is the single application typeface. The webfont is loaded once by
+   Views/Shared/_FontHead.cshtml, which the shared layout and the Account views
+   (Layout = null) both reference, so no page needs its own font link.
+
+   Inter ships weights 300-700 only, so every font-weight in the project stays
+   inside that range. Values like 650 or 750 are rounded to 700 by the browser and
+   would silently render heavier than intended; the stylesheets use 400/500/600/700.
+
+   The fallbacks after Inter cover the brief first paint before the webfont arrives
+   (display=swap) and any environment that cannot reach fonts.googleapis.com. */
+:root {
+    --rj-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+}
+
+html {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-family: var(--rj-font);
+    text-size-adjust: 100%;
+}
+
+/* Bootstrap's reboot sets --bs-body-font-family to the system stack and applies it to
+   body. The repeated selectors here are deliberate: they outrank Bootstrap's `:root`
+   and `body` rules whether this file loads before or after bootstrap.min.css, so the
+   layout's link order cannot silently drop the app off Inter. */
+:root:root {
+    --bs-body-font-family: var(--rj-font);
+}
+
+html body {
+    font-family: var(--rj-font);
+}

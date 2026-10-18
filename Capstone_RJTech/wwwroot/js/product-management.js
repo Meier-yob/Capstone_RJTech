@@ -14,8 +14,19 @@
     const categorySearch = document.getElementById('categoryLiveSearch');
     const categoryCheckboxes = [...document.querySelectorAll('.category-checkbox')];
 
+    const availabilityModalElement = document.getElementById('productAvailabilityModal');
+    const availabilityModal = availabilityModalElement
+        ? bootstrap.Modal.getOrCreateInstance(availabilityModalElement)
+        : null;
+    const availabilityTitle = document.getElementById('productAvailabilityTitle');
+    const availabilitySubtitle = document.getElementById('productAvailabilitySubtitle');
+    const availabilityMessage = document.getElementById('productAvailabilityMessage');
+    const availabilityIcon = document.getElementById('productAvailabilityIcon');
+    const availabilityConfirm = document.getElementById('confirmProductAvailability');
+
     let selectedStatus = 'all';
     let currentPage = 1;
+    let pendingAvailabilityButton = null;
 
     function getSelectedCategories() {
         return new Set(
@@ -113,44 +124,80 @@
         renderProducts();
     }
 
-    async function deleteProduct(button, event) {
+    function toggleProductAvailability(button, event) {
         event.stopPropagation();
 
-        if (!confirm(`Delete ${button.dataset.name}? This cannot be undone.`)) {
+        if (!availabilityModal) {
             return;
         }
 
-        const response = await fetch(pageElement.dataset.deleteUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ id: button.dataset.id })
-        });
-        const result = await response.json();
+        pendingAvailabilityButton = button;
+        const isActivate = button.dataset.action === 'activate';
 
-        if (result.success) {
-            window.reloadWithToast(result.message || 'Product deleted successfully.');
-            return;
-        }
+        availabilityTitle.textContent = isActivate ? 'Activate product' : 'Deactivate product';
+        availabilitySubtitle.textContent = isActivate
+            ? 'This product will be available for sales again.'
+            : 'This product will be hidden from sales.';
+        availabilityMessage.textContent = isActivate
+            ? `Activate ${button.dataset.name}? It will become available for sales again.`
+            : `Deactivate ${button.dataset.name}? It will remain in the system with the status "Unavailable" and will no longer appear in sales.`;
+        availabilityIcon.className = isActivate ? 'bi bi-check-circle' : 'bi bi-exclamation-triangle';
+        availabilityConfirm.textContent = isActivate ? 'Activate' : 'Deactivate';
+        availabilityConfirm.classList.toggle('btn-danger', !isActivate);
+        availabilityConfirm.classList.toggle('btn-success', isActivate);
 
-        window.showToast(result.message || 'Unable to delete product.', 'error');
+        availabilityModal.show();
     }
 
-    async function deleteSelectedProducts(event) {
+    async function confirmProductAvailability() {
+        const button = pendingAvailabilityButton;
+        if (!button) {
+            return;
+        }
+
+        const isActivate = button.dataset.action === 'activate';
+        const verb = isActivate ? 'Activate' : 'Deactivate';
+        const url = isActivate ? pageElement.dataset.activateUrl : pageElement.dataset.deactivateUrl;
+
+        availabilityConfirm.disabled = true;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ id: button.dataset.id }),
+                skipToast: true
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                window.reloadWithToast(result.message || `Product ${verb.toLowerCase()}d.`);
+                return;
+            }
+
+            availabilityModal.hide();
+            window.showToast(result.message || `Unable to ${verb.toLowerCase()} product.`, 'error');
+        } finally {
+            availabilityConfirm.disabled = false;
+        }
+    }
+
+    async function deactivateSelectedProducts(event) {
         event.preventDefault();
         const ids = event.detail?.ids ?? [];
-        if (!ids.length || !confirm(`Delete ${ids.length} selected products? This cannot be undone.`)) return;
+        if (!ids.length || !confirm(`Deactivate ${ids.length} selected products? They will be unavailable for sales.`)) return;
 
-        const response = await fetch(pageElement.dataset.bulkDeleteUrl, {
+        const response = await fetch(pageElement.dataset.bulkDeactivateUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ids)
         });
         const result = await response.json();
         if (result.success) {
-            window.reloadWithToast(result.message || 'Selected products deleted successfully.');
+            window.reloadWithToast(result.message || 'Selected products deactivated.');
             return;
         }
-        window.showToast(result.message || 'Unable to delete the selected products.', 'error');
+        window.showToast(result.message || 'Unable to deactivate the selected products.', 'error');
     }
 
     searchInput.addEventListener('input', () => {
@@ -199,10 +246,14 @@
             }
         });
     });
-    document.querySelectorAll('.delete-product').forEach(button => {
-        button.addEventListener('click', event => deleteProduct(button, event));
+    document.querySelectorAll('.deactivate-product, .activate-product').forEach(button => {
+        button.addEventListener('click', event => toggleProductAvailability(button, event));
     });
-    table?.addEventListener('table:bulk-delete', deleteSelectedProducts);
+    availabilityConfirm?.addEventListener('click', confirmProductAvailability);
+    availabilityModalElement?.addEventListener('hidden.bs.modal', () => {
+        pendingAvailabilityButton = null;
+    });
+    table?.addEventListener('table:bulk-delete', deactivateSelectedProducts);
     table?.addEventListener('table:sorted', () => {
         productRows = [...document.querySelectorAll('.product-row')];
         currentPage = 1;

@@ -7,6 +7,7 @@
     const badge = document.getElementById('notificationBadge');
     const dot = document.getElementById('notificationDot');
     const count = document.getElementById('flyoutUnreadCount');
+    const markAllRead = document.getElementById('flyoutMarkAllRead');
 
     function iconFor(type) {
         return {
@@ -25,6 +26,8 @@
 
     function updateUnreadCount(unreadCount) {
         count.textContent = unreadCount;
+        count.setAttribute('aria-label', `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`);
+        markAllRead.disabled = unreadCount === 0;
         badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
         badge.classList.toggle('d-none', unreadCount === 0);
         dot.classList.toggle('d-none', unreadCount === 0);
@@ -90,7 +93,7 @@
         flyout.classList.add('d-none');
         toggle.setAttribute('aria-expanded', 'false');
     });
-    document.getElementById('flyoutMarkAllRead').addEventListener('click', async () => {
+    markAllRead.addEventListener('click', async () => {
         await fetch(flyout.dataset.readAllUrl, { method: 'POST' });
         await loadNotifications();
     });

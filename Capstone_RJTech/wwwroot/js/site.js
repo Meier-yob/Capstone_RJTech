@@ -2,21 +2,32 @@
 window.addEventListener('dragover', event => event.preventDefault());
 window.addEventListener('drop', event => event.preventDefault());
 
-/**
- * Displays the shared Bootstrap toast.
- * @param {string} message Message shown to the user.
- * @param {'success'|'error'|'warning'|'info'} [type='success'] Visual toast type.
- */
-const toastDuration = 5000;
+/* ===== Toast notifications =====
+   Reusable alert component. The container and the single markup definition live
+   in _Layout.cshtml; this code clones the definition per message so multiple
+   alerts can stack in the fixed top-right area.
+
+   Timer state (remaining, timer, paused, resumedAt) is kept on the toast element
+   as expandos. Elements are discarded with the DOM, so nothing leaks. */
+const toastDuration = 4000;
+const toastMaxVisible = 4;
 const pendingToastKey = 'rjtech.pendingToast';
 let lastToastMessage = '';
 let lastToastTime = 0;
 
-function savePendingToast(message, type) {
+const toastVariants = {
+    success: { modifier: 'app-toast--success', icon: 'bi-check-lg' },
+    error: { modifier: 'app-toast--error', icon: 'bi-exclamation-lg' },
+    warning: { modifier: 'app-toast--warning', icon: 'bi-exclamation-triangle-lg' },
+    info: { modifier: 'app-toast--info', icon: 'bi-info-lg' }
+};
+
+function savePendingToast(message, type, detail) {
     try {
         sessionStorage.setItem(pendingToastKey, JSON.stringify({
             message,
             type,
+            detail,
             createdAt: Date.now()
         }));
     } catch {
@@ -41,90 +52,137 @@ function takePendingToast() {
     }
 }
 
-window.showToast = function showToast(message, type = 'success', action = null) {
-    const toast = document.getElementById('appToast');
-    const messageElement = document.getElementById('appToastMessage');
-    const icon = document.getElementById('appToastIcon');
-    const container = document.getElementById('appToastContainer');
-    const actionButton = document.getElementById('appToastAction');
+/**
+ * Starts (or restarts) the auto-dismiss countdown from the time still remaining.
+ */
+function resumeToastTimer(toast) {
+    window.clearTimeout(toast.timer);
+    toast.resumedAt = Date.now();
+    toast.timer = window.setTimeout(() => dismissToast(toast), toast.remaining);
+}
 
-    if (!toast || !messageElement || !icon || !container) {
+/**
+ * Freezes the countdown. Hovering keeps the toast up for as long as the pointer
+ * stays on it, instead of restarting the full delay once the pointer leaves.
+ */
+function pauseToastTimer(toast) {
+    if (toast.paused) {
         return;
     }
+    window.clearTimeout(toast.timer);
+    toast.remaining = Math.max(0, toast.remaining - (Date.now() - toast.resumedAt));
+    toast.paused = true;
+}
 
-    // Keep the toast outside page-specific stacking and overflow containers.
+function dismissToast(toast) {
+    if (!toast || !toast.isConnected || toast.classList.contains('is-leaving')) {
+        return;
+    }
+    window.clearTimeout(toast.timer);
+    toast.classList.remove('is-visible');
+    toast.classList.add('is-leaving');
+    window.setTimeout(() => toast.remove(), 240);
+}
+
+/**
+ * Retires the oldest alerts so a burst of messages cannot cover the screen.
+ */
+function trimToastStack(container) {
+    const standing = container.querySelectorAll('.app-toast:not(.is-leaving)');
+    for (let index = 0; index < standing.length - toastMaxVisible; index += 1) {
+        dismissToast(standing[index]);
+    }
+}
+
+/**
+ * Displays a toast alert.
+ * @param {string} message Primary message shown to the user.
+ * @param {'success'|'error'|'warning'|'info'} [type='success'] Visual toast type.
+ * @param {{label: string, onClick: Function}} [action] Optional right-aligned action button.
+ * @param {{detail?: string, duration?: number}} [options] Supporting text and custom lifetime.
+ * @returns {{element: HTMLElement, dismiss: Function}|null} Handle for the created toast.
+ */
+window.showToast = function showToast(message, type = 'success', action = null, options = {}) {
+    const container = document.getElementById('appToastContainer');
+    const template = document.getElementById('appToastTemplate');
+
+    if (!container || !template || !message) {
+        return null;
+    }
+
+    // Keep the stack outside page-specific stacking and overflow containers.
     if (container.parentElement !== document.body) {
         document.body.appendChild(container);
     }
 
     const now = Date.now();
     if (message === lastToastMessage && now - lastToastTime < 750) {
-        return;
+        return null;
     }
     lastToastMessage = message;
     lastToastTime = now;
 
-    const styles = {
-        success: ['text-bg-success', 'bi-check-circle-fill'],
-        error: ['text-bg-danger', 'bi-exclamation-circle-fill'],
-        warning: ['text-bg-warning', 'bi-exclamation-triangle-fill'],
-        info: ['text-bg-info', 'bi-info-circle-fill']
-    };
-    const [backgroundClass, iconClass] = styles[type] ?? styles.success;
+    const variant = toastVariants[type] ?? toastVariants.success;
+    const toast = template.content.firstElementChild.cloneNode(true);
 
-    toast.classList.remove(
-        'text-bg-success',
-        'text-bg-danger',
-        'text-bg-warning',
-        'text-bg-info'
-    );
-    toast.classList.add(backgroundClass);
-    icon.className = `bi ${iconClass}`;
-    messageElement.textContent = message || '';
+    toast.classList.add(variant.modifier);
+    toast.querySelector('.app-toast-icon i').className = `bi ${variant.icon}`;
+    toast.querySelector('.app-toast-title').textContent = message;
 
-    if (actionButton) {
-        if (action && typeof action.onClick === 'function') {
-            actionButton.textContent = action.label || 'Action';
-            actionButton.classList.remove('d-none');
-            actionButton.onclick = (event) => {
-                event.preventDefault();
-                if (window.bootstrap?.Toast) {
-                    bootstrap.Toast.getOrCreateInstance(toast).hide();
-                }
-                action.onClick(event);
-            };
-        } else {
-            actionButton.classList.add('d-none');
-            actionButton.onclick = null;
+    const detailElement = toast.querySelector('.app-toast-detail');
+    const detail = typeof options.detail === 'string' ? options.detail : '';
+    if (detail) {
+        detailElement.textContent = detail;
+        detailElement.classList.remove('d-none');
+    }
+
+    const actionButton = toast.querySelector('.app-toast-action');
+    if (action && typeof action.onClick === 'function') {
+        actionButton.textContent = action.label || 'Action';
+        actionButton.classList.remove('d-none');
+        actionButton.addEventListener('click', event => {
+            event.preventDefault();
+            dismissToast(toast);
+            action.onClick(event);
+        });
+    }
+
+    toast.querySelector('.app-toast-close').addEventListener('click', () => dismissToast(toast));
+    toast.addEventListener('mouseenter', () => pauseToastTimer(toast));
+    toast.addEventListener('mouseleave', () => resumeToastTimer(toast));
+    toast.addEventListener('focusin', () => pauseToastTimer(toast));
+    toast.addEventListener('focusout', event => {
+        if (!toast.contains(event.relatedTarget)) {
+            resumeToastTimer(toast);
         }
-    }
+    });
 
-    if (window.bootstrap?.Toast) {
-        bootstrap.Toast.getOrCreateInstance(toast, {
-            autohide: true,
-            delay: toastDuration
-        }).show();
-        return;
-    }
+    toast.remaining = typeof options.duration === 'number' ? options.duration : toastDuration;
+    toast.paused = false;
+    container.appendChild(toast);
+    trimToastStack(container);
 
-    // Basic fallback so feedback remains visible even if Bootstrap fails to load.
-    toast.classList.add('show');
-    window.setTimeout(() => toast.classList.remove('show'), toastDuration);
+    // Read layout so the entry transition starts from the hidden state.
+    void toast.offsetWidth;
+    toast.classList.add('is-visible');
+    resumeToastTimer(toast);
+
+    return { element: toast, dismiss: () => dismissToast(toast) };
 };
 
 /**
  * Carries a toast across a page navigation and displays it on the destination page.
  */
-window.redirectWithToast = function redirectWithToast(message, type, url) {
-    savePendingToast(message, type);
+window.redirectWithToast = function redirectWithToast(message, type, url, options = {}) {
+    savePendingToast(message, type, options?.detail);
     window.location.assign(url);
 };
 
 /**
  * Carries a toast across a page refresh and displays it after the refresh.
  */
-window.reloadWithToast = function reloadWithToast(message, type = 'success') {
-    savePendingToast(message, type);
+window.reloadWithToast = function reloadWithToast(message, type = 'success', options = {}) {
+    savePendingToast(message, type, options?.detail);
     window.location.reload();
 };
 
@@ -172,7 +230,7 @@ const pendingToast = takePendingToast();
 const toastContainer = document.getElementById('appToastContainer');
 
 if (pendingToast?.message) {
-    window.showToast(pendingToast.message, pendingToast.type);
+    window.showToast(pendingToast.message, pendingToast.type, null, { detail: pendingToast.detail });
 } else if (toastContainer?.dataset.successMessage) {
     window.showToast(toastContainer.dataset.successMessage, 'success');
 } else if (toastContainer?.dataset.errorMessage) {

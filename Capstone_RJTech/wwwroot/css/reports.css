@@ -22,7 +22,7 @@
 .reports-heading h1 {
     color: var(--theme-strong, #111c2d);
     font-size: 25px;
-    font-weight: 750;
+    font-weight: 700;
     letter-spacing: -.65px;
     margin: 0 0 5px;
 }
@@ -256,7 +256,7 @@
 .reports-table-wide { min-width: 850px; }
 .compact-product-table { min-width: 520px; }
 .compact-panel .reports-panel-header { padding-bottom: 7px; }
-.report-code, .report-money { font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
+.report-code, .report-money { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
 .report-code a { color: var(--report-blue); text-decoration: none; }
 .report-code a:hover { text-decoration: underline; }
 
@@ -292,7 +292,7 @@
     color: var(--theme-muted, #64748b);
     display: inline-flex;
     font-size: 9px;
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1;
     padding: 5px 9px;
     white-space: nowrap;

@@ -63,7 +63,7 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("product_ID");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.AppUser", b =>
@@ -107,7 +107,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("tblUser", (string)null);
+                    b.ToTable("tblUser");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Checkout", b =>
@@ -146,7 +146,7 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("CustomerID");
 
-                    b.ToTable("tblCheckout", (string)null);
+                    b.ToTable("tblCheckout");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.CheckoutItem", b =>
@@ -185,7 +185,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("SerialNo")
                         .HasFilter("[SerialNo] IS NOT NULL");
 
-                    b.ToTable("tblCheckoutItem", (string)null);
+                    b.ToTable("tblCheckoutItem");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Customer", b =>
@@ -221,7 +221,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("customer_Email")
                         .IsUnique();
 
-                    b.ToTable("tblCustomer", (string)null);
+                    b.ToTable("tblCustomer");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.CustomerPurchaseHistory", b =>
@@ -257,7 +257,7 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("PurchaseDate", "HistoryID");
 
-                    b.ToTable("tblCustomerPurchaseHistory", (string)null);
+                    b.ToTable("tblCustomerPurchaseHistory");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Delivery", b =>
@@ -289,7 +289,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("batch_ID")
                         .IsUnique();
 
-                    b.ToTable("Deliveries", (string)null);
+                    b.ToTable("Deliveries");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.DeliveryDetails", b =>
@@ -321,7 +321,7 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("product_ID");
 
-                    b.ToTable("DeliveryDetails", (string)null);
+                    b.ToTable("DeliveryDetails");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Installment", b =>
@@ -372,7 +372,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("CheckoutID")
                         .IsUnique();
 
-                    b.ToTable("tblInstallment", (string)null);
+                    b.ToTable("tblInstallment");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.InstallmentPayment", b =>
@@ -406,7 +406,7 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("InstallmentID");
 
-                    b.ToTable("tblInstallmentPayment", (string)null);
+                    b.ToTable("tblInstallmentPayment");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.PasswordResetCode", b =>
@@ -435,7 +435,7 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.HasIndex("Email");
 
-                    b.ToTable("tblPasswordResetCode", (string)null);
+                    b.ToTable("tblPasswordResetCode");
                 });
 
             modelBuilder.Entity("Capstone_RJTech.Models.Product", b =>
@@ -451,6 +451,9 @@ namespace Capstone_RJTech.Data.Migrations
 
                     b.Property<int>("category_ID")
                         .HasColumnType("int");
+
+                    b.Property<bool>("is_active")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("is_serialized")
                         .HasColumnType("bit");
@@ -492,7 +495,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("category_ID", "product_name", "product_brand")
                         .IsUnique();
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
 
                     b.HasData(
                         new
@@ -500,6 +503,7 @@ namespace Capstone_RJTech.Data.Migrations
                             product_ID = 1,
                             Product_price = 200.00m,
                             category_ID = 2,
+                            is_active = true,
                             is_serialized = false,
                             product_brand = "A4 Tech",
                             product_description = "Optical Wired Mouse",
@@ -513,6 +517,7 @@ namespace Capstone_RJTech.Data.Migrations
                             product_ID = 2,
                             Product_price = 1200.00m,
                             category_ID = 3,
+                            is_active = true,
                             is_serialized = false,
                             product_brand = "Logitech",
                             product_description = "Mechanical Keyboard",
@@ -541,7 +546,7 @@ namespace Capstone_RJTech.Data.Migrations
                     b.HasIndex("category_name")
                         .IsUnique();
 
-                    b.ToTable("ProductCategories", (string)null);
+                    b.ToTable("ProductCategories");
 
                     b.HasData(
                         new

@@ -23,6 +23,16 @@
     const interestRate = document.getElementById('interestRate');
     const paymentMethod = document.getElementById('paymentMethod');
     const exitModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('checkoutExitModal'));
+    // Modal 1 asks the user to confirm the order; modal 2 reports the saved checkout.
+    const confirmModalElement = document.getElementById('checkoutConfirmModal');
+    const confirmModal = bootstrap.Modal.getOrCreateInstance(confirmModalElement);
+    const confirmButton = document.getElementById('confirmCheckoutButton');
+    const confirmSpinner = confirmButton.querySelector('.spinner-border');
+    const confirmCancelButton = confirmModalElement.querySelector('.checkout-flow-cancel');
+    const completedModalElement = document.getElementById('checkoutCompletedModal');
+    const completedModal = bootstrap.Modal.getOrCreateInstance(completedModalElement);
+    const completedContinueButton = document.getElementById('checkoutCompletedContinue');
+    const completedDetailsButton = document.getElementById('checkoutCompletedDetails');
     const currency = new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' });
     const fixedDownPaymentRate = 0.20;
     const fixedMonthlyInterestRate = 5;
@@ -97,6 +107,13 @@
     let productRequestId = 0;
     let dirty = false;
     let pendingExitUrl = '';
+    // Guards that keep a checkout from being saved twice: while the request runs, and
+    // after it succeeded while the completion modal still reports the saved sale.
+    let checkoutInFlight = false;
+    let completedCheckout = null;
+    let confirmClosingAfterSave = false;
+    let awaitingCompletionModal = false;
+    let completedNavigationUrl = '';
     const serialValidationStates = new Map();
 
     function escapeHtml(value) {
@@ -191,10 +208,6 @@
         const isInstallment = selectedPaymentType() === 'Installment';
         installmentFields.classList.toggle('d-none', !isInstallment);
         installmentSummary.classList.toggle('d-none', !isInstallment);
-        const checkoutStatus = document.getElementById('checkoutStatus');
-        checkoutStatus.textContent = isInstallment ? 'Ongoing' : 'Paid';
-        checkoutStatus.classList.toggle('status-paid', !isInstallment);
-        checkoutStatus.classList.toggle('status-ongoing', isInstallment);
         document.getElementById('checkoutSubmitLabel').textContent = isInstallment
             ? 'Create Installment'
             : 'Complete Checkout';
@@ -728,7 +741,29 @@
         return true;
     }
 
-    async function saveCheckout() {
+    // "Complete Checkout" only reviews the order. Nothing is saved until the user
+    // presses Confirm in the modal, and the sale is written exactly once.
+    function populateCheckoutConfirmation() {
+        const isInstallment = selectedPaymentType() === 'Installment';
+        const calculation = calculateInstallment();
+        const itemCount = checkoutItems.reduce((sum, item) => sum + item.quantity, 0);
+
+        document.getElementById('confirmPaymentType').textContent = selectedPaymentType();
+        document.getElementById('confirmCustomerName').textContent = customerName.value.trim();
+        document.getElementById('confirmItemCount').textContent = `${itemCount} item${itemCount === 1 ? '' : 's'}`;
+        document.getElementById('confirmTotalAmount').textContent = currency.format(calculation.originalAmount);
+        document.getElementById('confirmPaymentMethod').textContent = paymentMethod.value;
+        document.getElementById('confirmDownPayment').textContent = currency.format(calculation.downPaymentAmount);
+        document.getElementById('confirmMonthlyPayment').textContent = currency.format(calculation.monthlyPayment);
+        document.getElementById('confirmInterestRate').textContent = `${fixedMonthlyInterestRate.toFixed(2)}%`;
+        document.getElementById('confirmRemainingBalance').textContent = currency.format(calculation.installmentTotal);
+        document.querySelectorAll('[data-confirm-row]').forEach(row => {
+            row.classList.toggle('d-none', !isInstallment);
+        });
+    }
+
+    function openCheckoutConfirmation() {
+        if (checkoutInFlight || completedCheckout) return;
         if (!validateCustomerFields()) return;
         if (!checkoutItems.length) {
             showError('Add at least one product to the order.');
@@ -737,8 +772,81 @@
         if (!validateSelectedItems()) return;
         if (!validateInstallmentCheckout()) return;
 
-        completeButton.disabled = true;
-        completeButton.querySelector('.spinner-border').classList.remove('d-none');
+        populateCheckoutConfirmation();
+        confirmModal.show();
+    }
+
+    function setCheckoutSubmitting(isSubmitting) {
+        checkoutInFlight = isSubmitting;
+        confirmButton.disabled = isSubmitting;
+        completeButton.disabled = isSubmitting;
+        confirmSpinner.classList.toggle('d-none', !isSubmitting);
+        document.getElementById('confirmCheckoutLabel').textContent = isSubmitting ? 'Saving…' : 'Confirm';
+    }
+
+    // Renders what the server just committed, so the modal reports the saved record.
+    function populateCheckoutCompleted(result) {
+        const isInstallment = result.paymentType === 'Installment';
+        const checkoutId = String(Number(result.checkoutId) || 0).padStart(3, '0');
+        const installmentId = result.installmentId ? String(Number(result.installmentId)).padStart(3, '0') : null;
+        const money = value => currency.format(Number(value) || 0);
+
+        document.getElementById('completedCheckoutId').textContent = installmentId
+            ? `CHK-${checkoutId} · INS-${installmentId}`
+            : `CHK-${checkoutId}`;
+        document.getElementById('completedCustomerName').textContent = result.customerName || '—';
+        document.getElementById('completedPaymentType').textContent = result.paymentType || '—';
+        document.getElementById('completedTotalAmount').textContent = money(result.totalAmount);
+        document.getElementById('completedPaymentMethod').textContent = result.paymentMethod || '—';
+        document.getElementById('completedDownPayment').textContent = money(result.downPayment);
+        document.getElementById('completedMonthlyPayment').textContent = money(result.monthlyPayment);
+        document.getElementById('completedRemainingBalance').textContent = money(result.remainingBalance);
+        document.getElementById('completedInstallmentStatus').textContent = result.installmentStatus || '—';
+        document.querySelectorAll('[data-completed-row]').forEach(row => {
+            row.classList.toggle('d-none', !isInstallment);
+        });
+    }
+
+    // Bootstrap ignores hide() while the confirm dialog is still animating in, so closing it
+    // right after a save could be dropped and leave the saved sale unreported. Keep asking until
+    // the confirm dialog has actually closed, then show what was saved exactly once.
+    function handOffToCompletedModal() {
+        if (!awaitingCompletionModal) return;
+        if (confirmModalElement.classList.contains('show')) {
+            confirmModal.hide();
+            window.setTimeout(handOffToCompletedModal, 120);
+            return;
+        }
+        awaitingCompletionModal = false;
+        completedNavigationUrl = '';
+        completedModal.show();
+    }
+
+    // Clears the page only after a sale is committed, so Continue never strands saved
+    // data on screen and never produces a second checkout.
+    function resetCheckoutForm() {        clearCustomerInformation();
+        checkoutItems = [];
+        serialValidationStates.clear();
+        selectedItemsPage = 1;
+        window.clearTimeout(customerSearchTimer);
+        window.clearTimeout(productSearchTimer);
+        productSearch.value = '';
+        productResults.classList.add('d-none');
+        paymentTypeInputs.forEach(input => { input.checked = input.value === 'Full Payment'; });
+        paymentMethod.selectedIndex = 0;
+        updatePaymentType();
+        renderItems();
+        dirty = false;
+    }
+
+    async function saveCheckout() {
+        if (checkoutInFlight || completedCheckout) return;
+        if (!validateInstallmentCheckout()) {
+            showError('Review the checkout details before saving this sale.');
+            return;
+        }
+
+        setCheckoutSubmitting(true);
 
         const payload = {
             customerId: customerId.value ? Number(customerId.value) : null,
@@ -747,7 +855,7 @@
             customerPhone: customerPhone.value.trim(),
             customerAddress: customerAddress.value.trim(),
             paymentType: selectedPaymentType(),
-            paymentMethod: document.getElementById('paymentMethod').value,
+            paymentMethod: paymentMethod.value,
             installmentMonths: selectedPaymentType() === 'Installment' ? Number(installmentMonths.value) : null,
             downPayment: selectedPaymentType() === 'Installment' ? Number(downPayment.value) : null,
             interestRate: selectedPaymentType() === 'Installment' ? 5 : null,
@@ -762,20 +870,25 @@
             const response = await fetch(page.dataset.saveUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                skipToast: true
             });
             const result = await response.json();
 
             if (result.success) {
                 dirty = false;
-                window.redirectWithToast(result.message || 'Sale completed successfully.', 'success', result.redirectUrl);
+                completedCheckout = result;
+                populateCheckoutCompleted(result);
+                confirmClosingAfterSave = true;
+                awaitingCompletionModal = true;
+                handOffToCompletedModal();
                 return;
             }
             showError(result.message || 'Unable to save the sales transaction.');
         } catch {
             showError('Unable to save the sales transaction.');
         } finally {
-            completeButton.querySelector('.spinner-border').classList.add('d-none');
+            setCheckoutSubmitting(false);
             validateInstallmentCheckout();
         }
     }
@@ -826,7 +939,39 @@
         productSearchTimer = window.setTimeout(searchProducts, 200);
     });
     productSearch.addEventListener('focus', searchProducts);
-    completeButton.addEventListener('click', saveCheckout);
+    completeButton.addEventListener('click', openCheckoutConfirmation);
+    confirmButton.addEventListener('click', saveCheckout);
+    confirmModalElement.addEventListener('hide.bs.modal', event => {
+        // Do not let Escape, a backdrop click, or Cancel interrupt a committed request.
+        if (checkoutInFlight && !confirmClosingAfterSave) event.preventDefault();
+    });
+    confirmModalElement.addEventListener('shown.bs.modal', () => confirmCancelButton.focus());
+    confirmModalElement.addEventListener('hidden.bs.modal', () => {
+        confirmClosingAfterSave = false;
+        handOffToCompletedModal();
+    });
+    completedDetailsButton.addEventListener('click', () => {
+        if (!completedCheckout) return;
+        // Navigating reuses the checkout that Confirm already saved; nothing is written again.
+        completedNavigationUrl = completedCheckout.redirectUrl || '';
+        completedModal.hide();
+    });
+    completedModalElement.addEventListener('shown.bs.modal', () => completedContinueButton.focus());
+    completedModalElement.addEventListener('hidden.bs.modal', () => {
+        const saved = completedCheckout;
+        const destination = completedNavigationUrl;
+        completedCheckout = null;
+        completedNavigationUrl = '';
+        awaitingCompletionModal = false;
+        if (!saved) return;
+
+        if (destination) {
+            window.redirectWithToast(saved.message || 'Sale completed successfully.', 'success', destination);
+            return;
+        }
+        // Continue, or dismissing the modal: the sale is already saved, so clear the page.
+        resetCheckoutForm();
+    });
     paymentMethod.addEventListener('change', () => {
         dirty = true;
         validateInstallmentCheckout();

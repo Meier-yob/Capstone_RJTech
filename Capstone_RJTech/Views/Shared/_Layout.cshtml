@@ -26,6 +26,9 @@
     <title>@ViewData["Title"] - DraftSYSTEM</title>
     <script src="~/js/theme.js" asp-append-version="true"></script>
 
+    <!-- Typeface -->
+    @await Html.PartialAsync("_FontHead")
+
     <!-- Bootstrap CSS & Icons -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -165,24 +168,37 @@
                     <button id="themeToggle" class="header-icon-button" type="button" aria-label="Dark mode" aria-pressed="false" title="Switch to dark mode">
                         <i class="bi bi-moon" aria-hidden="true"></i>
                     </button>
-                    <button id="notificationToggle" class="header-icon-button header-notification" type="button"
-                            aria-label="Notifications" aria-expanded="false" aria-controls="notificationFlyout">
-                        <i class="fa-regular fa-bell"></i>
-                        <span id="notificationDot" class="notification-dot d-none"></span>
-                        <span id="notificationBadge" class="notification-badge d-none">0</span>
-                    </button>
-                    <div id="notificationFlyout" class="notification-flyout d-none"
-                         data-list-url="@Url.Action("GetNotifications", "Notification")"
-                         data-read-url="@Url.Action("MarkAsRead", "Notification")"
-                         data-read-all-url="@Url.Action("MarkAllAsRead", "Notification")">
-                        <div class="notification-flyout-header">
-                            <div><strong>Notifications</strong><span id="flyoutUnreadCount" class="notification-count">0</span></div>
-                            <button id="flyoutMarkAllRead" class="btn btn-sm btn-link" type="button">Mark all read</button>
+                    <div class="notification-anchor">
+                        <button id="notificationToggle" class="header-icon-button header-notification" type="button"
+                                aria-label="Notifications" aria-haspopup="true" aria-expanded="false" aria-controls="notificationFlyout">
+                            <i class="fa-regular fa-bell" aria-hidden="true"></i>
+                            <span id="notificationDot" class="notification-dot d-none"></span>
+                            <span id="notificationBadge" class="notification-badge d-none">0</span>
+                        </button>
+                        <div id="notificationFlyout" class="notification-flyout d-none"
+                             data-list-url="@Url.Action("GetNotifications", "Notification")"
+                             data-read-url="@Url.Action("MarkAsRead", "Notification")"
+                             data-read-all-url="@Url.Action("MarkAllAsRead", "Notification")"
+                             role="region" aria-label="Notifications">
+                            <div class="notification-flyout-header">
+                                <div class="notification-flyout-heading">
+                                    <span class="notification-flyout-heading-icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
+                                    <div>
+                                        <strong>Notifications</strong>
+                                        <small>Latest alerts</small>
+                                    </div>
+                                    <span id="flyoutUnreadCount" class="notification-count" aria-live="polite">0</span>
+                                </div>
+                                <button id="flyoutMarkAllRead" class="notification-mark-all" type="button" disabled>Mark all read</button>
+                            </div>
+                            <div id="notificationFlyoutList" class="notification-flyout-list" aria-live="polite">
+                                <div class="notification-loading">Loading notifications…</div>
+                            </div>
+                            <a asp-controller="Notification" asp-action="Notification" class="notification-flyout-footer">
+                                <span>View all notifications</span>
+                                <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            </a>
                         </div>
-                        <div id="notificationFlyoutList" class="notification-flyout-list">
-                            <div class="notification-loading">Loading notifications…</div>
-                        </div>
-                        <a asp-controller="Notification" asp-action="Notification" class="notification-flyout-footer">View all notifications</a>
                     </div>
                     <div class="header-divider"></div>
                     <div class="dropdown">
@@ -294,22 +310,29 @@
         </div>
     </div>
 
-    <div id="appToastContainer" class="toast-container position-fixed top-0 end-0 p-3"
+    <!-- Toast notifications. The container is a fixed top-right stack; site.js clones the
+         template below for every message, so alerts never overlap each other. -->
+    <div id="appToastContainer" class="app-toast-stack" role="status" aria-live="polite" aria-atomic="false"
          data-success-message="@(TempData["ToastSuccess"] ?? TempData["ImageSuccess"])"
          data-error-message="@(TempData["ToastError"] ?? TempData["ImageError"])"
          data-warning-message="@TempData["ToastWarning"]"
-         data-info-message="@TempData["ToastInfo"]">
-        <div id="appToast" class="toast fade border-0 shadow" role="status" aria-live="polite" aria-atomic="true">
-            <div class="d-flex">
-                <div class="toast-body d-flex align-items-center gap-2">
-                    <i id="appToastIcon" class="bi bi-check-circle-fill"></i>
-                    <span id="appToastMessage"></span>
-                    <button id="appToastAction" type="button" class="btn btn-sm btn-light text-dark rounded-pill px-3 ms-auto d-none"></button>
-                </div>
-                <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+         data-info-message="@TempData["ToastInfo"]"></div>
+
+    <template id="appToastTemplate">
+        <div class="app-toast">
+            <span class="app-toast-icon" aria-hidden="true">
+                <i class="bi bi-check-lg"></i>
+            </span>
+            <div class="app-toast-content">
+                <p class="app-toast-title"></p>
+                <p class="app-toast-detail d-none"></p>
             </div>
+            <button type="button" class="app-toast-action d-none"></button>
+            <button type="button" class="app-toast-close" aria-label="Dismiss notification">
+                <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
         </div>
-    </div>
+    </template>
 
     <!-- SCRIPTS -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

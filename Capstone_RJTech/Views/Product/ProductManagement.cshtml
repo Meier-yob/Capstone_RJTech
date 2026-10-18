@@ -14,8 +14,9 @@
 
 <div class="app-page"
      id="productManagementPage"
-     data-delete-url="@Url.Action("DeleteProduct")"
-     data-bulk-delete-url="@Url.Action("DeleteProducts")">
+     data-deactivate-url="@Url.Action("DeactivateProduct")"
+     data-activate-url="@Url.Action("ActivateProduct")"
+     data-bulk-deactivate-url="@Url.Action("DeactivateProducts")">
     @Html.AntiForgeryToken()
 
     <nav aria-label="breadcrumb">
@@ -294,16 +295,34 @@
                                             <hr class="dropdown-divider" />
                                         </li>
 
-                                        <li>
-                                            <button class="dropdown-item text-danger delete-product"
-                                                    type="button"
-                                                    data-id="@product.product_ID"
-                                                    data-name="@product.product_name">
+                                        @if (product.is_active)
+                                        {
+                                            <li>
+                                                <button class="dropdown-item text-danger deactivate-product"
+                                                        type="button"
+                                                        data-action="deactivate"
+                                                        data-id="@product.product_ID"
+                                                        data-name="@product.product_name">
 
-                                                <i class="bi bi-trash me-2"></i>
-                                                Delete
-                                            </button>
-                                        </li>
+                                                    <i class="bi bi-slash-circle me-2"></i>
+                                                    Deactivate
+                                                </button>
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li>
+                                                <button class="dropdown-item text-success activate-product"
+                                                        type="button"
+                                                        data-action="activate"
+                                                        data-id="@product.product_ID"
+                                                        data-name="@product.product_name">
+
+                                                    <i class="bi bi-check-circle me-2"></i>
+                                                    Activate
+                                                </button>
+                                            </li>
+                                        }
                                     </ul>
                                 </div>
                             </td>
@@ -368,6 +387,8 @@
         </div>
     </div>
 </div>
+
+<partial name="_ProductAvailabilityModal" />
 
 @section Styles {
     <link rel="stylesheet" href="~/css/product-management.css" asp-append-version="true" />
