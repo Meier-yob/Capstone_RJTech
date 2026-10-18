@@ -174,3 +174,12 @@
     background: var(--theme-blue-soft, #e0f2fe);
     color: var(--theme-blue, #0369a1);
 }
+
+.sales-status.status-deactivated {
+    background: var(--theme-surface-soft, #f3f4f6);
+    color: var(--theme-text, #4b5563);
+}
+
+.sales-orders-card .deactivated-row {
+    background: var(--theme-surface-soft, #fafafa);
+}

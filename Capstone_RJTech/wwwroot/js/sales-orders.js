@@ -15,7 +15,15 @@
         const term = search.value.trim().toLowerCase();
         return rows.filter(row => {
             const matchesSearch = !term || row.dataset.search.includes(term);
-            const matchesStatus = selectedStatus === 'all' || row.dataset.status === selectedStatus;
+            const deactivated = row.dataset.deactivated === 'true';
+            let matchesStatus;
+            if (selectedStatus === 'deactivated') {
+                matchesStatus = deactivated;
+            } else if (selectedStatus === 'all') {
+                matchesStatus = !deactivated;
+            } else {
+                matchesStatus = !deactivated && row.dataset.status === selectedStatus;
+            }
             return matchesSearch && matchesStatus;
         });
     }
@@ -72,37 +80,22 @@
         window.showToast(result.message || 'Unable to update the sales transaction.', 'error');
     }
 
-    async function deleteCheckout(button) {
-        if (!confirm(`Delete the sales details for ${button.dataset.code}? Product inventory will remain unchanged.`)) return;
-        const response = await fetch(page.dataset.deleteUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ id: button.dataset.id })
-        });
-        const result = await response.json();
-        if (result.success) {
-            window.reloadWithToast(result.message || 'Sales details deleted.');
-            return;
-        }
-        window.showToast(result.message || 'Unable to delete the sales details.', 'error');
-    }
-
     async function deleteSelectedCheckouts(event) {
         event.preventDefault();
         const ids = event.detail?.ids ?? [];
-        if (!ids.length || !confirm(`Delete ${ids.length} selected sales details? Product inventory will remain unchanged.`)) return;
+        if (!ids.length || !confirm(`Deactivate ${ids.length} selected sales details? You can restore them from the Deactivated tab.`)) return;
 
-        const response = await fetch(page.dataset.bulkDeleteUrl, {
+        const response = await fetch(page.dataset.bulkDeactivateUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(ids)
         });
         const result = await response.json();
         if (result.success) {
-            window.reloadWithToast(result.message || 'Selected sales details deleted.');
+            window.reloadWithToast(result.message || 'Selected sales details deactivated.');
             return;
         }
-        window.showToast(result.message || 'Unable to delete the selected sales details.', 'error');
+        window.showToast(result.message || 'Unable to deactivate the selected sales details.', 'error');
     }
 
     search.addEventListener('input', () => { currentPage = 1; render(); });
@@ -123,7 +116,6 @@
         if (!event.target.closest('a, button, input, label, .dropdown-menu')) window.location.href = row.dataset.href;
     }));
     document.querySelectorAll('.refund-checkout').forEach(button => button.addEventListener('click', () => refundCheckout(button)));
-    document.querySelectorAll('.delete-checkout').forEach(button => button.addEventListener('click', () => deleteCheckout(button)));
     table?.addEventListener('table:bulk-delete', deleteSelectedCheckouts);
     table?.addEventListener('table:sorted', () => {
         rows = [...document.querySelectorAll('.sales-order-row')];

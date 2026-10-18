@@ -223,29 +223,33 @@ namespace Capstone_RJTech.Controllers
         }
 
         [HttpPost]
-        public IActionResult DeleteDeliveryReceipt(int delivery_ID)
+        public IActionResult DeactivateDeliveryReceipt(int delivery_ID)
         {
-            using var transaction = _db.Database.BeginTransaction();
             try
             {
                 var delivery = _db.Deliveries.FirstOrDefault(item => item.delivery_ID == delivery_ID);
                 if (delivery == null) return Json(new { success = false, message = "Delivery not found." });
 
-                _db.Deliveries.Remove(delivery);
+                if (delivery.is_deactivated)
+                    return Json(new { success = true, message = "Delivery details are already deactivated." });
+
+                delivery.is_deactivated = true;
                 _db.SaveChanges();
-                transaction.Commit();
-                return Json(new { success = true, message = "Delivery details deleted. Received product quantities were not changed." });
+                return Json(new
+                {
+                    success = true,
+                    message = "Delivery details deactivated. You can restore them from the Deactivated tab."
+                });
             }
             catch (Exception exception)
             {
-                transaction.Rollback();
-                _logger.LogError(exception, "Error deleting delivery receipt.");
-                return Json(new { success = false, message = "An error occurred while deleting the delivery receipt." });
+                _logger.LogError(exception, "Error deactivating delivery receipt.");
+                return Json(new { success = false, message = "An error occurred while deactivating the delivery receipt." });
             }
         }
 
         [HttpPost]
-        public IActionResult DeleteDeliveryReceipts([FromBody] int[]? ids)
+        public IActionResult DeactivateDeliveryReceipts([FromBody] int[]? ids)
         {
             int[] selectedIds = ids?
                 .Where(id => id > 0)
@@ -253,9 +257,8 @@ namespace Capstone_RJTech.Controllers
                 .ToArray() ?? Array.Empty<int>();
 
             if (selectedIds.Length == 0)
-                return Json(new { success = false, message = "Select at least one delivery to delete." });
+                return Json(new { success = false, message = "Select at least one delivery to deactivate." });
 
-            using var transaction = _db.Database.BeginTransaction();
             try
             {
                 var deliveries = _db.Deliveries
@@ -264,20 +267,42 @@ namespace Capstone_RJTech.Controllers
                 if (deliveries.Count != selectedIds.Length)
                     return Json(new { success = false, message = "One or more selected deliveries could not be found." });
 
-                _db.Deliveries.RemoveRange(deliveries);
+                foreach (var delivery in deliveries)
+                    delivery.is_deactivated = true;
+
                 _db.SaveChanges();
-                transaction.Commit();
                 return Json(new
                 {
                     success = true,
-                    message = $"{deliveries.Count} delivery details deleted. Received product quantities were not changed."
+                    message = $"{deliveries.Count} delivery details deactivated. You can restore them from the Deactivated tab."
                 });
             }
             catch (Exception exception)
             {
-                transaction.Rollback();
-                _logger.LogError(exception, "Error deleting selected delivery receipts.");
-                return Json(new { success = false, message = "An error occurred while deleting the selected delivery details." });
+                _logger.LogError(exception, "Error deactivating selected delivery receipts.");
+                return Json(new { success = false, message = "An error occurred while deactivating the selected delivery details." });
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ReactivateDeliveryReceipt(int delivery_ID)
+        {
+            try
+            {
+                var delivery = _db.Deliveries.FirstOrDefault(item => item.delivery_ID == delivery_ID);
+                if (delivery == null) return Json(new { success = false, message = "Delivery not found." });
+
+                if (!delivery.is_deactivated)
+                    return Json(new { success = true, message = "Delivery details are already active." });
+
+                delivery.is_deactivated = false;
+                _db.SaveChanges();
+                return Json(new { success = true, message = "Delivery details restored to the active list." });
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Error restoring delivery receipt.");
+                return Json(new { success = false, message = "An error occurred while restoring the delivery receipt." });
             }
         }
 

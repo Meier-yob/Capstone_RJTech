@@ -142,6 +142,9 @@ namespace Capstone_RJTech.Data.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("is_deactivated")
+                        .HasColumnType("bit");
+
                     b.HasKey("CheckoutID");
 
                     b.HasIndex("CustomerID");
@@ -277,6 +280,9 @@ namespace Capstone_RJTech.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("is_archived")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("is_deactivated")
                         .HasColumnType("bit");
 
                     b.Property<string>("received_by")

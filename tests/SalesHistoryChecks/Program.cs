@@ -35,6 +35,19 @@ JsonElement Result(IActionResult action)
 try
 {
     await db.GetService<IMigrator>().MigrateAsync("20260906102343_RemoveScheduleEvents");
+
+    // The Checkout and Delivery models gained an is_deactivated column after this
+    // migration. Apply it here (and record it in the history table) so the legacy
+    // seed data below matches the current model without importing history early.
+    const string deactivationMigration = "20261016073814_AddDeactivationFlags";
+    await db.Database.ExecuteSqlRawAsync(
+        "ALTER TABLE [tblCheckout] ADD [is_deactivated] bit NOT NULL DEFAULT CAST(0 AS bit);");
+    await db.Database.ExecuteSqlRawAsync(
+        "ALTER TABLE [Deliveries] ADD [is_deactivated] bit NOT NULL DEFAULT CAST(0 AS bit);");
+    await db.Database.ExecuteSqlRawAsync(
+        "INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion]) VALUES ({0}, {1});",
+        deactivationMigration, "8.0.30");
+
     var customer = new Customer
     {
         customer_FullName = "Maria Santos", customer_Email = "maria@gmail.com",
@@ -153,8 +166,16 @@ try
     Check(Success(sales.RefundCheckout(full.CheckoutID)) &&
         await db.CustomerPurchaseHistories.AnyAsync(row => row.CheckoutID == full.CheckoutID),
         "Refunding a checkout preserves its original payment history.");
-    Check(!Success(sales.DeleteCheckout(full.CheckoutID)) && !Success(sales.DeleteCheckouts([full.CheckoutID, plan.CheckoutID])),
-        "Single and bulk checkout deletion protect payment history.");
+    Check(Success(sales.DeactivateCheckout(full.CheckoutID)) &&
+        (await db.Checkouts.FindAsync(full.CheckoutID))!.is_deactivated,
+        "Deactivating a checkout with payment history succeeds and marks it deactivated.");
+    Check(Success(sales.ReactivateCheckout(full.CheckoutID)) &&
+        !(await db.Checkouts.FindAsync(full.CheckoutID))!.is_deactivated,
+        "Reactivating a checkout returns it to the active list.");
+    Check(Success(sales.DeactivateCheckouts([full.CheckoutID, plan.CheckoutID])) &&
+        await db.Checkouts.CountAsync(row => row.is_deactivated &&
+            (row.CheckoutID == full.CheckoutID || row.CheckoutID == plan.CheckoutID)) == 2,
+        "Bulk checkout deactivation marks every selected record.");
     var installmentController = new InstallmentController(installments, db, NullLogger<InstallmentController>.Instance);
     Check(!Success(installmentController.DeleteInstallments([plan.InstallmentID])),
         "Instalment deletion protects linked payment records.");
